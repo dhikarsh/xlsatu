@@ -5,7 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>XL Satu - Sales Tracker</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        /* ===== KESERAGAMAN FONT MENYELURUH ===== */
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important; 
+        }
+
         :root {
             --xl-blue: #0F3B7A; --xl-blue-light: #1A5BB5; --xl-blue-dark: #0A2A55;
             --xl-blue-grad: linear-gradient(135deg, #0F3B7A 0%, #1A5BB5 100%);
@@ -15,27 +22,39 @@
             --xl-transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             --neu-bg: #e8edf5; --neu-shadow-light: #ffffff; --neu-shadow-dark: #c8cdd5; --neu-radius: 20px;
         }
-        body { background: var(--neu-bg); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 16px; }
+
+        body { background: var(--neu-bg); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 16px; font-size: 14px; color: var(--xl-text); }
         #app { max-width: 480px; width: 100%; background: transparent; min-height: 92vh; overflow: hidden; position: relative; padding-bottom: 20px; }
+
         .app-header { background: var(--xl-blue-grad); padding: 18px 20px 16px; display: flex; align-items: center; justify-content: space-between; border-radius: 0 0 32px 32px; box-shadow: 0 8px 30px rgba(15, 59, 122, 0.30); position: sticky; top: 0; z-index: 20; }
         .app-header .logo { height: 34px; object-fit: contain; filter: brightness(0) invert(1); }
         .app-header .user-badge { background: rgba(255, 255, 255, 0.18); backdrop-filter: blur(4px); padding: 6px 14px 6px 18px; border-radius: 40px; color: #fff; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255, 255, 255, 0.10); }
         .app-header .user-badge .logout-btn { background: rgba(255, 255, 255, 0.15); border: none; color: #fff; font-size: 14px; cursor: pointer; padding: 2px 8px; border-radius: 20px; transition: var(--xl-transition); }
         .app-header .user-badge .logout-btn:hover { background: rgba(255, 255, 255, 0.30); }
+
         .bottom-nav { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 448px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.25); display: flex; justify-content: space-around; padding: 6px 8px; z-index: 30; border-radius: 60px; box-shadow: 0 8px 40px rgba(15, 59, 122, 0.12); }
         .bottom-nav .nav-item { display: flex; flex-direction: column; align-items: center; background: none; border: none; padding: 6px 12px; cursor: pointer; color: var(--xl-muted); font-size: 11px; font-weight: 600; transition: var(--xl-transition); border-radius: 40px; min-width: 56px; position: relative; }
         .bottom-nav .nav-item .nav-icon { font-size: 20px; line-height: 1; margin-bottom: 2px; }
         .bottom-nav .nav-item .nav-label { font-size: 9px; letter-spacing: 0.3px; text-transform: uppercase; opacity: 0.7; }
         .bottom-nav .nav-item.active { color: #fff; background: var(--xl-blue-grad); box-shadow: 0 4px 16px rgba(15, 59, 122, 0.35); padding: 6px 16px; }
         .bottom-nav .nav-item.active .nav-label { opacity: 1; }
+
         .page { display: none; padding: 16px 16px 24px; animation: fadeUp 0.35s ease; }
         .page.active { display: block; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
         .card { background: #fff; border-radius: var(--xl-radius); padding: 18px 20px; margin-bottom: 16px; box-shadow: var(--xl-shadow); border: 1px solid var(--xl-border); transition: var(--xl-transition); }
         .card:hover { box-shadow: 0 12px 40px rgba(15, 59, 122, 0.10); }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
         .card-title { font-size: 16px; font-weight: 700; color: var(--xl-dark); display: flex; align-items: center; gap: 8px; }
         .card-title .emoji { font-size: 18px; }
+
+        /* ===== BULAN & TAHUN PICKER STYLING ===== */
+        .month-selector { display: flex; align-items: center; gap: 6px; background: var(--xl-gray); padding: 4px 10px; border-radius: 20px; border: 1px solid var(--xl-border); }
+        .month-selector button { background: none; border: none; cursor: pointer; font-size: 12px; font-weight: 700; color: var(--xl-blue); padding: 2px 6px; border-radius: 50%; transition: var(--xl-transition); }
+        .month-selector button:hover { background: var(--xl-blue-soft); }
+        .month-selector select { background: transparent; border: none; font-size: 13px; font-weight: 600; color: var(--xl-dark); cursor: pointer; outline: none; }
+
         .progress-wrap { margin-top: 4px; }
         .progress-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
         .progress-row .prog-label { font-size: 14px; font-weight: 700; min-width: 48px; color: var(--xl-dark); }
@@ -45,17 +64,18 @@
         .progress-row .prog-numbers { font-size: 14px; font-weight: 700; min-width: 70px; text-align: right; color: var(--xl-dark); }
         .progress-row .prog-numbers .target { color: var(--xl-muted); font-weight: 400; font-size: 12px; }
         .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 40px; background: var(--xl-blue-soft); color: var(--xl-blue); }
+
         .daily-input-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 2px; }
         .daily-input-group .field { flex: 1; min-width: 80px; }
         .daily-input-group .field label { display: block; font-size: 10px; font-weight: 700; color: var(--xl-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
         .daily-input-group .field input { width: 100%; padding: 12px 14px; border: 2px solid var(--xl-border); border-radius: var(--xl-radius-sm); font-size: 18px; font-weight: 700; background: var(--xl-gray); transition: var(--xl-transition); outline: none; color: var(--xl-dark); }
         .daily-input-group .field input:focus { border-color: var(--xl-blue-light); background: #fff; box-shadow: 0 0 0 4px rgba(26, 91, 181, 0.10); }
-        .daily-input-group .field input[type="number"] { -moz-appearance: textfield; }
-        .daily-input-group .field input[type="number"]::-webkit-inner-spin-button, .daily-input-group .field input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
         .btn-primary { background: var(--xl-blue-grad); color: #fff; border: none; padding: 12px 24px; border-radius: var(--xl-radius-sm); font-weight: 700; font-size: 14px; cursor: pointer; transition: var(--xl-transition); box-shadow: 0 4px 16px rgba(15, 59, 122, 0.25); width: 100%; margin-top: 6px; letter-spacing: 0.3px; }
         .btn-primary:active { transform: scale(0.97); }
         .btn-primary:disabled { opacity: 0.5; pointer-events: none; }
         .btn-primary.small { padding: 10px 16px; font-size: 13px; width: auto; margin-top: 0; border-radius: 40px; }
+
         .tracker-wrap { overflow-x: auto; margin: 0 -4px; padding: 0 4px; -webkit-overflow-scrolling: touch; border-radius: var(--xl-radius-sm); }
         .tracker-table { width: 100%; min-width: 540px; border-collapse: collapse; font-size: 12px; }
         .tracker-table th { text-align: center; padding: 8px 2px; font-weight: 700; color: var(--xl-muted); font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--xl-border); background: var(--xl-gray); }
@@ -67,10 +87,11 @@
         .tracker-table .cum-col { background: var(--xl-blue-soft); font-weight: 700; color: var(--xl-blue); border-left: 2px solid var(--xl-border); }
         .tracker-table .cum-col td { background: var(--xl-blue-soft); font-weight: 700; color: var(--xl-blue); }
         .tracker-table .empty-cell { color: #ccc; }
+
         .form-group { margin-bottom: 16px; }
         .form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--xl-dark); margin-bottom: 5px; letter-spacing: 0.3px; }
         .form-group label .required { color: #E74C3C; margin-left: 2px; }
-        .form-group select, .form-group input[type="text"], .form-group input[type="date"] { width: 100%; padding: 12px 16px; border: 2px solid var(--xl-border); border-radius: var(--xl-radius-sm); font-size: 15px; background: var(--xl-gray); transition: var(--xl-transition); outline: none; color: var(--xl-dark); appearance: none; -webkit-appearance: none; }
+        .form-group select, .form-group input[type="text"], .form-group input[type="date"] { width: 100%; padding: 12px 16px; border: 2px solid var(--xl-border); border-radius: var(--xl-radius-sm); font-size: 15px; font-weight: 500; background: var(--xl-gray); transition: var(--xl-transition); outline: none; color: var(--xl-dark); appearance: none; -webkit-appearance: none; }
         .form-group select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; }
         .form-group select:focus, .form-group input:focus { border-color: var(--xl-blue-light); background: #fff; box-shadow: 0 0 0 4px rgba(26, 91, 181, 0.08); }
         .form-group .check-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
@@ -86,52 +107,47 @@
         .login-card .login-title { text-align: center; font-size: 26px; font-weight: 800; color: var(--xl-dark); letter-spacing: -0.5px; margin-bottom: 2px; }
         .login-card .login-title span { color: var(--xl-blue); }
         .login-card .login-sub { text-align: center; font-size: 14px; color: var(--xl-muted); margin-bottom: 28px; font-weight: 500; }
+        
         .neu-input-group { margin-bottom: 18px; }
         .neu-input-group label { display: block; font-size: 11px; font-weight: 700; color: var(--xl-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; padding-left: 4px; }
         .neu-input-group select, .neu-input-group input { width: 100%; padding: 14px 18px; border: none; border-radius: var(--xl-radius-sm); font-size: 15px; font-weight: 500; color: var(--xl-dark); background: var(--neu-bg); box-shadow: inset 4px 4px 8px var(--neu-shadow-dark), inset -4px -4px 8px var(--neu-shadow-light); transition: var(--xl-transition); outline: none; appearance: none; -webkit-appearance: none; }
         .neu-input-group select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; cursor: pointer; }
         .neu-input-group select:focus, .neu-input-group input:focus { box-shadow: inset 2px 2px 6px var(--neu-shadow-dark), inset -2px -2px 6px var(--neu-shadow-light), 0 0 0 3px rgba(26, 91, 181, 0.15); }
-        .neu-input-group select::placeholder, .neu-input-group input::placeholder { color: var(--xl-muted); font-weight: 400; opacity: 0.6; }
         .neu-input-group input[type="password"] { letter-spacing: 2px; }
+        
         .neu-btn { width: 100%; padding: 16px; border: none; border-radius: var(--xl-radius-sm); font-size: 16px; font-weight: 700; color: #fff; background: var(--xl-blue-grad); box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light); cursor: pointer; transition: var(--xl-transition); letter-spacing: 0.5px; margin-top: 6px; position: relative; overflow: hidden; }
-        .neu-btn::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%); pointer-events: none; }
         .neu-btn:hover { transform: translateY(-2px); box-shadow: 8px 8px 16px var(--neu-shadow-dark), -8px -8px 16px var(--neu-shadow-light); }
         .neu-btn:active { transform: translateY(1px) scale(0.98); box-shadow: 3px 3px 8px var(--neu-shadow-dark), -3px -3px 8px var(--neu-shadow-light); }
-        .neu-btn:disabled { opacity: 0.6; transform: none; pointer-events: none; }
+
         .admin-toggle-wrap { margin-top: 24px; text-align: center; }
         .admin-toggle-wrap::before { content: ''; display: block; width: 40px; height: 2px; background: var(--xl-border); margin: 0 auto 16px; border-radius: 4px; }
-        .admin-toggle-btn { background: none; border: none; color: var(--xl-muted); font-size: 13px; font-weight: 600; cursor: pointer; padding: 8px 20px; border-radius: 40px; transition: var(--xl-transition); background: var(--neu-bg); box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light); }
+        .admin-toggle-btn { background: none; border: none; color: var(--xl-muted); font-size: 13px; font-weight: 600; cursor: pointer; padding: 8px 20px; border-radius: 40px; background: var(--neu-bg); box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light); }
         .admin-toggle-btn:hover { color: var(--xl-blue); box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light); }
-        .admin-toggle-btn:active { transform: scale(0.96); }
-        .login-error { background: #fde8e8; color: #C0392B; padding: 12px 16px; border-radius: var(--xl-radius-sm); font-size: 13px; font-weight: 600; margin-bottom: 16px; display: none; text-align: center; box-shadow: inset 2px 2px 6px rgba(192, 57, 43, 0.10), inset -2px -2px 6px rgba(255, 255, 255, 0.6); border: 1px solid rgba(192, 57, 43, 0.12); }
+
+        .login-error { background: #fde8e8; color: #C0392B; padding: 12px 16px; border-radius: var(--xl-radius-sm); font-size: 13px; font-weight: 600; margin-bottom: 16px; display: none; text-align: center; border: 1px solid rgba(192, 57, 43, 0.12); }
         .login-error.show { display: block; }
         
         .admin-section { margin-bottom: 24px; }
         .admin-section .section-title { font-size: 14px; font-weight: 700; color: var(--xl-dark); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--xl-gray-light); }
-        .admin-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--xl-gray); border-radius: var(--xl-radius-sm); margin-bottom: 8px; border: 1px solid var(--xl-border); transition: var(--xl-transition); }
-        .admin-list-item:hover { border-color: var(--xl-blue-light); background: #fff; }
+        .admin-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--xl-gray); border-radius: var(--xl-radius-sm); margin-bottom: 8px; border: 1px solid var(--xl-border); }
         .admin-list-item .name { font-weight: 700; font-size: 14px; color: var(--xl-dark); }
         .admin-list-item .detail { font-size: 12px; color: var(--xl-muted); }
-        .admin-list-item .actions { display: flex; gap: 4px; }
-        .admin-list-item .actions .btn-sm { background: none; border: none; color: var(--xl-blue); font-weight: 600; font-size: 13px; cursor: pointer; padding: 4px 10px; border-radius: 6px; transition: var(--xl-transition); }
-        .admin-list-item .actions .btn-sm:hover { background: var(--xl-blue-soft); }
+        .admin-list-item .actions .btn-sm { background: none; border: none; color: var(--xl-blue); font-weight: 600; font-size: 13px; cursor: pointer; padding: 4px 10px; border-radius: 6px; }
         .admin-list-item .actions .btn-sm.danger { color: #C0392B; }
-        .admin-list-item .actions .btn-sm.danger:hover { background: #FDEAEA; }
+
         .admin-form-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
         .admin-form-row .field { flex: 1; min-width: 100px; }
-        .admin-form-row .field input { width: 100%; padding: 10px 14px; border: 2px solid var(--xl-border); border-radius: var(--xl-radius-sm); font-size: 14px; background: var(--xl-gray); outline: none; transition: var(--xl-transition); }
-        .admin-form-row .field input:focus { border-color: var(--xl-blue-light); background: #fff; }
-        .admin-form-row .btn-primary { flex: 0 0 auto; padding: 10px 20px; width: auto; margin-top: 0; border-radius: 40px; }
-        .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); max-width: 400px; width: 90%; padding: 14px 24px; border-radius: var(--xl-radius-sm); background: #1A1A2E; color: #fff; font-weight: 600; font-size: 14px; text-align: center; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25); z-index: 999; opacity: 0; transition: all 0.4s ease; pointer-events: none; backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.06); }
+        .admin-form-row .field input { width: 100%; padding: 10px 14px; border: 2px solid var(--xl-border); border-radius: var(--xl-radius-sm); font-size: 14px; background: var(--xl-gray); outline: none; }
+
+        .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); max-width: 400px; width: 90%; padding: 14px 24px; border-radius: var(--xl-radius-sm); background: #1A1A2E; color: #fff; font-weight: 600; font-size: 14px; text-align: center; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25); z-index: 999; opacity: 0; transition: all 0.4s ease; pointer-events: none; }
         .toast.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
         .toast.success { background: #0F7B3A; }
         .toast.error { background: #C0392B; }
-        @media (max-width: 420px) { body { padding: 0; align-items: flex-start; } #app { border-radius: 0; min-height: 100vh; padding-bottom: 10px; } .app-header { border-radius: 0; padding: 14px 16px; } .app-header .logo { height: 28px; } .page { padding: 12px 12px 20px; } .card { padding: 14px 14px; border-radius: 16px; } .bottom-nav { bottom: 12px; width: calc(100% - 24px); border-radius: 40px; padding: 4px 6px; } .bottom-nav .nav-item { padding: 4px 10px; min-width: 44px; } .bottom-nav .nav-item .nav-icon { font-size: 18px; } .bottom-nav .nav-item .nav-label { font-size: 8px; } .bottom-nav .nav-item.active { padding: 4px 14px; } .daily-input-group .field { min-width: 70px; } .tracker-table { font-size: 10px; min-width: 400px; } .tracker-table th, .tracker-table td { padding: 6px 1px; font-size: 11px; } .login-page { padding: 16px 12px 20px; min-height: 80vh; } .login-card { padding: 28px 20px 24px; border-radius: 16px; } .login-card .login-logo { height: 44px; } .login-card .login-title { font-size: 22px; } .admin-form-row .field { min-width: 60px; } .admin-form-row .btn-primary { padding: 8px 14px; font-size: 12px; } .toast { bottom: 80px; padding: 12px 18px; font-size: 13px; } }
-        @media (min-width: 600px) { body { padding: 32px; align-items: center; } #app { border-radius: 40px; min-height: 80vh; box-shadow: 0 24px 80px rgba(15, 59, 122, 0.12); } .bottom-nav { max-width: 400px; } .login-card { padding: 44px 36px 36px; } }
+
         .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255, 255, 255, 0.25); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .btn-primary .spinner { width: 18px; height: 18px; border-width: 2px; }
-        .welcome-card { background: var(--xl-blue-grad) !important; border: none !important; box-shadow: 0 8px 32px rgba(15, 59, 122, 0.30) !important; color: #fff; border-radius: var(--xl-radius) !important; padding: 20px !important; }
+
+        .welcome-card { background: var(--xl-blue-grad) !important; border: none !important; color: #fff; border-radius: var(--xl-radius) !important; padding: 20px !important; }
         .welcome-card .welcome-name { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
         .welcome-card .welcome-sub { font-size: 13px; opacity: 0.8; font-weight: 500; }
         .welcome-card .welcome-date { font-size: 12px; opacity: 0.7; text-align: right; }
@@ -230,7 +246,13 @@
             <div class="card">
                 <div class="card-header">
                     <span class="card-title"><span class="emoji">📊</span> Performa Bulanan</span>
-                    <span class="text-muted" style="font-size:13px;font-weight:600;" id="monthLabel">Bulan</span>
+                    <!-- PILIHAN BULAN & TAHUN DENGAN TOMBOL PANAH KECIL -->
+                    <div class="month-selector">
+                        <button type="button" id="prevMonthBtn" title="Bulan Sebelumnya">◀</button>
+                        <select id="monthSelect"></select>
+                        <select id="yearSelect"></select>
+                        <button type="button" id="nextMonthBtn" title="Bulan Berikutnya">▶</button>
+                    </div>
                 </div>
                 <div class="progress-wrap">
                     <div class="progress-row">
@@ -299,7 +321,6 @@
                 <div class="card-header">
                     <span class="card-title"><span class="emoji">📝</span> Input Data Pemasangan</span>
                 </div>
-                <!-- Menggunakan div/form standar tanpa submit otomatis bawaan browser -->
                 <div id="inputForm">
                     <div class="form-group">
                         <label>Nama AE <span class="required">*</span></label>
@@ -405,9 +426,6 @@
 
     <!-- ===== JAVASCRIPT ===== -->
     <script>
-        // ============================================================
-        //  KONFIGURASI
-        // ============================================================
         const CONFIG = {
             API_URL: 'https://script.google.com/macros/s/AKfycbziNda43u7zR7sgvYIn5bimHuKkdEx0FRpEicMkmo3q8qOrRzqxQ0ZgQpINIA0vJP7uvQ/exec',
             ADMIN_PIN: '123456',
@@ -417,17 +435,13 @@
             currentUser: null,
             isAdmin: false,
             aeList: [],
-            dailyData: {},
             trackerData: {},
-            currentDate: new Date()
+            selectedDate: new Date() // Menyimpan bulan dan tahun yang sedang aktif dilihat
         };
 
         const $ = id => document.getElementById(id);
         const $$ = sel => document.querySelectorAll(sel);
 
-        // ============================================================
-        //  UTILITY
-        // ============================================================
         function formatDate(d) {
             const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
             return `${y}-${m}-${day}`;
@@ -445,7 +459,6 @@
             clearTimeout(t._timer);
             t._timer = setTimeout(() => t.classList.remove('show'), 3200);
         }
-
         function showError(msg) { showToast(msg, 'error'); }
         function showSuccess(msg) { showToast(msg, 'success'); }
 
@@ -461,9 +474,6 @@
             }
         }
 
-        // ============================================================
-        //  API CALLS
-        // ============================================================
         async function apiCall(action, payload = {}) {
             try {
                 const response = await fetch(CONFIG.API_URL, {
@@ -479,9 +489,6 @@
         }
         async function fetchData(action, params = {}) { return await apiCall(action, params); }
 
-        // ============================================================
-        //  DATA LOADING
-        // ============================================================
         async function loadAeList() {
             const result = await fetchData('getAeList');
             if (result.success && result.data) {
@@ -491,9 +498,6 @@
             return [];
         }
 
-        // ============================================================
-        //  RENDER FUNCTIONS
-        // ============================================================
         function renderAeDropdowns() {
             const selects = ['loginAeSelect', 'inputAeSelect'];
             let list = state.aeList || [];
@@ -574,15 +578,49 @@
             });
         }
 
+        // Setup Opsi Dropdown Bulan & Tahun
+        function initMonthYearSelectors() {
+            const mSel = $('monthSelect');
+            const ySel = $('yearSelect');
+            
+            mSel.innerHTML = '';
+            for (let i = 0; i < 12; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = getMonthName(i);
+                mSel.appendChild(opt);
+            }
+
+            ySel.innerHTML = '';
+            const currentYear = new Date().getFullYear();
+            for (let y = currentYear - 2; y <= currentYear + 2; y++) {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                ySel.appendChild(opt);
+            }
+        }
+
+        function updateMonthYearSelectorsUI() {
+            $('monthSelect').value = state.selectedDate.getMonth();
+            $('yearSelect').value = state.selectedDate.getFullYear();
+        }
+
+        async function changeMonth(offset) {
+            state.selectedDate.setMonth(state.selectedDate.getMonth() + offset);
+            updateMonthYearSelectorsUI();
+            await refreshAllData();
+        }
+
         function renderDashboard() {
             const user = state.currentUser;
             if (!user) return;
-            const now = new Date();
-            const month = now.getMonth(), year = now.getFullYear(), days = getDaysInMonth(year, month);
+            const year = state.selectedDate.getFullYear();
+            const month = state.selectedDate.getMonth();
+            const days = getDaysInMonth(year, month);
             
             $('dashboardAeName').textContent = user.name;
-            $('dashboardDate').textContent = formatDateDisplay(now);
-            $('monthLabel').textContent = getMonthName(month) + ' ' + year;
+            $('dashboardDate').textContent = formatDateDisplay(new Date());
 
             const targetFtth = parseInt(user.targetFtth) || 0;
             const targetFwa = parseInt(user.targetFwa) || 0;
@@ -606,16 +644,17 @@
             $('fwaProgress').style.width = pctFwa + '%';
             $('ftthPercent').textContent = pctFtth + '%';
             $('fwaPercent').textContent = pctFwa + '%';
-            $('todayLabel').textContent = formatDateDisplay(now);
+            $('todayLabel').textContent = formatDateDisplay(new Date());
 
-            const todayEntry = state.trackerData[todayStr()] || {};
+            const todayStrKey = todayStr();
+            const todayEntry = state.trackerData[todayStrKey] || {};
             const todayFtth = parseInt(todayEntry.ftth) || 0, todayFwa = parseInt(todayEntry.fwa) || 0;
             const statusEl = $('dailyStatus');
             if (todayFtth > 0 || todayFwa > 0) {
                 statusEl.innerHTML = `✅ Hari ini: FTTH <strong>${todayFtth}</strong> · FWA <strong>${todayFwa}</strong>`;
                 statusEl.style.background = '#E8F5E9'; statusEl.style.color = '#1E6B3A';
             } else {
-                statusEl.innerHTML = `⏳ Belum ada input untuk hari ini (${formatDateDisplay(now)})`;
+                statusEl.innerHTML = `⏳ Belum ada input untuk hari ini (${formatDateDisplay(new Date())})`;
                 statusEl.style.background = 'var(--xl-gray)'; statusEl.style.color = 'var(--xl-muted)';
             }
             renderTracker(month, year);
@@ -662,7 +701,8 @@
         async function refreshAllData() {
             const user = state.currentUser;
             if (!user) return;
-            const now = new Date(), month = now.getMonth() + 1, year = now.getFullYear();
+            const month = state.selectedDate.getMonth() + 1;
+            const year = state.selectedDate.getFullYear();
 
             const aeList = await loadAeList();
             if (aeList.length) state.aeList = aeList;
@@ -671,14 +711,12 @@
             const tracker = await fetchData('getTracker', { aeName: user.name, month, year });
             if (tracker.success) state.trackerData = tracker.data;
 
-            renderDashboard(); renderAdminAeList();
+            renderDashboard(); 
+            renderAdminAeList();
             $('inputAeSelect').value = user.isAdmin ? '' : user.name;
             $('navAdmin').style.display = user.isAdmin ? 'flex' : 'none';
         }
 
-        // ============================================================
-        //  LOGIN
-        // ============================================================
         async function handleLogin(e) {
             e.preventDefault();
             const name = $('loginAeSelect').value;
@@ -735,9 +773,6 @@
             showToast('Anda telah keluar');
         }
 
-        // ============================================================
-        //  SUBMIT & INPUT FORM
-        // ============================================================
         async function handleDailySubmit(e) {
             e.preventDefault();
             if (!state.currentUser || state.currentUser.isAdmin) return showError('Silakan login sebagai AE');
@@ -838,9 +873,6 @@
             } else showError('Gagal update PIN Admin');
         }
 
-        // ============================================================
-        //  PAGE NAVIGATION
-        // ============================================================
         function showPage(pageId) {
             $$('.page').forEach(p => p.classList.remove('active'));
             $(pageId)?.classList.add('active');
@@ -867,10 +899,10 @@
             });
         });
 
-        // ============================================================
-        //  INIT
-        // ============================================================
         async function init() {
+            initMonthYearSelectors();
+            updateMonthYearSelectorsUI();
+
             const aeList = await loadAeList();
             if (aeList.length) state.aeList = aeList;
             renderAeDropdowns();
@@ -879,11 +911,21 @@
                 await apiCall('saveAe', { name: 'ADMIN', pin: CONFIG.ADMIN_PIN, targetFtth: 0, targetFwa: 0 });
             }
 
+            // Event listener untuk tombol panah & dropdown bulan/tahun
+            $('prevMonthBtn').addEventListener('click', () => changeMonth(-1));
+            $('nextMonthBtn').addEventListener('click', () => changeMonth(1));
+            $('monthSelect').addEventListener('change', async (e) => {
+                state.selectedDate.setMonth(parseInt(e.target.value));
+                await refreshAllData();
+            });
+            $('yearSelect').addEventListener('change', async (e) => {
+                state.selectedDate.setFullYear(parseInt(e.target.value));
+                await refreshAllData();
+            });
+
             $('loginForm').addEventListener('submit', handleLogin);
             $('adminLoginForm').addEventListener('submit', handleAdminLogin);
             $('dailyForm').addEventListener('submit', handleDailySubmit);
-            
-            // Menggunakan click event pada tombol simpan untuk mencegah page refresh bawaan browser
             $('inputSubmitBtn').addEventListener('click', handleInputSubmit);
             
             $('btnGoToAdminLogin').addEventListener('click', () => {
