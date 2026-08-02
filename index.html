@@ -252,7 +252,7 @@
         .form-group .check-group label:has(input:checked) { background: var(--xl-blue-soft); border-color: var(--xl-blue-light); color: var(--xl-blue); box-shadow: 0 0 0 2px rgba(26, 91, 181, 0.10); }
         .form-group .check-group input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--xl-blue); cursor: pointer; flex-shrink: 0; }
 
-        /* ===== LOGIN PAGE ===== */
+        /* ===== LOGIN PAGE (Sama untuk Admin & AE) ===== */
         .login-page { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 85vh; padding: 20px 16px 30px; background: var(--neu-bg); }
         .login-card { width: 100%; max-width: 380px; background: var(--neu-bg); border-radius: var(--neu-radius); padding: 36px 28px 32px; box-shadow: 12px 12px 24px var(--neu-shadow-dark), -12px -12px 24px var(--neu-shadow-light); transition: var(--xl-transition); }
         .login-card:hover { box-shadow: 16px 16px 32px var(--neu-shadow-dark), -16px -16px 32px var(--neu-shadow-light); }
@@ -276,16 +276,11 @@
         .neu-btn:active { transform: translateY(1px) scale(0.98); box-shadow: 3px 3px 8px var(--neu-shadow-dark), -3px -3px 8px var(--neu-shadow-light); }
         .neu-btn:disabled { opacity: 0.6; transform: none; pointer-events: none; }
 
-        .admin-toggle-wrap { margin-top: 24px; text-align: center; position: relative; }
+        .admin-toggle-wrap { margin-top: 24px; text-align: center; }
         .admin-toggle-wrap::before { content: ''; display: block; width: 40px; height: 2px; background: var(--xl-border); margin: 0 auto 16px; border-radius: 4px; }
         .admin-toggle-btn { background: none; border: none; color: var(--xl-muted); font-size: 13px; font-weight: 600; cursor: pointer; padding: 8px 20px; border-radius: 40px; transition: var(--xl-transition); background: var(--neu-bg); box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light); }
         .admin-toggle-btn:hover { color: var(--xl-blue); box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light); }
         .admin-toggle-btn:active { transform: scale(0.96); }
-
-        .admin-login-form { margin-top: 16px; padding: 20px 16px 16px; background: var(--neu-bg); border-radius: var(--xl-radius-sm); box-shadow: inset 3px 3px 8px var(--neu-shadow-dark), inset -3px -3px 8px var(--neu-shadow-light); display: none; }
-        .admin-login-form.show { display: block; animation: fadeUp 0.3s ease; }
-        .admin-login-form .admin-back-btn { background: none; border: none; color: var(--xl-muted); font-size: 12px; cursor: pointer; padding: 6px 12px; border-radius: 40px; transition: var(--xl-transition); font-weight: 600; margin-top: 8px; }
-        .admin-login-form .admin-back-btn:hover { color: var(--xl-blue); background: var(--neu-bg); box-shadow: 2px 2px 6px var(--neu-shadow-dark), -2px -2px 6px var(--neu-shadow-light); }
 
         .login-error { background: #fde8e8; color: #C0392B; padding: 12px 16px; border-radius: var(--xl-radius-sm); font-size: 13px; font-weight: 600; margin-bottom: 16px; display: none; text-align: center; box-shadow: inset 2px 2px 6px rgba(192, 57, 43, 0.10), inset -2px -2px 6px rgba(255, 255, 255, 0.6); border: 1px solid rgba(192, 57, 43, 0.12); }
         .login-error.show { display: block; }
@@ -372,7 +367,7 @@
 
         <!-- ---- PAGES ---- -->
 
-        <!-- LOGIN -->
+        <!-- LOGIN AE PAGE -->
         <div class="page active" id="pageLogin">
             <div class="login-page">
                 <div class="login-card">
@@ -401,20 +396,35 @@
                     </form>
 
                     <div class="admin-toggle-wrap">
-                        <button class="admin-toggle-btn" id="adminToggleBtn">🔐 Login sebagai Admin</button>
+                        <button class="admin-toggle-btn" id="btnGoToAdminLogin">🔐 Login sebagai Admin</button>
                     </div>
+                </div>
+            </div>
+        </div>
 
-                    <!-- Admin login form (hidden) -->
-                    <div class="admin-login-form" id="adminLoginForm">
+        <!-- LOGIN ADMIN PAGE (Terpisah dari AE Login) -->
+        <div class="page" id="pageAdminLogin">
+            <div class="login-page">
+                <div class="login-card">
+                    <!-- Logo -->
+                    <div class="login-logo-wrap">
+                        <img class="login-logo" src="https://satu.xl.co.id/_next/image?url=https%3A%2F%2Fstatic-xlsatu.xl.co.id%2Fimages%2Fpost%2F46bf5fe2-0960-45be-958b-3a7cc6fb12a3.png&w=96&q=75" alt="XL Satu" />
+                    </div>
+                    
+                    <div class="login-title">Admin <span>Panel</span></div>
+                    <div class="login-sub">Masukkan PIN untuk masuk</div>
+
+                    <form id="adminLoginForm">
                         <div class="neu-input-group">
                             <label>PIN Admin</label>
-                            <input type="password" id="adminPin" placeholder="PIN Admin" maxlength="6" inputmode="numeric" />
+                            <input type="password" id="adminPin" placeholder="Masukkan PIN Admin" maxlength="6" inputmode="numeric" required />
                         </div>
                         <button type="submit" class="neu-btn" id="adminLoginBtn" style="background:var(--xl-blue-dark);">Masuk Admin</button>
-                        <div style="text-align:center; margin-top:10px;">
-                            <button type="button" class="admin-back-btn" id="adminBackBtn">← Kembali ke Login AE</button>
+                        
+                        <div class="admin-toggle-wrap" style="margin-top:20px;">
+                            <button type="button" class="admin-toggle-btn" id="btnBackToLogin">← Kembali ke Login AE</button>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -480,7 +490,7 @@
                         </div>
                     </div>
                     <div style="font-size:11px;color:var(--xl-muted);margin-top:6px;">
-                        ⚡ Input angka hari ini akan otomatis masuk ke tracker.
+                        ⚡ Input angka hari ini otomatis sinkron dengan tracker.
                     </div>
                 </form>
                 <div id="dailyStatus" style="font-size:13px;font-weight:600;margin-top:8px;padding:8px 12px;background:var(--xl-gray);border-radius:var(--xl-radius-sm);"></div>
@@ -619,8 +629,8 @@
         //  KONFIGURASI
         // ============================================================
         const CONFIG = {
-            // PASTIKAN MENGGUNAKAN URL DEPLOYMENT TERBARU ANDA DI BAWAH INI
-            API_URL: 'https://script.google.com/macros/s/AKfycbzOt7AkHzWruEEz6fv2tBGdo1438CqFQVzlEATtjQEZO5xwbBS5lOlq8vgSZQjykOagDQ/exec',
+            // PASTIKAN GANTI INI DENGAN URL DEPLOY TERBARU APP SCRIPT ANDA!
+            API_URL: 'https://script.google.com/macros/s/AKfycbwujGvOiSceObnRnlj2axxCPI670Y2sOVFIAUjQsM9ychrDEFC0jyTA_prpIAa3o2WSSw/exec',
             ADMIN_PIN: '123456',
         };
 
@@ -693,7 +703,7 @@
             }
         }
 
-       // ============================================================
+        // ============================================================
         //  API CALLS (SEMUA DIJADIKAN POST UNTUK MENGHINDARI CORS/REDIRECT ERROR)
         // ============================================================
         async function apiCall(action, payload = {}) {
@@ -711,31 +721,9 @@
             }
         }
 
-        // Sekarang fetchData hanya menjadi alias untuk apiCall
-        // karena di backend (Apps Script) kita sudah mengatur agar
-        // doPost bisa menangani permintaan pengambilan data
+        // Alias fetchData agar merujuk ke apiCall yang sudah menggunakan POST
         async function fetchData(action, params = {}) {
             return await apiCall(action, params);
-        }
-
-        async function fetchData(action, params = {}) {
-            try {
-                const url = new URL(CONFIG.API_URL);
-                url.searchParams.set('action', action);
-                for (const [key, value] of Object.entries(params)) {
-                    if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
-                }
-                const response = await fetch(url.toString(), {
-                    method: 'GET'
-                    // Menghapus header Accept
-                });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const data = await response.json();
-                return data;
-            } catch (error) {
-                console.error('API GET error:', error);
-                return { success: false, error: error.message };
-            }
         }
 
         // ============================================================
@@ -761,12 +749,6 @@
             const result = await fetchData('getTracker', { aeName, month, year });
             if (result.success && result.data) return result.data;
             return {};
-        }
-
-        async function loadCustomerInputs(aeName) {
-            const result = await fetchData('getCustomerInputs', { aeName });
-            if (result.success && result.data) return result.data;
-            return [];
         }
 
         // ============================================================
@@ -1254,25 +1236,6 @@
         }
 
         // ============================================================
-        //  TOGGLE ADMIN LOGIN
-        // ============================================================
-        let adminLoginVisible = false;
-
-        function toggleAdminLogin() {
-            adminLoginVisible = !adminLoginVisible;
-            const form = $('adminLoginForm');
-            const toggleBtn = $('adminToggleBtn');
-            if (adminLoginVisible) {
-                form.classList.add('show');
-                toggleBtn.textContent = '← Kembali ke Login AE';
-            } else {
-                form.classList.remove('show');
-                toggleBtn.textContent = '🔐 Login sebagai Admin';
-                $('adminPin').value = '';
-            }
-        }
-
-        // ============================================================
         //  NAVIGATION CLICKS
         // ============================================================
         document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
@@ -1310,13 +1273,19 @@
                 await apiCall('saveAe', { name: 'ADMIN', pin: CONFIG.ADMIN_PIN, targetFtth: 0, targetFwa: 0 });
             }
 
+            // Forms Submit 
             $('loginForm').addEventListener('submit', handleLogin);
-            $('adminLoginBtn').addEventListener('click', handleAdminLogin);
-            $('adminToggleBtn').addEventListener('click', toggleAdminLogin);
-            $('adminBackBtn').addEventListener('click', toggleAdminLogin);
-            $('logoutBtn').addEventListener('click', handleLogout);
+            $('adminLoginForm').addEventListener('submit', handleAdminLogin);
             $('dailyForm').addEventListener('submit', handleDailySubmit);
             $('inputForm').addEventListener('submit', handleInputSubmit);
+            
+            // Buttons Click
+            $('btnGoToAdminLogin').addEventListener('click', () => showPage('pageAdminLogin'));
+            $('btnBackToLogin').addEventListener('click', () => {
+                $('adminPin').value = '';
+                showPage('pageLogin');
+            });
+            $('logoutBtn').addEventListener('click', handleLogout);
             $('adminAddAeBtn').addEventListener('click', handleAddAe);
             $('adminChangePinBtn').addEventListener('click', handleChangeAdminPin);
 
