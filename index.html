@@ -49,7 +49,6 @@
         .card-title { font-size: 16px; font-weight: 700; color: var(--xl-dark); display: flex; align-items: center; gap: 8px; }
         .card-title .emoji { font-size: 18px; }
 
-        /* ===== BULAN & TAHUN PICKER STYLING ===== */
         .month-selector { display: flex; align-items: center; gap: 6px; background: var(--xl-gray); padding: 4px 10px; border-radius: 20px; border: 1px solid var(--xl-border); }
         .month-selector button { background: none; border: none; cursor: pointer; font-size: 12px; font-weight: 700; color: var(--xl-blue); padding: 2px 6px; border-radius: 50%; transition: var(--xl-transition); }
         .month-selector button:hover { background: var(--xl-blue-soft); }
@@ -68,63 +67,49 @@
         .daily-input-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 2px; }
         .daily-input-group .field { flex: 1; min-width: 80px; }
         .daily-input-group .field label { display: block; font-size: 10px; font-weight: 700; color: var(--xl-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .daily-input-group .field input { width: 100%; padding: 12px 14px; border: 2px solid var(--xl-border); border-radius: var(--xl-radius-sm); font-size: 18px; font-weight: 700; background: var(--xl-gray); transition: var(--xl-transition); outline: none; color: var(--xl-dark); }
-        .daily-input-group .field input:focus { border-color: var(--xl-blue-light); background: #fff; box-shadow: 0 0 0 4px rgba(26, 91, 181, 0.10); }
+        .daily-input-group .field input { width: 100%; padding: 12px 14px; border: 2px solid var(--xl-border); border-radius: var(--xl-radius-sm); font-size: 18px; font-weight: 700; background: var(--xl-gray); outline: none; color: var(--xl-dark); }
 
-        .btn-primary { background: var(--xl-blue-grad); color: #fff; border: none; padding: 12px 24px; border-radius: var(--xl-radius-sm); font-weight: 700; font-size: 14px; cursor: pointer; transition: var(--xl-transition); box-shadow: 0 4px 16px rgba(15, 59, 122, 0.25); width: 100%; margin-top: 6px; letter-spacing: 0.3px; }
+        .btn-primary { background: var(--xl-blue-grad); color: #fff; border: none; padding: 12px 24px; border-radius: var(--xl-radius-sm); font-weight: 700; font-size: 14px; cursor: pointer; transition: var(--xl-transition); box-shadow: 0 4px 16px rgba(15, 59, 122, 0.25); width: 100%; margin-top: 6px; }
         .btn-primary:active { transform: scale(0.97); }
-        .btn-primary:disabled { opacity: 0.5; pointer-events: none; }
         .btn-primary.small { padding: 10px 16px; font-size: 13px; width: auto; margin-top: 0; border-radius: 40px; }
 
         .tracker-wrap { overflow-x: auto; margin: 0 -4px; padding: 0 4px; -webkit-overflow-scrolling: touch; border-radius: var(--xl-radius-sm); }
         .tracker-table { width: 100%; min-width: 540px; border-collapse: collapse; font-size: 12px; }
-        .tracker-table th { text-align: center; padding: 8px 2px; font-weight: 700; color: var(--xl-muted); font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--xl-border); background: var(--xl-gray); }
+        .tracker-table th { text-align: center; padding: 8px 2px; font-weight: 700; color: var(--xl-muted); font-size: 9px; text-transform: uppercase; border-bottom: 2px solid var(--xl-border); background: var(--xl-gray); }
         .tracker-table td { text-align: center; padding: 8px 2px; font-weight: 600; color: var(--xl-dark); border-bottom: 1px solid var(--xl-gray-light); font-size: 13px; }
         .tracker-table .row-label { text-align: left; font-weight: 700; color: var(--xl-dark); font-size: 12px; padding-right: 8px; border-right: 2px solid var(--xl-border); background: var(--xl-gray); }
         .tracker-table .today-col { background: var(--xl-blue-soft); border-radius: 4px; position: relative; }
         .tracker-table .today-col td { background: var(--xl-blue-soft); color: var(--xl-blue); font-weight: 700; }
-        .tracker-table .today-col::after { content: ''; position: absolute; bottom: -1px; left: 20%; width: 60%; height: 2px; background: var(--xl-blue-light); border-radius: 4px; }
         .tracker-table .cum-col { background: var(--xl-blue-soft); font-weight: 700; color: var(--xl-blue); border-left: 2px solid var(--xl-border); }
-        .tracker-table .cum-col td { background: var(--xl-blue-soft); font-weight: 700; color: var(--xl-blue); }
-        .tracker-table .empty-cell { color: #ccc; }
 
         .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--xl-dark); margin-bottom: 5px; letter-spacing: 0.3px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--xl-dark); margin-bottom: 5px; }
         .form-group label .required { color: #E74C3C; margin-left: 2px; }
-        .form-group select, .form-group input[type="text"], .form-group input[type="date"] { width: 100%; padding: 12px 16px; border: 2px solid var(--xl-border); border-radius: var(--xl-radius-sm); font-size: 15px; font-weight: 500; background: var(--xl-gray); transition: var(--xl-transition); outline: none; color: var(--xl-dark); appearance: none; -webkit-appearance: none; }
+        .form-group select, .form-group input[type="text"], .form-group input[type="date"] { width: 100%; padding: 12px 16px; border: 2px solid var(--xl-border); border-radius: var(--xl-radius-sm); font-size: 15px; font-weight: 500; background: var(--xl-gray); outline: none; color: var(--xl-dark); appearance: none; -webkit-appearance: none; }
         .form-group select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; }
-        .form-group select:focus, .form-group input:focus { border-color: var(--xl-blue-light); background: #fff; box-shadow: 0 0 0 4px rgba(26, 91, 181, 0.08); }
         .form-group .check-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
-        .form-group .check-group label { display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 13px; color: var(--xl-dark); cursor: pointer; background: var(--xl-gray); padding: 8px 14px 8px 10px; border-radius: 40px; border: 1px solid var(--xl-border); transition: var(--xl-transition); }
-        .form-group .check-group label:has(input:checked) { background: var(--xl-blue-soft); border-color: var(--xl-blue-light); color: var(--xl-blue); box-shadow: 0 0 0 2px rgba(26, 91, 181, 0.10); }
-        .form-group .check-group input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--xl-blue); cursor: pointer; flex-shrink: 0; }
+        .form-group .check-group label { display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 13px; color: var(--xl-dark); cursor: pointer; background: var(--xl-gray); padding: 8px 14px 8px 10px; border-radius: 40px; border: 1px solid var(--xl-border); }
+        .form-group .check-group input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--xl-blue); cursor: pointer; }
         
         .login-page { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 85vh; padding: 20px 16px 30px; background: var(--neu-bg); }
-        .login-card { width: 100%; max-width: 380px; background: var(--neu-bg); border-radius: var(--neu-radius); padding: 36px 28px 32px; box-shadow: 12px 12px 24px var(--neu-shadow-dark), -12px -12px 24px var(--neu-shadow-light); transition: var(--xl-transition); }
-        .login-card:hover { box-shadow: 16px 16px 32px var(--neu-shadow-dark), -16px -16px 32px var(--neu-shadow-light); }
+        .login-card { width: 100%; max-width: 380px; background: var(--neu-bg); border-radius: var(--neu-radius); padding: 36px 28px 32px; box-shadow: 12px 12px 24px var(--neu-shadow-dark), -12px -12px 24px var(--neu-shadow-light); }
         .login-card .login-logo-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
         .login-card .login-logo { height: 56px; width: auto; object-fit: contain; }
-        .login-card .login-title { text-align: center; font-size: 26px; font-weight: 800; color: var(--xl-dark); letter-spacing: -0.5px; margin-bottom: 2px; }
+        .login-card .login-title { text-align: center; font-size: 26px; font-weight: 800; color: var(--xl-dark); margin-bottom: 2px; }
         .login-card .login-title span { color: var(--xl-blue); }
         .login-card .login-sub { text-align: center; font-size: 14px; color: var(--xl-muted); margin-bottom: 28px; font-weight: 500; }
         
         .neu-input-group { margin-bottom: 18px; }
         .neu-input-group label { display: block; font-size: 11px; font-weight: 700; color: var(--xl-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; padding-left: 4px; }
-        .neu-input-group select, .neu-input-group input { width: 100%; padding: 14px 18px; border: none; border-radius: var(--xl-radius-sm); font-size: 15px; font-weight: 500; color: var(--xl-dark); background: var(--neu-bg); box-shadow: inset 4px 4px 8px var(--neu-shadow-dark), inset -4px -4px 8px var(--neu-shadow-light); transition: var(--xl-transition); outline: none; appearance: none; -webkit-appearance: none; }
+        .neu-input-group select, .neu-input-group input { width: 100%; padding: 14px 18px; border: none; border-radius: var(--xl-radius-sm); font-size: 15px; font-weight: 500; color: var(--xl-dark); background: var(--neu-bg); box-shadow: inset 4px 4px 8px var(--neu-shadow-dark), inset -4px -4px 8px var(--neu-shadow-light); outline: none; appearance: none; -webkit-appearance: none; }
         .neu-input-group select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; cursor: pointer; }
-        .neu-input-group select:focus, .neu-input-group input:focus { box-shadow: inset 2px 2px 6px var(--neu-shadow-dark), inset -2px -2px 6px var(--neu-shadow-light), 0 0 0 3px rgba(26, 91, 181, 0.15); }
         .neu-input-group input[type="password"] { letter-spacing: 2px; }
         
-        .neu-btn { width: 100%; padding: 16px; border: none; border-radius: var(--xl-radius-sm); font-size: 16px; font-weight: 700; color: #fff; background: var(--xl-blue-grad); box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light); cursor: pointer; transition: var(--xl-transition); letter-spacing: 0.5px; margin-top: 6px; position: relative; overflow: hidden; }
-        .neu-btn:hover { transform: translateY(-2px); box-shadow: 8px 8px 16px var(--neu-shadow-dark), -8px -8px 16px var(--neu-shadow-light); }
-        .neu-btn:active { transform: translateY(1px) scale(0.98); box-shadow: 3px 3px 8px var(--neu-shadow-dark), -3px -3px 8px var(--neu-shadow-light); }
-
+        .neu-btn { width: 100%; padding: 16px; border: none; border-radius: var(--xl-radius-sm); font-size: 16px; font-weight: 700; color: #fff; background: var(--xl-blue-grad); box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light); cursor: pointer; margin-top: 6px; }
         .admin-toggle-wrap { margin-top: 24px; text-align: center; }
-        .admin-toggle-wrap::before { content: ''; display: block; width: 40px; height: 2px; background: var(--xl-border); margin: 0 auto 16px; border-radius: 4px; }
         .admin-toggle-btn { background: none; border: none; color: var(--xl-muted); font-size: 13px; font-weight: 600; cursor: pointer; padding: 8px 20px; border-radius: 40px; background: var(--neu-bg); box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light); }
-        .admin-toggle-btn:hover { color: var(--xl-blue); box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light); }
 
-        .login-error { background: #fde8e8; color: #C0392B; padding: 12px 16px; border-radius: var(--xl-radius-sm); font-size: 13px; font-weight: 600; margin-bottom: 16px; display: none; text-align: center; border: 1px solid rgba(192, 57, 43, 0.12); }
+        .login-error { background: #fde8e8; color: #C0392B; padding: 12px 16px; border-radius: var(--xl-radius-sm); font-size: 13px; font-weight: 600; margin-bottom: 16px; display: none; text-align: center; }
         .login-error.show { display: block; }
         
         .admin-section { margin-bottom: 24px; }
@@ -148,7 +133,7 @@
         @keyframes spin { to { transform: rotate(360deg); } }
 
         .welcome-card { background: var(--xl-blue-grad) !important; border: none !important; color: #fff; border-radius: var(--xl-radius) !important; padding: 20px !important; }
-        .welcome-card .welcome-name { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
+        .welcome-card .welcome-name { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
         .welcome-card .welcome-sub { font-size: 13px; opacity: 0.8; font-weight: 500; }
         .welcome-card .welcome-date { font-size: 12px; opacity: 0.7; text-align: right; }
     </style>
@@ -233,7 +218,7 @@
             <div class="card welcome-card">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <div>
-                        <div class="welcome-sub">Selamat datang,</div>
+                        <div class="welcome-sub" id="welcomeSubLabel">Selamat datang,</div>
                         <div class="welcome-name" id="dashboardAeName">—</div>
                     </div>
                     <div class="welcome-date">
@@ -246,7 +231,6 @@
             <div class="card">
                 <div class="card-header">
                     <span class="card-title"><span class="emoji">📊</span> Performa Bulanan</span>
-                    <!-- PILIHAN BULAN & TAHUN DENGAN TOMBOL PANAH KECIL -->
                     <div class="month-selector">
                         <button type="button" id="prevMonthBtn" title="Bulan Sebelumnya">◀</button>
                         <select id="monthSelect"></select>
@@ -272,7 +256,8 @@
                 </div>
             </div>
 
-            <div class="card">
+            <!-- Form input harian disembunyikan untuk Admin karena Admin adalah akumulasi seluruh AE -->
+            <div class="card" id="dailyInputCard">
                 <div class="card-header">
                     <span class="card-title"><span class="emoji">📅</span> Performa Harian</span>
                     <span class="text-muted" style="font-size:13px;font-weight:600;" id="todayLabel">Hari ini</span>
@@ -300,7 +285,7 @@
 
             <div class="card" style="padding-bottom:12px;">
                 <div class="card-header">
-                    <span class="card-title"><span class="emoji">📋</span> Tracker Harian</span>
+                    <span class="card-title"><span class="emoji">📋</span> Tracker Harian (Akumulasi)</span>
                     <span class="text-muted" style="font-size:13px;font-weight:600;" id="trackerMonthLabel">Bulan</span>
                 </div>
                 <div class="tracker-wrap" id="trackerWrap">
@@ -427,7 +412,7 @@
     <!-- ===== JAVASCRIPT ===== -->
     <script>
         const CONFIG = {
-            API_URL: 'https://script.google.com/macros/s/AKfycbziNda43u7zR7sgvYIn5bimHuKkdEx0FRpEicMkmo3q8qOrRzqxQ0ZgQpINIA0vJP7uvQ/exec',
+            API_URL: 'https://script.google.com/macros/s/AKfycbwvCFrufqdtS89r59OvthXMV1HJhVRzQ2wOuv3mIG-RpjKDBPCgrEIu7rYAc05B0d7P8g/exec',
             ADMIN_PIN: '123456',
         };
 
@@ -436,7 +421,7 @@
             isAdmin: false,
             aeList: [],
             trackerData: {},
-            selectedDate: new Date() // Menyimpan bulan dan tahun yang sedang aktif dilihat
+            selectedDate: new Date()
         };
 
         const $ = id => document.getElementById(id);
@@ -578,7 +563,6 @@
             });
         }
 
-        // Setup Opsi Dropdown Bulan & Tahun
         function initMonthYearSelectors() {
             const mSel = $('monthSelect');
             const ySel = $('yearSelect');
@@ -619,11 +603,32 @@
             const month = state.selectedDate.getMonth();
             const days = getDaysInMonth(year, month);
             
-            $('dashboardAeName').textContent = user.name;
+            if (user.isAdmin) {
+                $('welcomeSubLabel').textContent = 'Panel Administrator';
+                $('dashboardAeName').textContent = 'Akumulasi Seluruh AE';
+                $('dailyInputCard').style.display = 'none'; // Admin tidak input harian pribadi
+            } else {
+                $('welcomeSubLabel').textContent = 'Selamat datang,';
+                $('dashboardAeName').textContent = user.name;
+                $('dailyInputCard').style.display = 'block';
+            }
+
             $('dashboardDate').textContent = formatDateDisplay(new Date());
 
-            const targetFtth = parseInt(user.targetFtth) || 0;
-            const targetFwa = parseInt(user.targetFwa) || 0;
+            // Hitung Target (Jika Admin, jumlahkan target semua AE selain Admin)
+            let targetFtth = 0, targetFwa = 0;
+            if (user.isAdmin) {
+                state.aeList.forEach(ae => {
+                    if (String(ae.name).toUpperCase() !== 'ADMIN') {
+                        targetFtth += parseInt(ae.targetFtth) || 0;
+                        targetFwa += parseInt(ae.targetFwa) || 0;
+                    }
+                });
+            } else {
+                targetFtth = parseInt(user.targetFtth) || 0;
+                targetFwa = parseInt(user.targetFwa) || 0;
+            }
+
             $('ftthTarget').textContent = targetFtth;
             $('fwaTarget').textContent = targetFwa;
 
@@ -650,12 +655,14 @@
             const todayEntry = state.trackerData[todayStrKey] || {};
             const todayFtth = parseInt(todayEntry.ftth) || 0, todayFwa = parseInt(todayEntry.fwa) || 0;
             const statusEl = $('dailyStatus');
-            if (todayFtth > 0 || todayFwa > 0) {
-                statusEl.innerHTML = `✅ Hari ini: FTTH <strong>${todayFtth}</strong> · FWA <strong>${todayFwa}</strong>`;
-                statusEl.style.background = '#E8F5E9'; statusEl.style.color = '#1E6B3A';
-            } else {
-                statusEl.innerHTML = `⏳ Belum ada input untuk hari ini (${formatDateDisplay(new Date())})`;
-                statusEl.style.background = 'var(--xl-gray)'; statusEl.style.color = 'var(--xl-muted)';
+            if (!user.isAdmin) {
+                if (todayFtth > 0 || todayFwa > 0) {
+                    statusEl.innerHTML = `✅ Hari ini: FTTH <strong>${todayFtth}</strong> · FWA <strong>${todayFwa}</strong>`;
+                    statusEl.style.background = '#E8F5E9'; statusEl.style.color = '#1E6B3A';
+                } else {
+                    statusEl.innerHTML = `⏳ Belum ada input untuk hari ini (${formatDateDisplay(new Date())})`;
+                    statusEl.style.background = 'var(--xl-gray)'; statusEl.style.color = 'var(--xl-muted)';
+                }
             }
             renderTracker(month, year);
         }
@@ -708,7 +715,9 @@
             if (aeList.length) state.aeList = aeList;
             renderAeDropdowns();
 
-            const tracker = await fetchData('getTracker', { aeName: user.name, month, year });
+            // Jika admin, request dengan aeName 'Admin' sehingga backend mengakumulasi seluruh data AE secara kilat
+            const queryName = user.isAdmin ? 'Admin' : user.name;
+            const tracker = await fetchData('getTracker', { aeName: queryName, month, year });
             if (tracker.success) state.trackerData = tracker.data;
 
             renderDashboard(); 
@@ -761,10 +770,11 @@
             $('adminLoginError').classList.remove('show');
             $('adminPin').value = '';
 
-            showPage('pageAdmin');
+            // Login admin langsung ke Dashboard dengan data akumulasi seluruh AE
+            showPage('pageDashboard');
             $('headerUserName').textContent = 'Admin';
             await refreshAllData();
-            showSuccess('Login sebagai Admin berhasil');
+            showSuccess('Login Admin berhasil (Akumulasi Seluruh AE)');
         }
 
         function handleLogout() {
@@ -884,7 +894,6 @@
         document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
             btn.addEventListener('click', () => {
                 const page = btn.dataset.page;
-                if (page === 'pageAdmin' && !state.currentUser?.isAdmin) return showError('Akses admin diperlukan');
                 if ((page === 'pageDashboard' || page === 'pageInput') && !state.currentUser) {
                     showError('Silakan login terlebih dahulu'); return showPage('pageLogin');
                 }
@@ -911,7 +920,6 @@
                 await apiCall('saveAe', { name: 'ADMIN', pin: CONFIG.ADMIN_PIN, targetFtth: 0, targetFwa: 0 });
             }
 
-            // Event listener untuk tombol panah & dropdown bulan/tahun
             $('prevMonthBtn').addEventListener('click', () => changeMonth(-1));
             $('nextMonthBtn').addEventListener('click', () => changeMonth(1));
             $('monthSelect').addEventListener('change', async (e) => {
