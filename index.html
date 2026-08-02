@@ -1419,23 +1419,23 @@
             }
         }
 
-        // ============================================================
-        //  API CALLS
-        // ============================================================
-        async function apiCall(action, payload = {}) {
+       // ============================================================
+//  API CALLS (dengan CORS dan error handling)
+// ============================================================
+async function apiCall(action, payload = {}) {
   try {
-    const res = await fetch(CONFIG.API_URL, {
+    const response = await fetch(CONFIG.API_URL, {
       method: 'POST',
-      mode: 'cors', // ganti dari no-cors
+      mode: 'cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action, ...payload })
     });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
     return data;
-  } catch (e) {
-    console.error('API error:', e);
-    return { success: false, error: e.message };
+  } catch (error) {
+    console.error('API POST error:', error);
+    return { success: false, error: error.message };
   }
 }
 
@@ -1443,20 +1443,20 @@ async function fetchData(action, params = {}) {
   try {
     const url = new URL(CONFIG.API_URL);
     url.searchParams.set('action', action);
-    for (const [k, v] of Object.entries(params)) {
-      if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
     }
-    const res = await fetch(url.toString(), {
+    const response = await fetch(url.toString(), {
       method: 'GET',
       mode: 'cors',
       headers: { 'Accept': 'application/json' }
     });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
     return data;
-  } catch (e) {
-    console.error('Fetch error:', e);
-    return { success: false, error: e.message };
+  } catch (error) {
+    console.error('API GET error:', error);
+    return { success: false, error: error.message };
   }
 }
 
