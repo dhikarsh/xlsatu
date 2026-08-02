@@ -630,7 +630,7 @@
         // ============================================================
         const CONFIG = {
             // PASTIKAN GANTI INI DENGAN URL DEPLOY TERBARU APP SCRIPT ANDA!
-            API_URL: 'https://script.google.com/macros/s/AKfycbwujGvOiSceObnRnlj2axxCPI670Y2sOVFIAUjQsM9ychrDEFC0jyTA_prpIAa3o2WSSw/exec',
+            API_URL: 'https://script.google.com/macros/s/AKfycbwpth46FW5LB-Id7Oeg7cM-qcxJAMlpMFxGEG6bE5WhXyvvLPbtd35Oxu3hnaaHEjnI0w/exec',
             ADMIN_PIN: '123456',
         };
 
@@ -704,7 +704,7 @@
         }
 
         // ============================================================
-        //  API CALLS (SEMUA DIJADIKAN POST UNTUK MENGHINDARI CORS/REDIRECT ERROR)
+        //  API CALLS 
         // ============================================================
         async function apiCall(action, payload = {}) {
             try {
@@ -721,7 +721,6 @@
             }
         }
 
-        // Alias fetchData agar merujuk ke apiCall yang sudah menggunakan POST
         async function fetchData(action, params = {}) {
             return await apiCall(action, params);
         }
@@ -756,19 +755,25 @@
         // ============================================================
         function renderAeDropdowns() {
             const selects = ['loginAeSelect', 'inputAeSelect'];
-            const list = state.aeList || [];
+            let list = state.aeList || [];
+            
+            // Filter "ADMIN" agar tidak muncul di dropdown login AE, lalu urutkan abjad A-Z
+            const dropdownList = list
+                .filter(ae => ae.name.toUpperCase() !== 'ADMIN')
+                .sort((a, b) => a.name.localeCompare(b.name));
+
             selects.forEach(id => {
                 const sel = $(id);
                 if (!sel) return;
                 const current = sel.value;
                 sel.innerHTML = '<option value="">— Pilih AE —</option>';
-                list.forEach(ae => {
+                dropdownList.forEach(ae => {
                     const opt = document.createElement('option');
                     opt.value = ae.name;
                     opt.textContent = ae.name;
                     sel.appendChild(opt);
                 });
-                if (current && list.some(a => a.name === current)) {
+                if (current && dropdownList.some(a => a.name === current)) {
                     sel.value = current;
                 }
             });
@@ -776,13 +781,22 @@
 
         function renderAdminAeList() {
             const container = $('adminAeList');
-            const list = state.aeList || [];
+            let list = state.aeList || [];
+            
             if (!list.length) {
                 container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--xl-muted);font-size:13px;">Belum ada AE terdaftar.</div>';
                 return;
             }
+
+            // Urutkan List di Admin Panel (ADMIN di atas, sisanya A-Z)
+            const sortedList = [...list].sort((a, b) => {
+                if (a.name.toUpperCase() === 'ADMIN') return -1;
+                if (b.name.toUpperCase() === 'ADMIN') return 1;
+                return a.name.localeCompare(b.name);
+            });
+
             let html = '';
-            list.forEach(ae => {
+            sortedList.forEach(ae => {
                 html += `
                     <div class="admin-list-item">
                         <div>
@@ -998,7 +1012,8 @@
                 return;
             }
 
-            if (ae.pin && ae.pin !== pin) {
+            // Gunakan String() agar input nomor PIN dan String PIN selalu matching
+            if (ae.pin && String(ae.pin) !== pin) {
                 showError('PIN salah!');
                 return;
             }
@@ -1024,10 +1039,11 @@
             e.preventDefault();
             const pin = $('adminPin').value.trim();
 
-            const adminPinFromSheet = state.aeList.find(a => a.name === 'ADMIN');
+            const adminPinFromSheet = state.aeList.find(a => a.name.toUpperCase() === 'ADMIN');
             const validPin = adminPinFromSheet ? adminPinFromSheet.pin : CONFIG.ADMIN_PIN;
 
-            if (pin !== validPin) {
+            // Pastikan verifikasi PIN selalu tipe Teks (String)
+            if (String(validPin) !== pin) {
                 showError('PIN Admin salah!');
                 return;
             }
@@ -1267,7 +1283,7 @@
             if (aeList.length) state.aeList = aeList;
             renderAeDropdowns();
 
-            const adminExists = state.aeList.some(a => a.name === 'ADMIN');
+            const adminExists = state.aeList.some(a => a.name.toUpperCase() === 'ADMIN');
             if (!adminExists) {
                 state.aeList.push({ name: 'ADMIN', pin: CONFIG.ADMIN_PIN, targetFtth: 0, targetFwa: 0 });
                 await apiCall('saveAe', { name: 'ADMIN', pin: CONFIG.ADMIN_PIN, targetFtth: 0, targetFwa: 0 });
@@ -1279,12 +1295,13 @@
             $('dailyForm').addEventListener('submit', handleDailySubmit);
             $('inputForm').addEventListener('submit', handleInputSubmit);
             
-            // Buttons Click
+            // Buttons Click (Navigasi Halaman Login Admin)
             $('btnGoToAdminLogin').addEventListener('click', () => showPage('pageAdminLogin'));
             $('btnBackToLogin').addEventListener('click', () => {
                 $('adminPin').value = '';
                 showPage('pageLogin');
             });
+            
             $('logoutBtn').addEventListener('click', handleLogout);
             $('adminAddAeBtn').addEventListener('click', handleAddAe);
             $('adminChangePinBtn').addEventListener('click', handleChangeAdminPin);
