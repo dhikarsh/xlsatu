@@ -844,8 +844,9 @@
             </div>
         </div>
 
-        <!-- DASHBOARD -->
+        <!-- ===== DASHBOARD PAGE ===== -->
         <div class="page" id="pageDashboard">
+            <!-- Welcome Card -->
             <div class="card welcome-card">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <div>
@@ -859,6 +860,7 @@
                 </div>
             </div>
 
+            <!-- Performa Bulanan -->
             <div class="card">
                 <div class="card-header">
                     <span class="card-title"><span class="emoji">📊</span> Performa Bulanan</span>
@@ -883,7 +885,7 @@
                 </div>
                 <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;">
                     <span class="stat-badge">✅ FTTH: <strong id="ftthPercent">0%</strong></span>
-                    <span class="stat-badge">✅ FWA: <strong id="fwaPercent">0%</strong></span>
+                    <span class="stat-badge">✅ FWA: <strong id="fwaPercent">0%</span>
                 </div>
             </div>
 
@@ -916,7 +918,7 @@
                 </form>
             </div>
 
-            <!-- TRACKER HARIAN SEMUA AE (HANYA UNTUK ADMIN) - BERADA DI DASHBOARD -->
+            <!-- ===== TRACKER HARIAN SEMUA AE (HANYA UNTUK ADMIN) DI DASHBOARD ===== -->
             <div class="card" style="padding-bottom:12px;" id="adminTrackerCard">
                 <div class="card-header">
                     <span class="card-title"><span class="emoji">📋</span> Tracker Harian Semua AE</span>
@@ -941,7 +943,7 @@
             </div>
         </div>
 
-        <!-- ADMIN PAGE (HANYA KELOLA AE & TARGET, TIDAK ADA TRACKER) -->
+        <!-- ===== ADMIN PAGE (HANYA KELOLA AE & TARGET, TIDAK ADA TRACKER) ===== -->
         <div class="page" id="pageAdmin">
             <div class="card">
                 <div class="card-header">
@@ -1014,11 +1016,11 @@
         // STATE
         // ============================================================
         let state = {
-            currentUser: null, // { name, pin, targetFtth, targetFwa, isAdmin }
+            currentUser: null,
             isAdmin: false,
-            aeList: [], // daftar semua AE dari sheet AE
-            trackerData: {}, // data harian untuk AE yang login (non-admin)
-            adminTrackerData: {}, // data harian semua AE (hanya admin) { aeName: { date: { ftth, fwa } } }
+            aeList: [],
+            trackerData: {},
+            adminTrackerData: {},
             selectedDate: new Date(),
         };
 
@@ -1219,13 +1221,12 @@
                 $('welcomeSubLabel').textContent = 'Panel Administrator';
                 $('dashboardAeName').textContent = 'Akumulasi Seluruh AE';
                 $('dailyInputCard').style.display = 'none';
-                // Tampilkan tracker admin
-                $('adminTrackerCard').style.display = 'block';
+                $('adminTrackerCard').style.display = 'block'; // tampilkan tracker semua AE
             } else {
                 $('welcomeSubLabel').textContent = 'Selamat datang,';
                 $('dashboardAeName').textContent = user.name;
                 $('dailyInputCard').style.display = 'block';
-                $('adminTrackerCard').style.display = 'none';
+                $('adminTrackerCard').style.display = 'none'; // sembunyikan tracker semua AE
             }
             $('dashboardDate').textContent = formatDateDisplay(new Date());
 
@@ -1285,7 +1286,7 @@
         }
 
         // ============================================================
-        // RENDER: TRACKER (pintu masuk)
+        // RENDER: TRACKER
         // ============================================================
         function renderTracker(month, year) {
             const user = state.currentUser;
@@ -1293,18 +1294,18 @@
 
             const filterEl = $('dashboardProductFilter');
             if (user.isAdmin) {
-                // Tampilkan dropdown filter dan tracker semua AE
+                // Admin: tampilkan tracker semua AE dengan dropdown filter
                 if (filterEl) filterEl.style.display = 'inline-block';
                 renderAdminDashboardTracker(month, year);
             } else {
-                // Sembunyikan dropdown, tampilkan tracker pribadi (baris FTTH/FWA)
+                // AE: tampilkan tracker pribadi (baris FTTH & FWA)
                 if (filterEl) filterEl.style.display = 'none';
                 renderAeDashboardTracker(month, year);
             }
         }
 
         // ============================================================
-        // RENDER: TRACKER untuk AE (non-admin) - baris FTTH & FWA
+        // RENDER: TRACKER untuk AE (non-admin)
         // ============================================================
         function renderAeDashboardTracker(month, year) {
             const thead = $('trackerHead'),
@@ -1374,7 +1375,6 @@
                 todayMonth = today.getMonth(),
                 todayYear = today.getFullYear();
 
-            // Header
             let headHtml = '<tr><th style="text-align:left;min-width:100px;">Nama AE</th>';
             for (let d = 1; d <= days; d++) {
                 const isToday = (d === todayDay && month === todayMonth && year === todayYear);
@@ -1385,7 +1385,6 @@
                 '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
             thead.innerHTML = headHtml;
 
-            // Filter AE (kecuali ADMIN)
             const aeList = (state.aeList || [])
                 .filter(ae => String(ae.name).toUpperCase() !== 'ADMIN')
                 .sort((a, b) => a.name.localeCompare(b.name));
@@ -1459,31 +1458,25 @@
             const user = state.currentUser;
             if (!user) return;
 
-            const month = state.selectedDate.getMonth() + 1; // 1-12
+            const month = state.selectedDate.getMonth() + 1;
             const year = state.selectedDate.getFullYear();
 
-            // 1. Load AE list
             await loadAeList();
             renderAeDropdowns();
 
-            // 2. Load tracker
             if (user.isAdmin) {
-                // Admin: ambil data semua AE
                 const adminTracker = await fetchData('getAdminTracker', { month, year });
                 if (adminTracker.success) state.adminTrackerData = adminTracker.data || {};
                 state.trackerData = {};
             } else {
-                // AE biasa
                 const tracker = await fetchData('getTracker', { aeName: user.name, month, year });
                 if (tracker.success) state.trackerData = tracker.data || {};
                 state.adminTrackerData = {};
             }
 
-            // 3. Render
             renderDashboard();
             renderAdminAeList();
 
-            // Nav admin
             $('navAdmin').style.display = user.isAdmin ? 'flex' : 'none';
         }
 
@@ -1690,22 +1683,18 @@
         // INIT
         // ============================================================
         async function init() {
-            // Month/Year
             initMonthYearSelectors();
             updateMonthYearUI();
 
-            // Load AE list
             await loadAeList();
             renderAeDropdowns();
 
-            // Buat akun ADMIN jika belum ada
             if (!state.aeList.some(a => String(a.name).toUpperCase() === 'ADMIN')) {
                 await apiCall('saveAe', { name: 'ADMIN', pin: CONFIG.ADMIN_PIN, targetFtth: 0, targetFwa: 0 });
                 await loadAeList();
                 renderAeDropdowns();
             }
 
-            // Event: month/year change
             $('monthSelect').addEventListener('change', async () => {
                 state.selectedDate.setMonth(parseInt($('monthSelect').value));
                 await refreshAllData();
@@ -1725,17 +1714,14 @@
                 await refreshAllData();
             });
 
-            // Filter FTTH/FWA untuk admin
             $('dashboardProductFilter')?.addEventListener('change', () => {
                 renderDashboard();
             });
 
-            // Login forms
             $('loginForm').addEventListener('submit', handleLogin);
             $('adminLoginForm').addEventListener('submit', handleAdminLogin);
             $('dailyForm').addEventListener('submit', handleDailySubmit);
 
-            // Toggle login pages
             $('btnGoToAdminLogin').addEventListener('click', () => {
                 $('adminLoginError').classList.remove('show');
                 showPage('pageAdminLogin');
@@ -1746,17 +1732,12 @@
                 showPage('pageLogin');
             });
 
-            // Logout
             $('logoutBtn').addEventListener('click', handleLogout);
-
-            // Admin actions
             $('adminAddAeBtn').addEventListener('click', handleAddAe);
             $('adminChangePinBtn').addEventListener('click', handleChangeAdminPin);
 
-            // Set default date
             $('dailyDateInput').value = todayStr();
 
-            // Tampilkan login
             showPage('pageLogin');
             console.log('🚀 XL Satu Sales Tracker siap!');
         }
