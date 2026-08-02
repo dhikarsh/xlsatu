@@ -335,6 +335,23 @@
             font-weight: 600;
             padding: 10px 6px;
         }
+        .daily-input-group .field select {
+            width: 100%;
+            padding: 10px 30px 10px 12px;
+            border: 2px solid var(--xl-border);
+            border-radius: var(--xl-radius-sm);
+            font-size: 14px;
+            font-weight: 700;
+            background: var(--xl-gray);
+            outline: none;
+            color: var(--xl-dark);
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            cursor: pointer;
+        }
         .btn-primary {
             background: var(--xl-blue-grad);
             color: #fff;
@@ -1128,6 +1145,42 @@
                     </div>
                 </form>
             </div>
+            <!-- ===== INPUT PERFORMA HARIAN AE (HANYA UNTUK ADMIN) ===== -->
+            <div class="card" id="adminDailyInputCard" style="display:none;">
+                <div class="card-header">
+                    <span class="card-title"><span class="emoji">📝</span> Input Performa Harian AE</span>
+                </div>
+                <form id="adminDailyForm">
+                    <div class="daily-input-group" style="margin-bottom:8px;">
+                        <div class="field" style="flex:1 1 100%;">
+                            <label>Pilih AE</label>
+                            <select id="adminDailyAeSelect" required>
+                                <option value="">— Pilih AE —</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="daily-input-group">
+                        <div class="field" style="flex:1.3;">
+                            <label>Tanggal</label>
+                            <input type="date" id="adminDailyDateInput" required />
+                        </div>
+                        <div class="field">
+                            <label>FTTH</label>
+                            <input type="number" id="adminDailyFtth" placeholder="0" min="0" step="1" />
+                        </div>
+                        <div class="field">
+                            <label>FWA</label>
+                            <input type="number" id="adminDailyFwa" placeholder="0" min="0" step="1" />
+                        </div>
+                        <div class="field" style="flex:0 0 auto;min-width:55px;display:flex;align-items:flex-end;">
+                            <button type="submit" class="btn-primary small" id="adminDailySubmitBtn">Simpan</button>
+                        </div>
+                    </div>
+                    <div style="font-size:11px;color:var(--xl-muted);margin-top:6px;">
+                        ⚡ Input akan langsung masuk ke pencapaian harian AE yang dipilih. Bisa pilih tanggal lampau untuk input yang terlewat.
+                    </div>
+                </form>
+            </div>
             <!-- ===== RINGKASAN TARGET TIM (HANYA UNTUK ADMIN) ===== -->
             <div class="card target-summary-card" id="adminTargetSummaryCard" style="display:none;">
                 <div class="card-header">
@@ -1382,6 +1435,24 @@
                 sel.value = current;
             }
         }
+        function renderAdminAeSelect() {
+            const sel = $('adminDailyAeSelect');
+            if (!sel) return;
+            const current = sel.value;
+            const list = (state.aeList || [])
+                .filter(ae => String(ae.name).toUpperCase() !== 'ADMIN')
+                .sort((a, b) => a.name.localeCompare(b.name));
+            sel.innerHTML = '<option value="">— Pilih AE —</option>';
+            list.forEach(ae => {
+                const opt = document.createElement('option');
+                opt.value = ae.name;
+                opt.textContent = ae.name;
+                sel.appendChild(opt);
+            });
+            if (current && list.some(a => a.name === current)) {
+                sel.value = current;
+            }
+        }
         // ============================================================
         // RENDER: ADMIN DAFTAR AE
         // ============================================================
@@ -1458,11 +1529,13 @@
                 $('welcomeSubLabel').textContent = 'Panel Administrator';
                 $('dashboardAeName').textContent = 'Akumulasi Seluruh AE';
                 $('dailyInputCard').style.display = 'none';
+                $('adminDailyInputCard').style.display = 'block'; // tampilkan input harian utk admin
                 $('adminTrackerCard').style.display = 'block'; // tampilkan tracker semua AE
             } else {
                 $('welcomeSubLabel').textContent = 'Selamat datang,';
                 $('dashboardAeName').textContent = user.name;
                 $('dailyInputCard').style.display = 'block';
+                $('adminDailyInputCard').style.display = 'none'; // sembunyikan input harian admin
                 $('adminTrackerCard').style.display = 'none'; // sembunyikan tracker semua AE
             }
             $('dashboardDate').textContent = formatDateDisplay(new Date());
@@ -1771,6 +1844,7 @@
             const year = state.selectedDate.getFullYear();
             await loadAeList();
             renderAeDropdowns();
+            renderAdminAeSelect();
             if (user.isAdmin) {
                 const adminTracker = await fetchData('getAdminTracker', { month, year });
                 if (adminTracker.success) state.adminTrackerData = adminTracker.data || {};
@@ -1852,6 +1926,8 @@
             state.targetSearchQuery = '';
             const searchInput = $('targetSearchInput');
             if (searchInput) searchInput.value = '';
+            const adminAeSel = $('adminDailyAeSelect');
+            if (adminAeSel) adminAeSel.value = '';
             showPage('pageLogin');
             $('headerUserName').textContent = 'Guest';
             showToast('Anda telah keluar');
@@ -1883,6 +1959,40 @@
                 $('dailyFtth').value = '';
                 $('dailyFwa').value = '';
                 showSuccess('Performa harian berhasil disimpan!');
+                await refreshAllData();
+            } else {
+                showError('Gagal menyimpan: ' + (result.error || ''));
+            }
+        }
+        // ============================================================
+        // ADMIN: INPUT PERFORMA HARIAN AE
+        // ============================================================
+        async function handleAdminDailySubmit(e) {
+            e.preventDefault();
+            if (!state.currentUser || !state.currentUser.isAdmin) {
+                showError('Hanya admin yang bisa input di sini');
+                return;
+            }
+            const aeName = $('adminDailyAeSelect').value;
+            if (!aeName) { showError('Pilih AE terlebih dahulu'); return; }
+            const ftth = parseInt($('adminDailyFtth').value) || 0;
+            const fwa = parseInt($('adminDailyFwa').value) || 0;
+            const inputDate = $('adminDailyDateInput').value;
+            if (!inputDate) { showError('Pilih tanggal terlebih dahulu'); return; }
+            if (ftth === 0 && fwa === 0) { showError('Masukkan minimal 1 angka pencapaian'); return; }
+            const btn = $('adminDailySubmitBtn');
+            setLoading(btn, true);
+            const result = await apiCall('saveDaily', {
+                aeName,
+                date: inputDate,
+                ftth,
+                fwa
+            });
+            setLoading(btn, false);
+            if (result.success) {
+                $('adminDailyFtth').value = '';
+                $('adminDailyFwa').value = '';
+                showSuccess(`Performa harian ${aeName} berhasil disimpan!`);
                 await refreshAllData();
             } else {
                 showError('Gagal menyimpan: ' + (result.error || ''));
@@ -2035,6 +2145,7 @@
             $('loginForm').addEventListener('submit', handleLogin);
             $('adminLoginForm').addEventListener('submit', handleAdminLogin);
             $('dailyForm').addEventListener('submit', handleDailySubmit);
+            $('adminDailyForm').addEventListener('submit', handleAdminDailySubmit);
             $('btnGoToAdminLogin').addEventListener('click', () => {
                 $('adminLoginError').classList.remove('show');
                 showPage('pageAdminLogin');
@@ -2054,6 +2165,7 @@
                 renderTargetSummaryCard();
             });
             $('dailyDateInput').value = todayStr();
+            $('adminDailyDateInput').value = todayStr();
             showPage('pageLogin');
             console.log('🚀 XL Satu Sales Tracker siap!');
         }
