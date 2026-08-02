@@ -693,15 +693,13 @@
             }
         }
 
-        // ============================================================
-        //  API CALLS (TANPA HEADER AGAR TIDAK KENA CORS PREFLIGHT)
+       // ============================================================
+        //  API CALLS (SEMUA DIJADIKAN POST UNTUK MENGHINDARI CORS/REDIRECT ERROR)
         // ============================================================
         async function apiCall(action, payload = {}) {
             try {
                 const response = await fetch(CONFIG.API_URL, {
                     method: 'POST',
-                    // Menghapus 'Content-Type': 'application/json' 
-                    // Membuat request terdeteksi sbg Simple Request (text/plain) yang melewati hadangan CORS OPTIONS.
                     body: JSON.stringify({ action, ...payload })
                 });
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -711,6 +709,13 @@
                 console.error('API POST error:', error);
                 return { success: false, error: error.message };
             }
+        }
+
+        // Sekarang fetchData hanya menjadi alias untuk apiCall
+        // karena di backend (Apps Script) kita sudah mengatur agar
+        // doPost bisa menangani permintaan pengambilan data
+        async function fetchData(action, params = {}) {
+            return await apiCall(action, params);
         }
 
         async function fetchData(action, params = {}) {
