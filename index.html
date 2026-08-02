@@ -31,24 +31,27 @@
             --xl-radius-sm: 12px;
             --xl-radius-xs: 8px;
             --xl-transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            
+            /* Neumorphism */
+            --neu-bg: #e8edf5;
+            --neu-shadow-light: #ffffff;
+            --neu-shadow-dark: #c8cdd5;
+            --neu-radius: 20px;
         }
 
         body {
-            background: var(--xl-gray);
+            background: var(--neu-bg);
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
             padding: 16px;
-            padding-bottom: 90px;
         }
 
         #app {
             max-width: 480px;
             width: 100%;
-            background: #ffffff;
-            border-radius: 32px;
-            box-shadow: 0 20px 60px rgba(15, 59, 122, 0.10);
+            background: transparent;
             min-height: 92vh;
             overflow: hidden;
             position: relative;
@@ -153,9 +156,6 @@
         }
         .bottom-nav .nav-item.active .nav-label {
             opacity: 1;
-        }
-        .bottom-nav .nav-item .nav-dot {
-            display: none;
         }
 
         /* ===== PAGES ===== */
@@ -347,20 +347,6 @@
             margin-top: 0;
             border-radius: 40px;
         }
-        .btn-outline {
-            background: transparent;
-            color: var(--xl-blue);
-            border: 2px solid var(--xl-blue);
-            padding: 10px 20px;
-            border-radius: var(--xl-radius-sm);
-            font-weight: 700;
-            font-size: 13px;
-            cursor: pointer;
-            transition: var(--xl-transition);
-        }
-        .btn-outline:active {
-            background: var(--xl-blue-soft);
-        }
 
         /* ===== TRACKER TABLE ===== */
         .tracker-wrap {
@@ -516,86 +502,247 @@
             flex-shrink: 0;
         }
 
-        /* ===== LOGIN PAGE ===== */
+        /* ============================================================
+           LOGIN PAGE - NEUMORPHISM STYLE
+           ============================================================ */
         .login-page {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 80vh;
-            padding: 30px 24px 40px;
-            background: #fff;
+            min-height: 85vh;
+            padding: 20px 16px 30px;
+            background: var(--neu-bg);
         }
-        .login-page .login-logo {
-            width: 120px;
-            height: auto;
-            margin-bottom: 24px;
+
+        /* Card login neumorphism */
+        .login-card {
+            width: 100%;
+            max-width: 380px;
+            background: var(--neu-bg);
+            border-radius: var(--neu-radius);
+            padding: 36px 28px 32px;
+            box-shadow: 
+                12px 12px 24px var(--neu-shadow-dark),
+                -12px -12px 24px var(--neu-shadow-light);
+            transition: var(--xl-transition);
         }
-        .login-page .login-title {
+        .login-card:hover {
+            box-shadow: 
+                16px 16px 32px var(--neu-shadow-dark),
+                -16px -16px 32px var(--neu-shadow-light);
+        }
+
+        .login-card .login-logo-wrap {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .login-card .login-logo {
+            height: 56px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .login-card .login-title {
+            text-align: center;
             font-size: 26px;
             font-weight: 800;
             color: var(--xl-dark);
-            margin-bottom: 4px;
             letter-spacing: -0.5px;
+            margin-bottom: 2px;
         }
-        .login-page .login-title span {
+        .login-card .login-title span {
             color: var(--xl-blue);
         }
-        .login-page .login-sub {
-            font-size: 15px;
+        .login-card .login-sub {
+            text-align: center;
+            font-size: 14px;
             color: var(--xl-muted);
-            margin-bottom: 32px;
+            margin-bottom: 28px;
+            font-weight: 500;
         }
-        .login-page .login-form {
-            width: 100%;
-            max-width: 340px;
-        }
-        .login-page .login-form .form-group {
+
+        /* Neumorphism input group */
+        .neu-input-group {
             margin-bottom: 18px;
         }
-        .login-page .login-form .form-group label {
+        .neu-input-group label {
+            display: block;
             font-size: 11px;
             font-weight: 700;
             color: var(--xl-muted);
             text-transform: uppercase;
             letter-spacing: 0.8px;
+            margin-bottom: 6px;
+            padding-left: 4px;
         }
-        .login-page .login-form .form-group select,
-        .login-page .login-form .form-group input {
-            background: var(--xl-gray);
-            border-width: 2px;
-            font-size: 16px;
-            padding: 14px 16px;
+        .neu-input-group select,
+        .neu-input-group input {
+            width: 100%;
+            padding: 14px 18px;
+            border: none;
             border-radius: var(--xl-radius-sm);
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--xl-dark);
+            background: var(--neu-bg);
+            box-shadow: 
+                inset 4px 4px 8px var(--neu-shadow-dark),
+                inset -4px -4px 8px var(--neu-shadow-light);
+            transition: var(--xl-transition);
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
         }
-        .login-page .login-form .btn-primary {
+        .neu-input-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+        .neu-input-group select:focus,
+        .neu-input-group input:focus {
+            box-shadow: 
+                inset 2px 2px 6px var(--neu-shadow-dark),
+                inset -2px -2px 6px var(--neu-shadow-light),
+                0 0 0 3px rgba(26, 91, 181, 0.15);
+        }
+        .neu-input-group select::placeholder,
+        .neu-input-group input::placeholder {
+            color: var(--xl-muted);
+            font-weight: 400;
+            opacity: 0.6;
+        }
+        /* Hilangkan spinner di input number */
+        .neu-input-group input[type="password"] {
+            letter-spacing: 2px;
+        }
+
+        /* Neumorphism button */
+        .neu-btn {
+            width: 100%;
             padding: 16px;
-            font-size: 16px;
+            border: none;
             border-radius: var(--xl-radius-sm);
-            margin-top: 4px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            background: var(--xl-blue-grad);
+            box-shadow: 
+                6px 6px 12px var(--neu-shadow-dark),
+                -6px -6px 12px var(--neu-shadow-light);
+            cursor: pointer;
+            transition: var(--xl-transition);
             letter-spacing: 0.5px;
+            margin-top: 6px;
+            position: relative;
+            overflow: hidden;
         }
-        .login-page .admin-toggle {
-            margin-top: 20px;
+        .neu-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .neu-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                8px 8px 16px var(--neu-shadow-dark),
+                -8px -8px 16px var(--neu-shadow-light);
+        }
+        .neu-btn:active {
+            transform: translateY(1px) scale(0.98);
+            box-shadow: 
+                3px 3px 8px var(--neu-shadow-dark),
+                -3px -3px 8px var(--neu-shadow-light);
+        }
+        .neu-btn:disabled {
+            opacity: 0.6;
+            transform: none;
+            pointer-events: none;
+        }
+
+        /* Admin toggle - neumorphism style */
+        .admin-toggle-wrap {
+            margin-top: 24px;
             text-align: center;
+            position: relative;
         }
-        .login-page .admin-toggle button {
+        .admin-toggle-wrap::before {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 2px;
+            background: var(--xl-border);
+            margin: 0 auto 16px;
+            border-radius: 4px;
+        }
+        .admin-toggle-btn {
             background: none;
             border: none;
             color: var(--xl-muted);
             font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
-            padding: 8px 16px;
+            padding: 8px 20px;
+            border-radius: 40px;
+            transition: var(--xl-transition);
+            background: var(--neu-bg);
+            box-shadow: 
+                3px 3px 6px var(--neu-shadow-dark),
+                -3px -3px 6px var(--neu-shadow-light);
+        }
+        .admin-toggle-btn:hover {
+            color: var(--xl-blue);
+            box-shadow: 
+                5px 5px 10px var(--neu-shadow-dark),
+                -5px -5px 10px var(--neu-shadow-light);
+        }
+        .admin-toggle-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Admin login form (hidden) */
+        .admin-login-form {
+            margin-top: 16px;
+            padding: 20px 16px 16px;
+            background: var(--neu-bg);
+            border-radius: var(--xl-radius-sm);
+            box-shadow: 
+                inset 3px 3px 8px var(--neu-shadow-dark),
+                inset -3px -3px 8px var(--neu-shadow-light);
+            display: none;
+        }
+        .admin-login-form.show {
+            display: block;
+            animation: fadeUp 0.3s ease;
+        }
+        .admin-login-form .admin-back-btn {
+            background: none;
+            border: none;
+            color: var(--xl-muted);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 6px 12px;
             border-radius: 40px;
             transition: var(--xl-transition);
             font-weight: 600;
+            margin-top: 8px;
         }
-        .login-page .admin-toggle button:hover {
+        .admin-login-form .admin-back-btn:hover {
             color: var(--xl-blue);
-            background: var(--xl-blue-soft);
+            background: var(--neu-bg);
+            box-shadow: 
+                2px 2px 6px var(--neu-shadow-dark),
+                -2px -2px 6px var(--neu-shadow-light);
         }
-        .login-page .login-error {
-            background: #FDEAEA;
+
+        /* Login error - neumorphism style */
+        .login-error {
+            background: #fde8e8;
             color: #C0392B;
             padding: 12px 16px;
             border-radius: var(--xl-radius-sm);
@@ -604,9 +751,12 @@
             margin-bottom: 16px;
             display: none;
             text-align: center;
-            border: 1px solid #F5C6C6;
+            box-shadow: 
+                inset 2px 2px 6px rgba(192, 57, 43, 0.10),
+                inset -2px -2px 6px rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(192, 57, 43, 0.12);
         }
-        .login-page .login-error.show {
+        .login-error.show {
             display: block;
         }
 
@@ -742,6 +892,7 @@
         @media (max-width: 420px) {
             body {
                 padding: 0;
+                align-items: flex-start;
             }
             #app {
                 border-radius: 0;
@@ -794,13 +945,17 @@
                 font-size: 11px;
             }
             .login-page {
-                padding: 20px 16px;
-                min-height: 70vh;
+                padding: 16px 12px 20px;
+                min-height: 80vh;
             }
-            .login-page .login-logo {
-                width: 90px;
+            .login-card {
+                padding: 28px 20px 24px;
+                border-radius: 16px;
             }
-            .login-page .login-title {
+            .login-card .login-logo {
+                height: 44px;
+            }
+            .login-card .login-title {
                 font-size: 22px;
             }
             .admin-form-row .field {
@@ -829,6 +984,9 @@
             }
             .bottom-nav {
                 max-width: 400px;
+            }
+            .login-card {
+                padding: 44px 36px 36px;
             }
         }
 
@@ -897,7 +1055,6 @@
             border-width: 2px;
         }
 
-        /* ---- Welcome card gradient ---- */
         .welcome-card {
             background: var(--xl-blue-grad) !important;
             border: none !important;
@@ -942,41 +1099,47 @@
         <!-- LOGIN -->
         <div class="page active" id="pageLogin">
             <div class="login-page">
-                <img class="login-logo" src="https://satu.xl.co.id/_next/image?url=https%3A%2F%2Fstatic-xlsatu.xl.co.id%2Fimages%2Fpost%2F46bf5fe2-0960-45be-958b-3a7cc6fb12a3.png&w=96&q=75" alt="XL Satu" />
-                <div class="login-title">Sales <span>Tracker</span></div>
-                <div class="login-sub">Masuk untuk melanjutkan</div>
-
-                <div class="login-error" id="loginError">PIN salah, coba lagi.</div>
-
-                <form class="login-form" id="loginForm" autocomplete="off">
-                    <div class="form-group">
-                        <label>Nama AE</label>
-                        <select id="loginAeSelect" required>
-                            <option value="">— Pilih AE —</option>
-                        </select>
+                <div class="login-card">
+                    <!-- Logo -->
+                    <div class="login-logo-wrap">
+                        <img class="login-logo" src="https://satu.xl.co.id/_next/image?url=https%3A%2F%2Fstatic-xlsatu.xl.co.id%2Fimages%2Fpost%2F46bf5fe2-0960-45be-958b-3a7cc6fb12a3.png&w=96&q=75" alt="XL Satu" />
                     </div>
-                    <div class="form-group">
-                        <label>PIN</label>
-                        <input type="password" id="loginPin" placeholder="Masukkan PIN" maxlength="6" inputmode="numeric" required />
-                    </div>
-                    <button type="submit" class="btn-primary" id="loginBtn">Masuk</button>
-                </form>
 
-                <div class="admin-toggle">
-                    <button id="adminToggleBtn">🔐 Login sebagai Admin</button>
+                    <div class="login-title">Sales <span>Tracker</span></div>
+                    <div class="login-sub">Masuk untuk melanjutkan</div>
+
+                    <div class="login-error" id="loginError">PIN salah, coba lagi.</div>
+
+                    <form id="loginForm" autocomplete="off">
+                        <div class="neu-input-group">
+                            <label>Nama AE</label>
+                            <select id="loginAeSelect" required>
+                                <option value="">— Pilih AE —</option>
+                            </select>
+                        </div>
+                        <div class="neu-input-group">
+                            <label>PIN</label>
+                            <input type="password" id="loginPin" placeholder="Masukkan PIN" maxlength="6" inputmode="numeric" required />
+                        </div>
+                        <button type="submit" class="neu-btn" id="loginBtn">Masuk</button>
+                    </form>
+
+                    <div class="admin-toggle-wrap">
+                        <button class="admin-toggle-btn" id="adminToggleBtn">🔐 Login sebagai Admin</button>
+                    </div>
+
+                    <!-- Admin login form (hidden) -->
+                    <div class="admin-login-form" id="adminLoginForm">
+                        <div class="neu-input-group">
+                            <label>PIN Admin</label>
+                            <input type="password" id="adminPin" placeholder="PIN Admin" maxlength="6" inputmode="numeric" />
+                        </div>
+                        <button type="submit" class="neu-btn" id="adminLoginBtn" style="background:var(--xl-blue-dark);">Masuk Admin</button>
+                        <div style="text-align:center; margin-top:10px;">
+                            <button type="button" class="admin-back-btn" id="adminBackBtn">← Kembali ke Login AE</button>
+                        </div>
+                    </div>
                 </div>
-
-                <!-- Admin login hidden -->
-                <form class="login-form" id="adminLoginForm" style="display:none; margin-top:16px;" autocomplete="off">
-                    <div class="form-group">
-                        <label>PIN Admin</label>
-                        <input type="password" id="adminPin" placeholder="PIN Admin" maxlength="6" inputmode="numeric" />
-                    </div>
-                    <button type="submit" class="btn-primary" id="adminLoginBtn" style="background:var(--xl-blue-dark);">Masuk Admin</button>
-                    <div style="text-align:center; margin-top:8px;">
-                        <button type="button" id="adminBackBtn" style="background:none;border:none;color:var(--xl-muted);font-size:12px;cursor:pointer;padding:4px 12px;">← Kembali</button>
-                    </div>
-                </form>
             </div>
         </div>
 
@@ -1840,10 +2003,10 @@
             const form = $('adminLoginForm');
             const toggleBtn = $('adminToggleBtn');
             if (adminLoginVisible) {
-                form.style.display = 'block';
+                form.classList.add('show');
                 toggleBtn.textContent = '← Kembali ke Login AE';
             } else {
-                form.style.display = 'none';
+                form.classList.remove('show');
                 toggleBtn.textContent = '🔐 Login sebagai Admin';
                 $('adminPin').value = '';
             }
@@ -1888,7 +2051,7 @@
             }
 
             $('loginForm').addEventListener('submit', handleLogin);
-            $('adminLoginForm').addEventListener('submit', handleAdminLogin);
+            $('adminLoginBtn').addEventListener('click', handleAdminLogin);
             $('adminToggleBtn').addEventListener('click', toggleAdminLogin);
             $('adminBackBtn').addEventListener('click', toggleAdminLogin);
             $('logoutBtn').addEventListener('click', handleLogout);
