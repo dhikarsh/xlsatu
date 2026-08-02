@@ -1,0 +1,1891 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>XL Satu - Sales Team</title>
+
+    <!-- ===== STYLE ===== -->
+    <style>
+        /* ---- Reset & Base ---- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        body {
+            background: #f4f4f6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 12px;
+            padding-bottom: 80px;
+        }
+        #app {
+            max-width: 480px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 28px 28px 0 0;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
+            min-height: 92vh;
+            overflow: hidden;
+            position: relative;
+            padding-bottom: 70px;
+        }
+
+        /* ---- Warna XL Satu ---- */
+        :root {
+            --xl-red: #E31E24;
+            --xl-red-light: #fce8e8;
+            --xl-red-dark: #b3181d;
+            --xl-red-soft: #fdecec;
+            --xl-gray: #f0f0f2;
+            --xl-dark: #1a1a1a;
+            --xl-text: #2d2d2d;
+            --xl-muted: #888;
+            --xl-border: #e6e6e8;
+            --xl-shadow: 0 4px 16px rgba(227, 30, 36, 0.10);
+            --xl-radius: 16px;
+            --xl-radius-sm: 10px;
+        }
+
+        /* ---- Typography ---- */
+        .xl-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--xl-dark);
+            letter-spacing: -0.3px;
+        }
+        .xl-sub {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--xl-muted);
+            letter-spacing: 0.2px;
+        }
+        .xl-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--xl-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .xl-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--xl-dark);
+        }
+        .xl-value-sm {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--xl-dark);
+        }
+
+        /* ---- Header ---- */
+        .app-header {
+            background: var(--xl-red);
+            padding: 16px 20px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 0 0 24px 24px;
+            box-shadow: 0 4px 20px rgba(227, 30, 36, 0.25);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+        .app-header .logo {
+            height: 36px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+        .app-header .user-badge {
+            background: rgba(255, 255, 255, 0.20);
+            padding: 6px 14px;
+            border-radius: 30px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .app-header .user-badge .logout-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+        .app-header .user-badge .logout-btn:hover {
+            color: #fff;
+        }
+
+        /* ---- Bottom Nav ---- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: #fff;
+            border-top: 1px solid var(--xl-border);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 env(safe-area-inset-bottom);
+            z-index: 30;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+        }
+        .bottom-nav .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: none;
+            border: none;
+            padding: 6px 16px;
+            cursor: pointer;
+            color: var(--xl-muted);
+            font-size: 11px;
+            font-weight: 600;
+            transition: 0.2s;
+            border-radius: 12px;
+            min-width: 64px;
+        }
+        .bottom-nav .nav-item .nav-label {
+            margin-top: 2px;
+            font-size: 10px;
+            letter-spacing: 0.3px;
+        }
+        .bottom-nav .nav-item .nav-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--xl-red);
+            opacity: 0;
+            transition: 0.2s;
+        }
+        .bottom-nav .nav-item.active {
+            color: var(--xl-red);
+        }
+        .bottom-nav .nav-item.active .nav-dot {
+            opacity: 1;
+        }
+        .bottom-nav .nav-item.admin-item {
+            color: var(--xl-dark);
+        }
+        .bottom-nav .nav-item.admin-item.active {
+            color: var(--xl-red);
+        }
+
+        /* ---- Page Container ---- */
+        .page {
+            display: none;
+            padding: 16px 16px 30px;
+            animation: fadeUp 0.25s ease;
+        }
+        .page.active {
+            display: block;
+        }
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ---- Cards ---- */
+        .card {
+            background: #fff;
+            border-radius: var(--xl-radius);
+            padding: 16px 18px;
+            margin-bottom: 16px;
+            box-shadow: var(--xl-shadow);
+            border: 1px solid var(--xl-border);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--xl-dark);
+        }
+
+        /* ---- Progress Bar ---- */
+        .progress-wrap {
+            margin-top: 6px;
+        }
+        .progress-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .progress-row .prog-label {
+            font-size: 13px;
+            font-weight: 600;
+            min-width: 52px;
+            color: var(--xl-dark);
+        }
+        .progress-row .prog-track {
+            flex: 1;
+            height: 8px;
+            background: var(--xl-gray);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-row .prog-track .prog-fill {
+            height: 100%;
+            border-radius: 20px;
+            background: var(--xl-red);
+            transition: width 0.6s ease;
+            width: 0%;
+        }
+        .progress-row .prog-numbers {
+            font-size: 13px;
+            font-weight: 600;
+            min-width: 70px;
+            text-align: right;
+            color: var(--xl-dark);
+        }
+        .progress-row .prog-numbers .target {
+            color: var(--xl-muted);
+            font-weight: 400;
+        }
+
+        /* ---- Daily Input ---- */
+        .daily-input-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        .daily-input-group .field {
+            flex: 1;
+            min-width: 100px;
+        }
+        .daily-input-group .field label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--xl-muted);
+            margin-bottom: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .daily-input-group .field input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid var(--xl-border);
+            border-radius: var(--xl-radius-sm);
+            font-size: 16px;
+            font-weight: 600;
+            background: #fafafa;
+            transition: 0.2s;
+            outline: none;
+            color: var(--xl-dark);
+        }
+        .daily-input-group .field input:focus {
+            border-color: var(--xl-red);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(227, 30, 36, 0.08);
+        }
+        .daily-input-group .field input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        .daily-input-group .field input[type="number"]::-webkit-inner-spin-button,
+        .daily-input-group .field input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .btn-primary {
+            background: var(--xl-red);
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: var(--xl-radius-sm);
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 2px 8px rgba(227, 30, 36, 0.25);
+            width: 100%;
+            margin-top: 6px;
+        }
+        .btn-primary:active {
+            transform: scale(0.97);
+            background: var(--xl-red-dark);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .btn-outline {
+            background: transparent;
+            color: var(--xl-red);
+            border: 2px solid var(--xl-red);
+            padding: 8px 20px;
+            border-radius: var(--xl-radius-sm);
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-outline:active {
+            background: var(--xl-red-light);
+        }
+
+        /* ---- Tracker Table ---- */
+        .tracker-wrap {
+            overflow-x: auto;
+            margin: 4px -2px 0;
+            padding: 0 2px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .tracker-table {
+            width: 100%;
+            min-width: 560px;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .tracker-table th {
+            text-align: center;
+            padding: 6px 2px;
+            font-weight: 600;
+            color: var(--xl-muted);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+            border-bottom: 2px solid var(--xl-border);
+        }
+        .tracker-table td {
+            text-align: center;
+            padding: 6px 2px;
+            font-weight: 600;
+            color: var(--xl-dark);
+            border-bottom: 1px solid #f0f0f2;
+            font-size: 13px;
+        }
+        .tracker-table .row-label {
+            text-align: left;
+            font-weight: 700;
+            color: var(--xl-dark);
+            font-size: 12px;
+            padding-right: 6px;
+            border-right: 2px solid var(--xl-border);
+        }
+        .tracker-table .today-col {
+            background: #fdecec;
+            border-radius: 4px;
+            position: relative;
+        }
+        .tracker-table .today-col td {
+            background: #fdecec;
+            color: var(--xl-red);
+            font-weight: 700;
+        }
+        .tracker-table .today-col .today-marker {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--xl-red);
+            margin-left: 2px;
+        }
+        .tracker-table .cum-col {
+            background: var(--xl-gray);
+            font-weight: 700;
+            color: var(--xl-red);
+            border-left: 2px solid var(--xl-border);
+        }
+        .tracker-table .cum-col td {
+            background: var(--xl-gray);
+            font-weight: 700;
+            color: var(--xl-red);
+        }
+        .tracker-table .empty-cell {
+            color: #ccc;
+        }
+
+        /* ---- Form Input ---- */
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--xl-dark);
+            margin-bottom: 4px;
+        }
+        .form-group label .required {
+            color: var(--xl-red);
+            margin-left: 2px;
+        }
+        .form-group select,
+        .form-group input[type="text"],
+        .form-group input[type="date"] {
+            width: 100%;
+            padding: 11px 14px;
+            border: 2px solid var(--xl-border);
+            border-radius: var(--xl-radius-sm);
+            font-size: 15px;
+            background: #fafafa;
+            transition: 0.2s;
+            outline: none;
+            color: var(--xl-dark);
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        .form-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+        }
+        .form-group select:focus,
+        .form-group input:focus {
+            border-color: var(--xl-red);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(227, 30, 36, 0.06);
+        }
+        .form-group .check-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 4px;
+        }
+        .form-group .check-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            font-size: 13px;
+            color: var(--xl-dark);
+            cursor: pointer;
+            background: #f8f8fa;
+            padding: 6px 12px 6px 8px;
+            border-radius: 30px;
+            border: 1px solid var(--xl-border);
+            transition: 0.2s;
+        }
+        .form-group .check-group label:has(input:checked) {
+            background: var(--xl-red-light);
+            border-color: var(--xl-red);
+            color: var(--xl-red);
+        }
+        .form-group .check-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--xl-red);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .form-group .hint {
+            font-size: 11px;
+            color: var(--xl-muted);
+            margin-top: 4px;
+        }
+
+        /* ---- Login Page ---- */
+        .login-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 70vh;
+            padding: 30px 20px;
+            background: #fff;
+        }
+        .login-page .login-logo {
+            width: 140px;
+            height: auto;
+            margin-bottom: 28px;
+        }
+        .login-page .login-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--xl-dark);
+            margin-bottom: 4px;
+        }
+        .login-page .login-sub {
+            font-size: 14px;
+            color: var(--xl-muted);
+            margin-bottom: 28px;
+        }
+        .login-page .login-form {
+            width: 100%;
+            max-width: 340px;
+        }
+        .login-page .login-form .form-group {
+            margin-bottom: 16px;
+        }
+        .login-page .login-form .form-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--xl-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .login-page .login-form .form-group select,
+        .login-page .login-form .form-group input {
+            background: #f8f8fa;
+            border-width: 2px;
+            font-size: 16px;
+            padding: 12px 14px;
+        }
+        .login-page .login-form .btn-primary {
+            padding: 14px;
+            font-size: 16px;
+            border-radius: var(--xl-radius-sm);
+            margin-top: 6px;
+        }
+        .login-page .admin-toggle {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .login-page .admin-toggle button {
+            background: none;
+            border: none;
+            color: var(--xl-muted);
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 6px 12px;
+        }
+        .login-page .admin-toggle button:hover {
+            color: var(--xl-red);
+        }
+        .login-page .login-error {
+            background: #fdecec;
+            color: var(--xl-red);
+            padding: 10px 14px;
+            border-radius: var(--xl-radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 14px;
+            display: none;
+            text-align: center;
+        }
+        .login-page .login-error.show {
+            display: block;
+        }
+
+        /* ---- Admin ---- */
+        .admin-section {
+            margin-bottom: 20px;
+        }
+        .admin-section .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--xl-dark);
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--xl-border);
+        }
+        .admin-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: #f8f8fa;
+            border-radius: var(--xl-radius-sm);
+            margin-bottom: 6px;
+            border: 1px solid var(--xl-border);
+        }
+        .admin-list-item .name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .admin-list-item .detail {
+            font-size: 12px;
+            color: var(--xl-muted);
+        }
+        .admin-list-item .actions {
+            display: flex;
+            gap: 6px;
+        }
+        .admin-list-item .actions .btn-sm {
+            background: none;
+            border: none;
+            color: var(--xl-red);
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+        .admin-list-item .actions .btn-sm.danger {
+            color: #cc0000;
+        }
+        .admin-list-item .actions .btn-sm:hover {
+            background: #f0f0f2;
+        }
+
+        .admin-form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .admin-form-row .field {
+            flex: 1;
+            min-width: 100px;
+        }
+        .admin-form-row .field input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid var(--xl-border);
+            border-radius: var(--xl-radius-sm);
+            font-size: 14px;
+            background: #fafafa;
+            outline: none;
+            transition: 0.2s;
+        }
+        .admin-form-row .field input:focus {
+            border-color: var(--xl-red);
+            background: #fff;
+        }
+        .admin-form-row .btn-primary {
+            flex: 0 0 auto;
+            padding: 10px 20px;
+            width: auto;
+            margin-top: 0;
+        }
+
+        /* ---- Toast ---- */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 420px;
+            width: 90%;
+            padding: 12px 20px;
+            border-radius: var(--xl-radius-sm);
+            background: #1a1a1a;
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.20);
+            z-index: 999;
+            opacity: 0;
+            transition: 0.3s;
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .toast.success {
+            background: #0f7b3a;
+        }
+        .toast.error {
+            background: #cc0000;
+        }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 420px) {
+            body {
+                padding: 0;
+            }
+            #app {
+                border-radius: 0;
+                min-height: 100vh;
+                padding-bottom: 60px;
+            }
+            .app-header {
+                border-radius: 0;
+                padding: 12px 16px;
+            }
+            .app-header .logo {
+                height: 30px;
+            }
+            .page {
+                padding: 12px 12px 20px;
+            }
+            .card {
+                padding: 14px 14px;
+                border-radius: 14px;
+            }
+            .bottom-nav {
+                border-radius: 0;
+            }
+            .bottom-nav .nav-item {
+                padding: 4px 10px;
+                font-size: 10px;
+                min-width: 48px;
+            }
+            .daily-input-group .field {
+                min-width: 80px;
+            }
+            .tracker-table {
+                font-size: 10px;
+                min-width: 420px;
+            }
+            .tracker-table th,
+            .tracker-table td {
+                padding: 4px 1px;
+                font-size: 11px;
+            }
+            .xl-value {
+                font-size: 22px;
+            }
+            .login-page .login-logo {
+                width: 100px;
+            }
+            .admin-form-row .field {
+                min-width: 70px;
+            }
+        }
+        @media (min-width: 600px) {
+            body {
+                padding: 24px;
+                align-items: center;
+            }
+            #app {
+                border-radius: 32px;
+                min-height: 80vh;
+                box-shadow: 0 12px 60px rgba(0, 0, 0, 0.10);
+            }
+            .bottom-nav {
+                border-radius: 0 0 32px 32px;
+                max-width: 480px;
+            }
+        }
+
+        /* ---- Utility ---- */
+        .text-center {
+            text-align: center;
+        }
+        .mt-8 {
+            margin-top: 8px;
+        }
+        .mt-12 {
+            margin-top: 12px;
+        }
+        .mb-8 {
+            margin-bottom: 8px;
+        }
+        .gap-8 {
+            gap: 8px;
+        }
+        .flex {
+            display: flex;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .text-red {
+            color: var(--xl-red);
+        }
+        .text-muted {
+            color: var(--xl-muted);
+        }
+        .fw-700 {
+            font-weight: 700;
+        }
+
+        /* ---- Scrollbar ---- */
+        .tracker-wrap::-webkit-scrollbar {
+            height: 3px;
+        }
+        .tracker-wrap::-webkit-scrollbar-thumb {
+            background: var(--xl-border);
+            border-radius: 10px;
+        }
+        .tracker-wrap::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        /* ---- Spinner ---- */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .btn-primary .spinner {
+            width: 18px;
+            height: 18px;
+            border-width: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== APP ===== -->
+    <div id="app">
+
+        <!-- ---- Header ---- -->
+        <header class="app-header" id="appHeader">
+            <img class="logo" src="https://imgs.search.brave.com/-g7Xjth249_3Kc0c9cJxMD7IQ9zKCBtFqmoIffk8S5E/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly96b25h/bG9nby5jb20vYXNz/ZXRzL2xvZ28teGwt/c2F0dS53ZWJwP3c9/NzY4" alt="XL Satu" />
+            <div class="user-badge" id="userBadge">
+                <span id="headerUserName">Guest</span>
+                <button class="logout-btn" id="logoutBtn" title="Logout">✕</button>
+            </div>
+        </header>
+
+        <!-- ---- PAGES ---- -->
+
+        <!-- LOGIN PAGE -->
+        <div class="page active" id="pageLogin">
+            <div class="login-page">
+                <img class="login-logo" src="https://imgs.search.brave.com/-g7Xjth249_3Kc0c9cJxMD7IQ9zKCBtFqmoIffk8S5E/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly96b25h/bG9nby5jb20vYXNz/ZXRzL2xvZ28teGwt/c2F0dS53ZWJwP3c9/NzY4" alt="XL Satu" />
+                <div class="login-title">Sales Tracker</div>
+                <div class="login-sub">Masuk untuk melanjutkan</div>
+
+                <div class="login-error" id="loginError">PIN salah, coba lagi.</div>
+
+                <form class="login-form" id="loginForm" autocomplete="off">
+                    <div class="form-group">
+                        <label>Nama AE</label>
+                        <select id="loginAeSelect" required>
+                            <option value="">— Pilih AE —</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>PIN</label>
+                        <input type="password" id="loginPin" placeholder="Masukkan PIN" maxlength="6" inputmode="numeric" required />
+                    </div>
+                    <button type="submit" class="btn-primary" id="loginBtn">Masuk</button>
+                </form>
+
+                <div class="admin-toggle">
+                    <button id="adminToggleBtn">🔐 Login sebagai Admin</button>
+                </div>
+
+                <!-- Admin login hidden -->
+                <form class="login-form" id="adminLoginForm" style="display:none; margin-top:16px;" autocomplete="off">
+                    <div class="form-group">
+                        <label>PIN Admin</label>
+                        <input type="password" id="adminPin" placeholder="PIN Admin" maxlength="6" inputmode="numeric" />
+                    </div>
+                    <button type="submit" class="btn-primary" id="adminLoginBtn" style="background:#1a1a1a;">Masuk Admin</button>
+                    <div style="text-align:center; margin-top:8px;">
+                        <button type="button" id="adminBackBtn" style="background:none;border:none;color:var(--xl-muted);font-size:12px;cursor:pointer;">← Kembali</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- DASHBOARD PAGE -->
+        <div class="page" id="pageDashboard">
+            <!-- Nama Sales Card -->
+            <div class="card" style="background:var(--xl-red);border:none;box-shadow:0 6px 24px rgba(227,30,36,0.25);">
+                <div style="display:flex;justify-content:space-between;align-items:center;color:#fff;">
+                    <div>
+                        <div style="font-size:13px;opacity:0.8;font-weight:500;">Selamat datang,</div>
+                        <div style="font-size:22px;font-weight:700;" id="dashboardAeName">—</div>
+                    </div>
+                    <div style="text-align:right;font-size:12px;opacity:0.7;">
+                        <div id="dashboardDate">--</div>
+                        <div style="font-weight:500;">Performa Bulan Ini</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performa Bulanan -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📊 Performa Bulanan</span>
+                    <span class="xl-sub" id="monthLabel">Agustus 2026</span>
+                </div>
+                <div class="progress-wrap">
+                    <div class="progress-row">
+                        <span class="prog-label">FTTH</span>
+                        <div class="prog-track"><div class="prog-fill" id="ftthProgress" style="width:0%;"></div></div>
+                        <span class="prog-numbers"><span id="ftthActual">0</span> / <span class="target" id="ftthTarget">0</span></span>
+                    </div>
+                    <div class="progress-row">
+                        <span class="prog-label">FWA</span>
+                        <div class="prog-track"><div class="prog-fill" id="fwaProgress" style="width:0%;"></div></div>
+                        <span class="prog-numbers"><span id="fwaActual">0</span> / <span class="target" id="fwaTarget">0</span></span>
+                    </div>
+                </div>
+                <div style="display:flex;gap:20px;margin-top:10px;font-size:12px;color:var(--xl-muted);">
+                    <span>✅ FTTH: <strong id="ftthPercent">0%</strong></span>
+                    <span>✅ FWA: <strong id="fwaPercent">0%</strong></span>
+                </div>
+            </div>
+
+            <!-- Performa Harian -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📅 Performa Harian</span>
+                    <span class="xl-sub" id="todayLabel">Hari ini</span>
+                </div>
+                <form id="dailyForm">
+                    <div class="daily-input-group">
+                        <div class="field">
+                            <label>FTTH</label>
+                            <input type="number" id="dailyFtth" placeholder="0" min="0" step="1" />
+                        </div>
+                        <div class="field">
+                            <label>FWA</label>
+                            <input type="number" id="dailyFwa" placeholder="0" min="0" step="1" />
+                        </div>
+                        <div class="field" style="flex:0 0 auto;min-width:60px;display:flex;align-items:flex-end;">
+                            <button type="submit" class="btn-primary" id="dailySubmitBtn" style="padding:10px 16px;font-size:13px;margin-top:0;">Simpan</button>
+                        </div>
+                    </div>
+                    <div style="font-size:11px;color:var(--xl-muted);margin-top:4px;">
+                        ⚡ Input angka hari ini akan otomatis masuk ke tracker.
+                    </div>
+                </form>
+                <div id="dailyStatus" style="font-size:12px;color:var(--xl-muted);margin-top:6px;"></div>
+            </div>
+
+            <!-- Tracker Harian -->
+            <div class="card" style="padding-bottom:8px;">
+                <div class="card-header">
+                    <span class="card-title">📋 Tracker Harian</span>
+                    <span class="xl-sub" id="trackerMonthLabel">Agustus 2026</span>
+                </div>
+                <div class="tracker-wrap" id="trackerWrap">
+                    <table class="tracker-table" id="trackerTable">
+                        <thead id="trackerHead"></thead>
+                        <tbody id="trackerBody"></tbody>
+                    </table>
+                </div>
+                <div style="font-size:10px;color:var(--xl-muted);margin-top:6px;text-align:right;">
+                    <span style="display:inline-block;width:10px;height:10px;background:#fdecec;border-radius:3px;vertical-align:middle;"></span> kolom biru = hari ini
+                </div>
+            </div>
+        </div>
+
+        <!-- INPUT PAGE -->
+        <div class="page" id="pageInput">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📝 Input Data Pemasangan</span>
+                </div>
+                <form id="inputForm">
+                    <div class="form-group">
+                        <label>Nama AE <span class="required">*</span></label>
+                        <select id="inputAeSelect" required>
+                            <option value="">— Pilih AE —</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Kategori Produk <span class="required">*</span></label>
+                        <select id="inputCategory" required>
+                            <option value="">— Pilih —</option>
+                            <option value="FTTH">FTTH</option>
+                            <option value="FWA">FWA</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nama Pelanggan <span class="required">*</span></label>
+                        <input type="text" id="inputCustomer" placeholder="Masukkan nama pelanggan" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Pemasangan <span class="required">*</span></label>
+                        <input type="date" id="inputInstallDate" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Input SO <span class="required">*</span></label>
+                        <input type="date" id="inputSoDate" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Kelengkapan Data <span class="required">*</span></label>
+                        <div class="check-group">
+                            <label><input type="checkbox" id="chkPhotoCustomer" /> Foto Customer</label>
+                            <label><input type="checkbox" id="chkPhotoKtp" /> Foto KTP</label>
+                            <label><input type="checkbox" id="chkPhotoHouse" /> Foto Depan Rumah</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary" id="inputSubmitBtn">Simpan Data</button>
+                </form>
+            </div>
+            <div style="font-size:11px;color:var(--xl-muted);text-align:center;padding:4px 0 8px;">
+                Semua data tersimpan di Google Spreadsheet.
+            </div>
+        </div>
+
+        <!-- ADMIN PAGE -->
+        <div class="page" id="pageAdmin">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🔧 Admin Panel</span>
+                    <span class="xl-sub">Kelola AE & Target</span>
+                </div>
+
+                <!-- Tambah AE -->
+                <div class="admin-section">
+                    <div class="section-title">➕ Tambah AE</div>
+                    <div class="admin-form-row">
+                        <div class="field"><input type="text" id="adminNewName" placeholder="Nama AE" /></div>
+                        <div class="field"><input type="password" id="adminNewPin" placeholder="PIN" maxlength="6" inputmode="numeric" /></div>
+                        <div class="field"><input type="number" id="adminNewTargetFtth" placeholder="Target FTTH" min="0" step="1" /></div>
+                        <div class="field"><input type="number" id="adminNewTargetFwa" placeholder="Target FWA" min="0" step="1" /></div>
+                        <button class="btn-primary" id="adminAddAeBtn" style="flex:0 0 auto;padding:10px 18px;">Tambah</button>
+                    </div>
+                </div>
+
+                <!-- Daftar AE -->
+                <div class="admin-section">
+                    <div class="section-title">📋 Daftar AE</div>
+                    <div id="adminAeList">
+                        <div style="text-align:center;padding:16px;color:var(--xl-muted);font-size:13px;">Memuat...</div>
+                    </div>
+                </div>
+
+                <!-- Admin PIN change -->
+                <div class="admin-section" style="margin-top:8px;">
+                    <div class="section-title">🔑 Ubah PIN Admin</div>
+                    <div class="admin-form-row">
+                        <div class="field"><input type="password" id="adminNewAdminPin" placeholder="PIN Admin Baru" maxlength="6" inputmode="numeric" /></div>
+                        <button class="btn-primary" id="adminChangePinBtn" style="flex:0 0 auto;padding:10px 18px;">Update</button>
+                    </div>
+                </div>
+
+                <div style="font-size:11px;color:var(--xl-muted);text-align:center;padding:4px 0;">
+                    Perubahan langsung tersimpan di database.
+                </div>
+            </div>
+        </div>
+
+        <!-- ---- TOAST ---- -->
+        <div class="toast" id="toast"></div>
+
+        <!-- ---- BOTTOM NAV ---- -->
+        <nav class="bottom-nav" id="bottomNav">
+            <button class="nav-item active" data-page="pageDashboard">
+                <span>📊</span>
+                <span class="nav-label">Dashboard</span>
+                <span class="nav-dot"></span>
+            </button>
+            <button class="nav-item" data-page="pageInput">
+                <span>📝</span>
+                <span class="nav-label">Input</span>
+                <span class="nav-dot"></span>
+            </button>
+            <button class="nav-item admin-item" data-page="pageAdmin" id="navAdmin" style="display:none;">
+                <span>⚙️</span>
+                <span class="nav-label">Admin</span>
+                <span class="nav-dot"></span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- ===== JAVASCRIPT ===== -->
+    <script>
+        // ============================================================
+        //  KONFIGURASI
+        // ============================================================
+        // Ganti URL_DEPLOY dengan URL Google Apps Script web app Anda
+        // Contoh: "https://script.google.com/macros/s/.../exec"
+        const CONFIG = {
+            API_URL: 'https://script.google.com/macros/s/AKfycbyL5YxbzY3h0OheU5_bLzoW8VCkS-wyL1VATN5mtbrmRRsDdlYMXS0EBapDiU0FdCPYHg/exec',
+            ADMIN_PIN: '123456', // PIN default admin (akan disimpan di sheet juga)
+        };
+
+        // ============================================================
+        //  STATE
+        // ============================================================
+        let state = {
+            currentUser: null, // { name, pin, targetFtth, targetFwa, isAdmin }
+            isAdmin: false,
+            aeList: [],
+            dailyData: {}, // key: "YYYY-MM-DD" => { ftth, fwa }
+            trackerData: {}, // key: "YYYY-MM-DD" => { ftth, fwa }
+            customerInputs: [],
+            currentDate: new Date(),
+            loading: false,
+        };
+
+        // DOM refs
+        const $ = id => document.getElementById(id);
+        const $$ = sel => document.querySelectorAll(sel);
+
+        // ============================================================
+        //  UTILITY
+        // ============================================================
+        function formatDate(d) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+
+        function formatDateDisplay(d) {
+            const opts = { year: 'numeric', month: 'long', day: 'numeric' };
+            return d.toLocaleDateString('id-ID', opts);
+        }
+
+        function getMonthName(m) {
+            const names = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+            ];
+            return names[m] || '';
+        }
+
+        function getDaysInMonth(year, month) {
+            return new Date(year, month + 1, 0).getDate();
+        }
+
+        function todayStr() {
+            return formatDate(new Date());
+        }
+
+        function isToday(dateStr) {
+            return dateStr === todayStr();
+        }
+
+        function showToast(msg, type = '') {
+            const t = $('toast');
+            t.textContent = msg;
+            t.className = 'toast ' + type;
+            t.classList.add('show');
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => t.classList.remove('show'), 3200);
+        }
+
+        function showError(msg) {
+            showToast(msg, 'error');
+        }
+
+        function showSuccess(msg) {
+            showToast(msg, 'success');
+        }
+
+        function setLoading(el, loading) {
+            if (!el) return;
+            if (loading) {
+                el.disabled = true;
+                el.innerHTML = '<span class="spinner"></span> ';
+                el._origText = el._origText || el.textContent;
+            } else {
+                el.disabled = false;
+                el.textContent = el._origText || 'Submit';
+            }
+        }
+
+        // ============================================================
+        //  API CALLS
+        // ============================================================
+        async function apiCall(action, payload = {}) {
+            try {
+                const res = await fetch(CONFIG.API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, ...payload })
+                });
+                // Karena mode no-cors, kita tidak bisa membaca response.
+                // Kita gunakan pendekatan: data dikirim, dan kita asumsikan berhasil.
+                // Untuk GET, kita gunakan approach berbeda.
+                return { success: true };
+            } catch (e) {
+                console.error('API error:', e);
+                return { success: false, error: e.message };
+            }
+        }
+
+        // GET data dari Google Sheets via JSONP-style (pakai fetch biasa)
+        async function fetchData(action, params = {}) {
+            try {
+                const url = new URL(CONFIG.API_URL);
+                url.searchParams.set('action', action);
+                for (const [k, v] of Object.entries(params)) {
+                    if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
+                }
+                const res = await fetch(url.toString(), {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                return data;
+            } catch (e) {
+                console.error('Fetch error:', e);
+                return { success: false, error: e.message };
+            }
+        }
+
+        // ============================================================
+        //  DATA LOADING
+        // ============================================================
+        async function loadAeList() {
+            const result = await fetchData('getAeList');
+            if (result.success && result.data) {
+                state.aeList = result.data;
+                return state.aeList;
+            }
+            // Fallback: jika gagal, gunakan data lokal
+            console.warn('Gagal load AE list, gunakan fallback');
+            return [];
+        }
+
+        async function loadDailyPerformance(aeName, month, year) {
+            const result = await fetchData('getDailyPerformance', { aeName, month, year });
+            if (result.success && result.data) {
+                return result.data;
+            }
+            return {};
+        }
+
+        async function loadTrackerData(aeName, month, year) {
+            const result = await fetchData('getTracker', { aeName, month, year });
+            if (result.success && result.data) {
+                return result.data;
+            }
+            return {};
+        }
+
+        async function loadCustomerInputs(aeName) {
+            const result = await fetchData('getCustomerInputs', { aeName });
+            if (result.success && result.data) {
+                return result.data;
+            }
+            return [];
+        }
+
+        // ============================================================
+        //  RENDER FUNCTIONS
+        // ============================================================
+
+        // ---- Render AE dropdowns ----
+        function renderAeDropdowns() {
+            const selects = ['loginAeSelect', 'inputAeSelect'];
+            const list = state.aeList || [];
+            selects.forEach(id => {
+                const sel = $(id);
+                if (!sel) return;
+                const current = sel.value;
+                sel.innerHTML = '<option value="">— Pilih AE —</option>';
+                list.forEach(ae => {
+                    const opt = document.createElement('option');
+                    opt.value = ae.name;
+                    opt.textContent = ae.name + (ae.pin ? ' 🔒' : '');
+                    sel.appendChild(opt);
+                });
+                if (current && list.some(a => a.name === current)) {
+                    sel.value = current;
+                }
+            });
+        }
+
+        // ---- Render Admin AE list ----
+        function renderAdminAeList() {
+            const container = $('adminAeList');
+            const list = state.aeList || [];
+            if (!list.length) {
+                container.innerHTML = '<div style="text-align:center;padding:16px;color:var(--xl-muted);font-size:13px;">Belum ada AE terdaftar.</div>';
+                return;
+            }
+            let html = '';
+            list.forEach(ae => {
+                html += `
+                    <div class="admin-list-item">
+                        <div>
+                            <div class="name">${ae.name}</div>
+                            <div class="detail">PIN: ${ae.pin || '—'} · Target FTTH: ${ae.targetFtth || 0} · FWA: ${ae.targetFwa || 0}</div>
+                        </div>
+                        <div class="actions">
+                            <button class="btn-sm" data-action="edit" data-name="${ae.name}">✏️</button>
+                            <button class="btn-sm danger" data-action="delete" data-name="${ae.name}">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+
+            // Event listeners untuk edit/delete
+            container.querySelectorAll('[data-action="edit"]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const name = btn.dataset.name;
+                    const ae = state.aeList.find(a => a.name === name);
+                    if (!ae) return;
+                    $('adminNewName').value = ae.name;
+                    $('adminNewPin').value = ae.pin || '';
+                    $('adminNewTargetFtth').value = ae.targetFtth || 0;
+                    $('adminNewTargetFwa').value = ae.targetFwa || 0;
+                    showToast('Edit data AE, lalu klik Tambah untuk menyimpan');
+                });
+            });
+            container.querySelectorAll('[data-action="delete"]').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const name = btn.dataset.name;
+                    if (!confirm(`Hapus AE "${name}"?`)) return;
+                    await apiCall('deleteAe', { name });
+                    showSuccess(`AE "${name}" dihapus`);
+                    await refreshAllData();
+                });
+            });
+        }
+
+        // ---- Render Dashboard ----
+        function renderDashboard() {
+            const user = state.currentUser;
+            if (!user) return;
+
+            // Nama
+            $('dashboardAeName').textContent = user.name;
+            const now = new Date();
+            $('dashboardDate').textContent = formatDateDisplay(now);
+            $('monthLabel').textContent = getMonthName(now.getMonth()) + ' ' + now.getFullYear();
+
+            // Target
+            const targetFtth = parseInt(user.targetFtth) || 0;
+            const targetFwa = parseInt(user.targetFwa) || 0;
+            $('ftthTarget').textContent = targetFtth;
+            $('fwaTarget').textContent = targetFwa;
+
+            // Ambil data performa dari tracker (akumulasi bulan ini)
+            const month = now.getMonth();
+            const year = now.getFullYear();
+            const days = getDaysInMonth(year, month);
+
+            let totalFtth = 0,
+                totalFwa = 0;
+            for (let d = 1; d <= days; d++) {
+                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const entry = state.trackerData[dateStr] || {};
+                totalFtth += parseInt(entry.ftth) || 0;
+                totalFwa += parseInt(entry.fwa) || 0;
+            }
+
+            $('ftthActual').textContent = totalFtth;
+            $('fwaActual').textContent = totalFwa;
+
+            const pctFtth = targetFtth > 0 ? Math.min(100, Math.round((totalFtth / targetFtth) * 100)) : 0;
+            const pctFwa = targetFwa > 0 ? Math.min(100, Math.round((totalFwa / targetFwa) * 100)) : 0;
+
+            $('ftthProgress').style.width = pctFtth + '%';
+            $('fwaProgress').style.width = pctFwa + '%';
+            $('ftthPercent').textContent = pctFtth + '%';
+            $('fwaPercent').textContent = pctFwa + '%';
+
+            // Today label
+            $('todayLabel').textContent = formatDateDisplay(now);
+
+            // Daily status
+            const todayKey = todayStr();
+            const todayEntry = state.trackerData[todayKey] || {};
+            const todayFtth = parseInt(todayEntry.ftth) || 0;
+            const todayFwa = parseInt(todayEntry.fwa) || 0;
+            if (todayFtth > 0 || todayFwa > 0) {
+                $('dailyStatus').textContent = `✅ Hari ini: FTTH ${todayFtth}, FWA ${todayFwa}`;
+                $('dailyStatus').style.color = '#0f7b3a';
+            } else {
+                $('dailyStatus').textContent = `⏳ Belum ada input untuk hari ini (${formatDateDisplay(now)})`;
+                $('dailyStatus').style.color = 'var(--xl-muted)';
+            }
+
+            // Tracker
+            renderTracker(month, year);
+        }
+
+        // ---- Render Tracker Table ----
+        function renderTracker(month, year) {
+            const thead = $('trackerHead');
+            const tbody = $('trackerBody');
+            const days = getDaysInMonth(year, month);
+            const today = new Date();
+            const todayDay = today.getDate();
+            const todayMonth = today.getMonth();
+            const todayYear = today.getFullYear();
+
+            // Header
+            let headHtml = '<tr><th style="text-align:left;min-width:48px;">Tanggal</th>';
+            for (let d = 1; d <= days; d++) {
+                const isTodayCol = (d === todayDay && month === todayMonth && year === todayYear);
+                headHtml += `<th${isTodayCol ? ' style="background:#fdecec;color:var(--xl-red);"' : ''}>${d}</th>`;
+            }
+            headHtml += '<th style="text-align:center;min-width:44px;background:var(--xl-gray);">Kum.</th>';
+            headHtml += '</tr>';
+            thead.innerHTML = headHtml;
+
+            // Body: FTTH row
+            let ftthHtml = '<tr><td class="row-label">FTTH</td>';
+            let totalFtth = 0;
+            let totalFwa = 0;
+            const ftthValues = [];
+            const fwaValues = [];
+
+            for (let d = 1; d <= days; d++) {
+                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const entry = state.trackerData[dateStr] || {};
+                const ftth = parseInt(entry.ftth) || 0;
+                const fwa = parseInt(entry.fwa) || 0;
+                totalFtth += ftth;
+                totalFwa += fwa;
+                ftthValues.push(ftth);
+                fwaValues.push(fwa);
+
+                const isTodayCol = (d === todayDay && month === todayMonth && year === todayYear);
+                const cls = isTodayCol ? 'today-col' : '';
+                ftthHtml += `<td class="${cls}">${ftth > 0 ? ftth : '<span class="empty-cell">—</span>'}</td>`;
+            }
+            ftthHtml += `<td class="cum-col">${totalFtth}</td></tr>`;
+            tbody.innerHTML = ftthHtml;
+
+            // FWA row
+            let fwaHtml = '<tr><td class="row-label">FWA</td>';
+            for (let d = 1; d <= days; d++) {
+                const isTodayCol = (d === todayDay && month === todayMonth && year === todayYear);
+                const cls = isTodayCol ? 'today-col' : '';
+                const val = fwaValues[d - 1] || 0;
+                fwaHtml += `<td class="${cls}">${val > 0 ? val : '<span class="empty-cell">—</span>'}</td>`;
+            }
+            fwaHtml += `<td class="cum-col">${totalFwa}</td></tr>`;
+            tbody.innerHTML += fwaHtml;
+
+            $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year;
+        }
+
+        // ---- Render Input page ----
+        function renderInputPage() {
+            // Dropdown sudah di-render via renderAeDropdowns
+            // Set default tanggal
+            const now = new Date();
+            $('inputInstallDate').value = formatDate(now);
+            $('inputSoDate').value = formatDate(now);
+            // Set default AE
+            if (state.currentUser && !state.currentUser.isAdmin) {
+                $('inputAeSelect').value = state.currentUser.name;
+            }
+        }
+
+        // ============================================================
+        //  REFRESH ALL DATA
+        // ============================================================
+        async function refreshAllData() {
+            const user = state.currentUser;
+            if (!user) return;
+
+            const now = new Date();
+            const month = now.getMonth() + 1;
+            const year = now.getFullYear();
+
+            // Load AE list
+            const aeList = await loadAeList();
+            if (aeList.length) state.aeList = aeList;
+            renderAeDropdowns();
+
+            // Load tracker data
+            const tracker = await loadTrackerData(user.name, month, year);
+            if (tracker && typeof tracker === 'object') {
+                state.trackerData = tracker;
+            }
+
+            // Load daily performance (sama dengan tracker)
+            const daily = await loadDailyPerformance(user.name, month, year);
+            if (daily && typeof daily === 'object') {
+                state.dailyData = daily;
+            }
+
+            // Render
+            renderDashboard();
+            renderAdminAeList();
+            renderInputPage();
+
+            // Admin nav visibility
+            const navAdmin = $('navAdmin');
+            if (user.isAdmin) {
+                navAdmin.style.display = 'flex';
+            } else {
+                navAdmin.style.display = 'none';
+            }
+        }
+
+        // ============================================================
+        //  LOGIN
+        // ============================================================
+        async function handleLogin(e) {
+            e.preventDefault();
+            const name = $('loginAeSelect').value;
+            const pin = $('loginPin').value.trim();
+
+            if (!name) {
+                showError('Pilih nama AE');
+                return;
+            }
+
+            // Cari di AE list
+            const ae = state.aeList.find(a => a.name === name);
+            if (!ae) {
+                showError('AE tidak ditemukan');
+                return;
+            }
+
+            if (ae.pin && ae.pin !== pin) {
+                showError('PIN salah!');
+                return;
+            }
+
+            // Login sukses
+            state.currentUser = {
+                name: ae.name,
+                pin: ae.pin || '',
+                targetFtth: ae.targetFtth || 0,
+                targetFwa: ae.targetFwa || 0,
+                isAdmin: false,
+            };
+            state.isAdmin = false;
+            $('loginError').classList.remove('show');
+            $('loginPin').value = '';
+
+            // Sembunyikan login, tampilkan app
+            showPage('pageDashboard');
+            $('headerUserName').textContent = ae.name;
+            await refreshAllData();
+            showSuccess('Selamat datang, ' + ae.name + '!');
+        }
+
+        // ---- Admin Login ----
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            const pin = $('adminPin').value.trim();
+
+            // Cek PIN admin (dari CONFIG atau dari sheet)
+            // Kita cek di state.aeList untuk admin pin
+            // Atau pakai CONFIG.ADMIN_PIN
+            const adminPinFromSheet = state.aeList.find(a => a.name === 'ADMIN');
+            const validPin = adminPinFromSheet ? adminPinFromSheet.pin : CONFIG.ADMIN_PIN;
+
+            if (pin !== validPin) {
+                showError('PIN Admin salah!');
+                return;
+            }
+
+            // Login sebagai admin
+            state.currentUser = {
+                name: 'Admin',
+                pin: validPin,
+                targetFtth: 0,
+                targetFwa: 0,
+                isAdmin: true,
+            };
+            state.isAdmin = true;
+            $('adminPin').value = '';
+
+            showPage('pageAdmin');
+            $('headerUserName').textContent = 'Admin';
+            await refreshAllData();
+            showSuccess('Login sebagai Admin');
+        }
+
+        // ============================================================
+        //  LOGOUT
+        // ============================================================
+        function handleLogout() {
+            state.currentUser = null;
+            state.isAdmin = false;
+            state.trackerData = {};
+            state.dailyData = {};
+            showPage('pageLogin');
+            $('headerUserName').textContent = 'Guest';
+            showToast('Anda telah keluar');
+        }
+
+        // ============================================================
+        //  DAILY SUBMIT
+        // ============================================================
+        async function handleDailySubmit(e) {
+            e.preventDefault();
+            const user = state.currentUser;
+            if (!user || user.isAdmin) {
+                showError('Silakan login sebagai AE');
+                return;
+            }
+
+            const ftth = parseInt($('dailyFtth').value) || 0;
+            const fwa = parseInt($('dailyFwa').value) || 0;
+
+            if (ftth === 0 && fwa === 0) {
+                showError('Masukkan minimal 1 angka');
+                return;
+            }
+
+            const today = todayStr();
+            const btn = $('dailySubmitBtn');
+            setLoading(btn, true);
+
+            // Simpan ke API
+            const result = await apiCall('saveDaily', {
+                aeName: user.name,
+                date: today,
+                ftth: ftth,
+                fwa: fwa
+            });
+
+            setLoading(btn, false);
+
+            if (result.success) {
+                // Update lokal
+                if (!state.trackerData[today]) state.trackerData[today] = {};
+                state.trackerData[today].ftth = (parseInt(state.trackerData[today].ftth) || 0) + ftth;
+                state.trackerData[today].fwa = (parseInt(state.trackerData[today].fwa) || 0) + fwa;
+
+                $('dailyFtth').value = '';
+                $('dailyFwa').value = '';
+                showSuccess('Data harian disimpan!');
+                renderDashboard();
+            } else {
+                showError('Gagal menyimpan, coba lagi');
+            }
+        }
+
+        // ============================================================
+        //  INPUT FORM SUBMIT
+        // ============================================================
+        async function handleInputSubmit(e) {
+            e.preventDefault();
+            const user = state.currentUser;
+            if (!user) {
+                showError('Silakan login terlebih dahulu');
+                return;
+            }
+
+            const aeName = $('inputAeSelect').value;
+            const category = $('inputCategory').value;
+            const customer = $('inputCustomer').value.trim();
+            const installDate = $('inputInstallDate').value;
+            const soDate = $('inputSoDate').value;
+            const photoCustomer = $('chkPhotoCustomer').checked;
+            const photoKtp = $('chkPhotoKtp').checked;
+            const photoHouse = $('chkPhotoHouse').checked;
+
+            if (!aeName || !category || !customer || !installDate || !soDate) {
+                showError('Lengkapi semua field yang wajib');
+                return;
+            }
+
+            const btn = $('inputSubmitBtn');
+            setLoading(btn, true);
+
+            const result = await apiCall('saveCustomerInput', {
+                aeName,
+                category,
+                customer,
+                installDate,
+                soDate,
+                photoCustomer,
+                photoKtp,
+                photoHouse
+            });
+
+            setLoading(btn, false);
+
+            if (result.success) {
+                showSuccess('Data pelanggan tersimpan!');
+                $('inputCustomer').value = '';
+                $('chkPhotoCustomer').checked = false;
+                $('chkPhotoKtp').checked = false;
+                $('chkPhotoHouse').checked = false;
+                // Reset tanggal ke hari ini
+                const now = new Date();
+                $('inputInstallDate').value = formatDate(now);
+                $('inputSoDate').value = formatDate(now);
+            } else {
+                showError('Gagal menyimpan data');
+            }
+        }
+
+        // ============================================================
+        //  ADMIN: TAMBAH / EDIT AE
+        // ============================================================
+        async function handleAddAe() {
+            const name = $('adminNewName').value.trim();
+            const pin = $('adminNewPin').value.trim();
+            const targetFtth = parseInt($('adminNewTargetFtth').value) || 0;
+            const targetFwa = parseInt($('adminNewTargetFwa').value) || 0;
+
+            if (!name) {
+                showError('Nama AE wajib diisi');
+                return;
+            }
+
+            const btn = $('adminAddAeBtn');
+            setLoading(btn, true);
+
+            const result = await apiCall('saveAe', {
+                name,
+                pin,
+                targetFtth,
+                targetFwa
+            });
+
+            setLoading(btn, false);
+
+            if (result.success) {
+                showSuccess('AE berhasil disimpan!');
+                $('adminNewName').value = '';
+                $('adminNewPin').value = '';
+                $('adminNewTargetFtth').value = '';
+                $('adminNewTargetFwa').value = '';
+                await refreshAllData();
+            } else {
+                showError('Gagal menyimpan AE');
+            }
+        }
+
+        // ============================================================
+        //  ADMIN: UBAH PIN ADMIN
+        // ============================================================
+        async function handleChangeAdminPin() {
+            const newPin = $('adminNewAdminPin').value.trim();
+            if (!newPin || newPin.length < 4) {
+                showError('PIN minimal 4 karakter');
+                return;
+            }
+
+            const btn = $('adminChangePinBtn');
+            setLoading(btn, true);
+
+            // Simpan sebagai AE dengan nama ADMIN
+            const result = await apiCall('saveAe', {
+                name: 'ADMIN',
+                pin: newPin,
+                targetFtth: 0,
+                targetFwa: 0
+            });
+
+            setLoading(btn, false);
+
+            if (result.success) {
+                showSuccess('PIN Admin diupdate!');
+                $('adminNewAdminPin').value = '';
+                CONFIG.ADMIN_PIN = newPin;
+                await refreshAllData();
+            } else {
+                showError('Gagal update PIN');
+            }
+        }
+
+        // ============================================================
+        //  PAGE NAVIGATION
+        // ============================================================
+        function showPage(pageId) {
+            // Semua page
+            $$('.page').forEach(p => p.classList.remove('active'));
+            const target = $(pageId);
+            if (target) target.classList.add('active');
+
+            // Nav
+            $$('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
+            const navBtn = document.querySelector(`.bottom-nav .nav-item[data-page="${pageId}"]`);
+            if (navBtn) navBtn.classList.add('active');
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ============================================================
+        //  TOGGLE ADMIN LOGIN
+        // ============================================================
+        let adminLoginVisible = false;
+
+        function toggleAdminLogin() {
+            adminLoginVisible = !adminLoginVisible;
+            const form = $('adminLoginForm');
+            const toggleBtn = $('adminToggleBtn');
+            if (adminLoginVisible) {
+                form.style.display = 'block';
+                toggleBtn.textContent = '← Kembali ke Login AE';
+            } else {
+                form.style.display = 'none';
+                toggleBtn.textContent = '🔐 Login sebagai Admin';
+                $('adminPin').value = '';
+            }
+        }
+
+        // ============================================================
+        //  NAVIGATION CLICKS
+        // ============================================================
+        document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const page = btn.dataset.page;
+                // Cek akses
+                if (page === 'pageAdmin' && !state.currentUser?.isAdmin) {
+                    showError('Akses admin diperlukan');
+                    return;
+                }
+                if (page === 'pageDashboard' || page === 'pageInput') {
+                    if (!state.currentUser) {
+                        showError('Silakan login terlebih dahulu');
+                        showPage('pageLogin');
+                        return;
+                    }
+                }
+                showPage(page);
+                if (page === 'pageDashboard') renderDashboard();
+                if (page === 'pageInput') renderInputPage();
+                if (page === 'pageAdmin') renderAdminAeList();
+            });
+        });
+
+        // ============================================================
+        //  INIT
+        // ============================================================
+        async function init() {
+            // Load AE list
+            const aeList = await loadAeList();
+            if (aeList.length) state.aeList = aeList;
+            renderAeDropdowns();
+
+            // Cek apakah ada admin di list
+            const adminExists = state.aeList.some(a => a.name === 'ADMIN');
+            if (!adminExists) {
+                // Tambahkan admin default
+                state.aeList.push({ name: 'ADMIN', pin: CONFIG.ADMIN_PIN, targetFtth: 0, targetFwa: 0 });
+                await apiCall('saveAe', { name: 'ADMIN', pin: CONFIG.ADMIN_PIN, targetFtth: 0, targetFwa: 0 });
+            }
+
+            // Event listeners
+            $('loginForm').addEventListener('submit', handleLogin);
+            $('adminLoginForm').addEventListener('submit', handleAdminLogin);
+            $('adminToggleBtn').addEventListener('click', toggleAdminLogin);
+            $('adminBackBtn').addEventListener('click', toggleAdminLogin);
+            $('logoutBtn').addEventListener('click', handleLogout);
+            $('dailyForm').addEventListener('submit', handleDailySubmit);
+            $('inputForm').addEventListener('submit', handleInputSubmit);
+            $('adminAddAeBtn').addEventListener('click', handleAddAe);
+            $('adminChangePinBtn').addEventListener('click', handleChangeAdminPin);
+
+            // Set default date
+            const now = new Date();
+            const dateStr = formatDate(now);
+            $('inputInstallDate').value = dateStr;
+            $('inputSoDate').value = dateStr;
+
+            // Tampilkan login
+            showPage('pageLogin');
+
+            // Jika sudah ada session (misal dari reload), cek localStorage
+            // Untuk keamanan, kita tidak pakai localStorage, biar login ulang.
+
+            console.log('🚀 XL Satu Sales Tracker siap!');
+            console.log('📦 AE List:', state.aeList);
+        }
+
+        // Jalankan
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
