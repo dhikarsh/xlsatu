@@ -284,7 +284,7 @@
                     <span class="card-title" id="trackerCardTitle"><span class="emoji">📋</span> Tracker Harian</span>
                     <div style="display:flex; align-items:center; gap:8px;">
                         <!-- Dropdown Minimalis FTTH / FWA khusus Admin -->
-                        <select id="dashboardProductFilter" style="display:none; padding:4px 8px; font-size:11px; font-weight:600; border-radius:16px; border:1px solid var(--xl-border); background:var(--xl-blue-soft); color:var(--xl-blue); outline:none; cursor:pointer;">
+                        <select id="dashboardProductFilter" style="display:none; padding:4px 8px; font-size:11px; font-weight:700; border-radius:16px; border:1px solid var(--xl-border); background:var(--xl-blue-soft); color:var(--xl-blue); outline:none; cursor:pointer;">
                             <option value="FTTH">FTTH</option>
                             <option value="FWA">FWA</option>
                         </select>
@@ -362,7 +362,7 @@
     <!-- ===== JAVASCRIPT ===== -->
     <script>
         const CONFIG = {
-            API_URL: 'https://script.google.com/macros/s/AKfycbzoNJ6G_9YF9rYxUqtUkkcxyaPHvlwy-r5ulF7P_her46KVJ9T3wU4g4rIDK2gnFRv9aw/exec',
+            API_URL: 'https://script.google.com/macros/s/AKfycbxIHYggKhRBpRjXG05K5DxBpsjZOSzHvKKd_gOYw0YSQqcaq90g_7N_93oRyLnJzNH3Wg/exec', // Ganti dengan Web App URL aktif Anda
             ADMIN_PIN: '123456',
         };
 
@@ -607,15 +607,18 @@
             const user = state.currentUser;
             if (!user) return;
 
+            const productFilterEl = $('dashboardProductFilter');
+
             if (user.isAdmin) {
-                $('dashboardProductFilter').style.display = 'inline-block';
+                if (productFilterEl) productFilterEl.style.display = 'inline-block';
                 renderAdminDashboardTracker(month, year);
             } else {
-                $('dashboardProductFilter').style.display = 'none';
+                if (productFilterEl) productFilterEl.style.display = 'none';
                 renderAeDashboardTracker(month, year);
             }
         }
 
+        // Tracker untuk Regular AE (Baris FTTH & FWA)
         function renderAeDashboardTracker(month, year) {
             const thead = $('trackerHead'), tbody = $('trackerBody'), days = getDaysInMonth(year, month);
             const today = new Date(), todayDay = today.getDate(), todayMonth = today.getMonth(), todayYear = today.getFullYear();
@@ -654,13 +657,13 @@
             $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year;
         }
 
-        // Tracker Multi-AE di Dashboard Admin (Baris = Nama AE, Kolom = Tanggal)
+        // Tracker Multi-AE di Dashboard Admin (Baris = Nama AE, Kolom = Tanggal) dengan Filter FTTH / FWA
         function renderAdminDashboardTracker(month, year) {
             const thead = $('trackerHead'), tbody = $('trackerBody'), days = getDaysInMonth(year, month);
             const productFilter = $('dashboardProductFilter')?.value || 'FTTH';
             const today = new Date(), todayDay = today.getDate(), todayMonth = today.getMonth(), todayYear = today.getFullYear();
 
-            let headHtml = '<tr><th style="text-align:left;min-width:100px;">Nama AE</th>';
+            let headHtml = '<tr><th style="text-align:left;min-width:110px;">Nama AE</th>';
             for (let d = 1; d <= days; d++) {
                 const isTodayCol = (d === todayDay && month === todayMonth && year === todayYear);
                 headHtml += `<th${isTodayCol ? ' style="background:var(--xl-blue-soft);color:var(--xl-blue);"' : ''}>${d}</th>`;
@@ -673,7 +676,7 @@
                 .sort((a, b) => a.name.localeCompare(b.name));
 
             if (!aeList.length) {
-                tbody.innerHTML = '<tr><td colspan="33" style="text-align:center;padding:16px;color:var(--xl-muted);">Belum ada AE terdaftar</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="${days + 2}" style="text-align:center;padding:16px;color:var(--xl-muted);">Belum ada AE terdaftar</td></tr>`;
                 return;
             }
 
@@ -715,7 +718,6 @@
             const tracker = await fetchData('getTracker', { aeName: queryName, month, year });
             if (tracker.success) state.trackerData = tracker.data;
 
-            // Jika Admin, wajib panggil getAdminTracker agar tabel multi-AE terisi penuh
             if (user.isAdmin) {
                 const adminTracker = await fetchData('getAdminTracker', { month, year });
                 if (adminTracker.success) state.adminTrackerData = adminTracker.data;
