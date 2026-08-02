@@ -362,7 +362,7 @@
     <!-- ===== JAVASCRIPT ===== -->
     <script>
         const CONFIG = {
-            API_URL: 'https://script.google.com/macros/s/AKfycbxIHYggKhRBpRjXG05K5DxBpsjZOSzHvKKd_gOYw0YSQqcaq90g_7N_93oRyLnJzNH3Wg/exec', // Ganti dengan Web App URL aktif Anda
+            API_URL: 'https://script.google.com/macros/s/AKfycbztilr5ydJAWsnYpAu2mXHfADzELbDfAtQ9kN2rqww-YDN1eQCbiDKA164Tv70hh7aTOQ/exec', // Ganti dengan URL deployment aktif Anda
             ADMIN_PIN: '123456',
         };
 
@@ -416,8 +416,13 @@
                     method: 'POST',
                     body: JSON.stringify({ action, ...payload })
                 });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                return await response.json();
+                const text = await response.text();
+                try {
+                    return JSON.parse(text);
+                } catch(e) {
+                    console.error("Invalid JSON response:", text);
+                    return { success: false, error: "Invalid JSON response from server" };
+                }
             } catch (error) {
                 console.error('API POST error:', error);
                 return { success: false, error: error.message };
@@ -583,11 +588,25 @@
             $('fwaTarget').textContent = targetFwa;
 
             let totalFtth = 0, totalFwa = 0;
-            for (let d = 1; d <= days; d++) {
-                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                const entry = state.trackerData[dateStr] || {};
-                totalFtth += parseInt(entry.ftth) || 0;
-                totalFwa += parseInt(entry.fwa) || 0;
+            if (user.isAdmin) {
+                // Untuk Admin, hitung akumulasi dari adminTrackerData
+                const aeList = state.aeList.filter(ae => String(ae.name).toUpperCase() !== 'ADMIN');
+                aeList.forEach(ae => {
+                    const aeData = state.adminTrackerData[ae.name] || {};
+                    for (let d = 1; d <= days; d++) {
+                        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                        const dayEntry = aeData[dateStr] || { ftth: 0, fwa: 0 };
+                        totalFtth += parseInt(dayEntry.ftth) || 0;
+                        totalFwa += parseInt(dayEntry.fwa) || 0;
+                    }
+                });
+            } else {
+                for (let d = 1; d <= days; d++) {
+                    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                    const entry = state.trackerData[dateStr] || {};
+                    totalFtth += parseInt(entry.ftth) || 0;
+                    totalFwa += parseInt(entry.fwa) || 0;
+                }
             }
 
             $('ftthActual').textContent = totalFtth;
@@ -618,7 +637,6 @@
             }
         }
 
-        // Tracker untuk Regular AE (Baris FTTH & FWA)
         function renderAeDashboardTracker(month, year) {
             const thead = $('trackerHead'), tbody = $('trackerBody'), days = getDaysInMonth(year, month);
             const today = new Date(), todayDay = today.getDate(), todayMonth = today.getMonth(), todayYear = today.getFullYear();
