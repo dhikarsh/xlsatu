@@ -5,9 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>XL Satu - Sales Tracker</title>
     <style>
-        /* CSS SAMA SEPERTI SEBELUMNYA (Disingkat di snippet ini untuk fokus ke fungsionalitas. Anda bisa gunakan blok CSS dari kode sebelumnya) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-        :root { --xl-blue: #0F3B7A; --xl-blue-light: #1A5BB5; --xl-blue-dark: #0A2A55; --xl-blue-grad: linear-gradient(135deg, #0F3B7A 0%, #1A5BB5 100%); --xl-blue-soft: #E8F0FE; --xl-gray: #F5F7FA; --xl-gray-light: #EDEFF2; --xl-dark: #1A1A2E; --xl-text: #2D2D3F; --xl-muted: #7A7A8A; --xl-border: #E2E6EE; --xl-shadow: 0 8px 32px rgba(15, 59, 122, 0.12); --xl-radius: 20px; --xl-radius-sm: 12px; --xl-radius-xs: 8px; --xl-transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); --neu-bg: #e8edf5; --neu-shadow-light: #ffffff; --neu-shadow-dark: #c8cdd5; --neu-radius: 20px; }
+        :root {
+            --xl-blue: #0F3B7A; --xl-blue-light: #1A5BB5; --xl-blue-dark: #0A2A55;
+            --xl-blue-grad: linear-gradient(135deg, #0F3B7A 0%, #1A5BB5 100%);
+            --xl-blue-soft: #E8F0FE; --xl-gray: #F5F7FA; --xl-gray-light: #EDEFF2;
+            --xl-dark: #1A1A2E; --xl-text: #2D2D3F; --xl-muted: #7A7A8A; --xl-border: #E2E6EE;
+            --xl-shadow: 0 8px 32px rgba(15, 59, 122, 0.12); --xl-radius: 20px; --xl-radius-sm: 12px;
+            --xl-transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --neu-bg: #e8edf5; --neu-shadow-light: #ffffff; --neu-shadow-dark: #c8cdd5; --neu-radius: 20px;
+        }
         body { background: var(--neu-bg); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 16px; }
         #app { max-width: 480px; width: 100%; background: transparent; min-height: 92vh; overflow: hidden; position: relative; padding-bottom: 20px; }
         .app-header { background: var(--xl-blue-grad); padding: 18px 20px 16px; display: flex; align-items: center; justify-content: space-between; border-radius: 0 0 32px 32px; box-shadow: 0 8px 30px rgba(15, 59, 122, 0.30); position: sticky; top: 0; z-index: 20; }
@@ -177,7 +184,7 @@
             </div>
         </div>
 
-        <!-- LOGIN ADMIN PAGE (Terpisah) -->
+        <!-- LOGIN ADMIN PAGE -->
         <div class="page" id="pageAdminLogin">
             <div class="login-page">
                 <div class="login-card">
@@ -398,11 +405,10 @@
     <!-- ===== JAVASCRIPT ===== -->
     <script>
         // ============================================================
-        //  KONFIGURASI PENTING!
+        //  KONFIGURASI
         // ============================================================
         const CONFIG = {
-            // SANGAT PENTING: Jika Anda Update Code.gs, Lakukan "New Deployment" & Paste URL Baru Disini!
-            API_URL: 'https://script.google.com/macros/s/AKfycbxQJioKkftNAKFv2t-nZZOk-k8PPzdiI1Y3IyfeuSVjji_i6uJD6Qwm0twXuYcK8XcHXA/exec',
+            API_URL: 'https://script.google.com/macros/s/AKfycbziNda43u7zR7sgvYIn5bimHuKkdEx0FRpEicMkmo3q8qOrRzqxQ0ZgQpINIA0vJP7uvQ/exec',
             ADMIN_PIN: '123456',
         };
 
@@ -436,13 +442,10 @@
             t.className = 'toast ' + type;
             t.classList.add('show');
             clearTimeout(t._timer);
-            t._timer = setTimeout(() => t.classList.remove('show'), 4000);
+            t._timer = setTimeout(() => t.classList.remove('show'), 3200);
         }
 
-        function showError(msg, isAlert = false) { 
-            if(isAlert) alert(msg);
-            showToast(msg, 'error'); 
-        }
+        function showError(msg) { showToast(msg, 'error'); }
         function showSuccess(msg) { showToast(msg, 'success'); }
 
         function setLoading(el, loading) {
@@ -458,7 +461,7 @@
         }
 
         // ============================================================
-        //  API CALLS (Selalu POST)
+        //  API CALLS
         // ============================================================
         async function apiCall(action, payload = {}) {
             try {
@@ -494,7 +497,7 @@
             const selects = ['loginAeSelect', 'inputAeSelect'];
             let list = state.aeList || [];
             
-            // SORTING A-Z dan sembunyikan "ADMIN" dari dropdown
+            // Urutkan A-Z dan sembunyikan "ADMIN" dari dropdown AE
             const dropdownList = list
                 .filter(ae => String(ae.name).toUpperCase() !== 'ADMIN')
                 .sort((a, b) => a.name.localeCompare(b.name));
@@ -525,7 +528,6 @@
                 return;
             }
 
-            // ADMIN paling atas, lalu A-Z
             const sortedList = [...list].sort((a, b) => {
                 if (String(a.name).toUpperCase() === 'ADMIN') return -1;
                 if (String(b.name).toUpperCase() === 'ADMIN') return 1;
@@ -558,7 +560,7 @@
                     $('adminNewPin').value = ae.pin || '';
                     $('adminNewTargetFtth').value = ae.targetFtth || 0;
                     $('adminNewTargetFwa').value = ae.targetFwa || 0;
-                    showToast('Data dimasukkan ke form atas. Edit dan Simpan.');
+                    showToast('Edit data AE di form atas, lalu klik Simpan');
                 });
             });
             container.querySelectorAll('[data-action="delete"]').forEach(btn => {
@@ -675,23 +677,21 @@
         }
 
         // ============================================================
-        //  LOGIN LOGIC (SANGAT KETAT AGAR BISA MELIHAT LETAK SALAHNYA)
+        //  LOGIN
         // ============================================================
         async function handleLogin(e) {
             e.preventDefault();
             const name = $('loginAeSelect').value;
-            const inputPin = String($('loginPin').value).trim(); // Paksa String
+            const inputPin = String($('loginPin').value).trim();
 
             if (!name) { showError('Pilih nama AE'); return; }
 
             const ae = state.aeList.find(a => a.name === name);
             if (!ae) { showError('AE tidak ditemukan'); return; }
 
-            const dbPin = String(ae.pin).trim(); // Paksa string db PIN
-
-            // PESAN ERROR DETAIL - AKAN MUNCUL JIKA MASIH SALAH
+            const dbPin = String(ae.pin).trim();
             if (dbPin !== inputPin) {
-                $('loginError').textContent = `PIN salah! (DB: "${dbPin}" vs Input: "${inputPin}")`;
+                $('loginError').textContent = 'PIN salah, coba lagi.';
                 $('loginError').classList.add('show');
                 return;
             }
@@ -714,7 +714,7 @@
             const validPin = adminPinFromSheet ? String(adminPinFromSheet.pin).trim() : CONFIG.ADMIN_PIN;
 
             if (validPin !== inputPin) {
-                $('adminLoginError').textContent = `PIN Admin salah! (DB: "${validPin}" vs Input: "${inputPin}")`;
+                $('adminLoginError').textContent = 'PIN Admin salah.';
                 $('adminLoginError').classList.add('show');
                 return;
             }
@@ -736,7 +736,7 @@
         }
 
         // ============================================================
-        //  SUBMIT FORMS
+        //  SUBMIT & INPUT FORM
         // ============================================================
         async function handleDailySubmit(e) {
             e.preventDefault();
@@ -757,6 +757,55 @@
             } else showError('Gagal menyimpan, coba lagi');
         }
 
+        async function handleInputSubmit(e) {
+            e.preventDefault();
+            if (!state.currentUser) {
+                showError('Sesi habis, silakan login kembali');
+                showPage('pageLogin');
+                return;
+            }
+
+            const aeName = $('inputAeSelect').value;
+            const category = $('inputCategory').value;
+            const customer = $('inputCustomer').value.trim();
+            const installDate = $('inputInstallDate').value;
+            const soDate = $('inputSoDate').value;
+            const photoCustomer = $('chkPhotoCustomer').checked;
+            const photoKtp = $('chkPhotoKtp').checked;
+            const photoHouse = $('chkPhotoHouse').checked;
+
+            if (!aeName || !category || !customer || !installDate || !soDate) {
+                showError('Lengkapi semua field yang wajib');
+                return;
+            }
+
+            const btn = $('inputSubmitBtn');
+            setLoading(btn, true);
+
+            const result = await apiCall('saveCustomerInput', {
+                aeName, category, customer, installDate, soDate,
+                photoCustomer, photoKtp, photoHouse
+            });
+
+            setLoading(btn, false);
+
+            if (result.success) {
+                showSuccess('Data pelanggan berhasil disimpan!');
+                $('inputCustomer').value = '';
+                $('chkPhotoCustomer').checked = false;
+                $('chkPhotoKtp').checked = false;
+                $('chkPhotoHouse').checked = false;
+                const now = new Date();
+                $('inputInstallDate').value = formatDate(now);
+                $('inputSoDate').value = formatDate(now);
+
+                await refreshAllData();
+                showPage('pageDashboard');
+            } else {
+                showError('Gagal menyimpan data ke Spreadsheet');
+            }
+        }
+
         async function handleAddAe() {
             const name = $('adminNewName').value.trim(), pin = $('adminNewPin').value.trim();
             const targetFtth = parseInt($('adminNewTargetFtth').value) || 0, targetFwa = parseInt($('adminNewTargetFwa').value) || 0;
@@ -772,6 +821,22 @@
                 $('adminNewTargetFtth').value = ''; $('adminNewTargetFwa').value = '';
                 await refreshAllData();
             } else showError('Gagal menyimpan AE');
+        }
+
+        async function handleChangeAdminPin() {
+            const newPin = $('adminNewAdminPin').value.trim();
+            if (!newPin || newPin.length < 4) return showError('PIN minimal 4 karakter');
+
+            const btn = $('adminChangePinBtn'); setLoading(btn, true);
+            const result = await apiCall('saveAe', { name: 'ADMIN', pin: newPin, targetFtth: 0, targetFwa: 0 });
+            setLoading(btn, false);
+
+            if (result.success) {
+                showSuccess('PIN Admin diupdate!');
+                $('adminNewAdminPin').value = '';
+                CONFIG.ADMIN_PIN = newPin;
+                await refreshAllData();
+            } else showError('Gagal update PIN Admin');
         }
 
         // ============================================================
@@ -818,7 +883,7 @@
             $('loginForm').addEventListener('submit', handleLogin);
             $('adminLoginForm').addEventListener('submit', handleAdminLogin);
             $('dailyForm').addEventListener('submit', handleDailySubmit);
-            $('adminAddAeBtn').addEventListener('click', handleAddAe);
+            $('inputForm').addEventListener('submit', handleInputSubmit);
             
             $('btnGoToAdminLogin').addEventListener('click', () => {
                 $('adminLoginError').classList.remove('show');
@@ -830,11 +895,13 @@
                 showPage('pageLogin');
             });
             $('logoutBtn').addEventListener('click', handleLogout);
+            $('adminAddAeBtn').addEventListener('click', handleAddAe);
+            $('adminChangePinBtn').addEventListener('click', handleChangeAdminPin);
 
             $('inputInstallDate').value = todayStr();
             $('inputSoDate').value = todayStr();
             showPage('pageLogin');
-            console.log('🚀 XL Satu Tracker siap!');
+            console.log('🚀 XL Satu Sales Tracker siap!');
         }
 
         document.addEventListener('DOMContentLoaded', init);
