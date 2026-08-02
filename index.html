@@ -5,130 +5,776 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>XL Satu - Sales Tracker</title>
     <style>
-        /* ===== KESERAGAMAN FONT MENYELURUH ===== */
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important; 
+        /* ===== GLOBAL ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
         }
 
         :root {
-            --xl-blue: #0F3B7A; --xl-blue-light: #1A5BB5; --xl-blue-dark: #0A2A55;
+            --xl-blue: #0F3B7A;
+            --xl-blue-light: #1A5BB5;
+            --xl-blue-dark: #0A2A55;
             --xl-blue-grad: linear-gradient(135deg, #0F3B7A 0%, #1A5BB5 100%);
-            --xl-blue-soft: #E8F0FE; --xl-gray: #F5F7FA; --xl-gray-light: #EDEFF2;
-            --xl-dark: #1A1A2E; --xl-text: #2D2D3F; --xl-muted: #7A7A8A; --xl-border: #E2E6EE;
-            --xl-shadow: 0 8px 32px rgba(15, 59, 122, 0.12); --xl-radius: 20px; --xl-radius-sm: 12px;
+            --xl-blue-soft: #E8F0FE;
+            --xl-gray: #F5F7FA;
+            --xl-gray-light: #EDEFF2;
+            --xl-dark: #1A1A2E;
+            --xl-text: #2D2D3F;
+            --xl-muted: #7A7A8A;
+            --xl-border: #E2E6EE;
+            --xl-shadow: 0 8px 32px rgba(15, 59, 122, 0.12);
+            --xl-radius: 20px;
+            --xl-radius-sm: 12px;
             --xl-transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            --neu-bg: #e8edf5; --neu-shadow-light: #ffffff; --neu-shadow-dark: #c8cdd5; --neu-radius: 20px;
+            --neu-bg: #e8edf5;
+            --neu-shadow-light: #ffffff;
+            --neu-shadow-dark: #c8cdd5;
+            --neu-radius: 20px;
         }
 
-        body { background: var(--neu-bg); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 16px; font-size: 14px; color: var(--xl-text); }
-        #app { max-width: 480px; width: 100%; background: transparent; min-height: 92vh; overflow: hidden; position: relative; padding-bottom: 20px; }
+        body {
+            background: var(--neu-bg);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            font-size: 14px;
+            color: var(--xl-text);
+        }
 
-        .app-header { background: var(--xl-blue-grad); padding: 18px 20px 16px; display: flex; align-items: center; justify-content: space-between; border-radius: 0 0 32px 32px; box-shadow: 0 8px 30px rgba(15, 59, 122, 0.30); position: sticky; top: 0; z-index: 20; }
-        .app-header .logo { height: 34px; object-fit: contain; filter: brightness(0) invert(1); }
-        .app-header .user-badge { background: rgba(255, 255, 255, 0.18); backdrop-filter: blur(4px); padding: 6px 14px 6px 18px; border-radius: 40px; color: #fff; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255, 255, 255, 0.10); }
-        .app-header .user-badge .logout-btn { background: rgba(255, 255, 255, 0.15); border: none; color: #fff; font-size: 14px; cursor: pointer; padding: 2px 8px; border-radius: 20px; transition: var(--xl-transition); }
-        .app-header .user-badge .logout-btn:hover { background: rgba(255, 255, 255, 0.30); }
+        #app {
+            max-width: 480px;
+            width: 100%;
+            background: transparent;
+            min-height: 92vh;
+            overflow: hidden;
+            position: relative;
+            padding-bottom: 20px;
+        }
 
-        .bottom-nav { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 448px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.25); display: flex; justify-content: space-around; padding: 6px 8px; z-index: 30; border-radius: 60px; box-shadow: 0 8px 40px rgba(15, 59, 122, 0.12); }
-        .bottom-nav .nav-item { display: flex; flex-direction: column; align-items: center; background: none; border: none; padding: 6px 12px; cursor: pointer; color: var(--xl-muted); font-size: 11px; font-weight: 600; transition: var(--xl-transition); border-radius: 40px; min-width: 56px; position: relative; }
-        .bottom-nav .nav-item .nav-icon { font-size: 20px; line-height: 1; margin-bottom: 2px; }
-        .bottom-nav .nav-item .nav-label { font-size: 9px; letter-spacing: 0.3px; text-transform: uppercase; opacity: 0.7; }
-        .bottom-nav .nav-item.active { color: #fff; background: var(--xl-blue-grad); box-shadow: 0 4px 16px rgba(15, 59, 122, 0.35); padding: 6px 16px; }
-        .bottom-nav .nav-item.active .nav-label { opacity: 1; }
+        /* ===== HEADER ===== */
+        .app-header {
+            background: var(--xl-blue-grad);
+            padding: 18px 20px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 0 0 32px 32px;
+            box-shadow: 0 8px 30px rgba(15, 59, 122, 0.30);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+        .app-header .logo {
+            height: 34px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+        .app-header .user-badge {
+            background: rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(4px);
+            padding: 6px 14px 6px 18px;
+            border-radius: 40px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+        }
+        .app-header .user-badge .logout-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 2px 8px;
+            border-radius: 20px;
+            transition: var(--xl-transition);
+        }
+        .app-header .user-badge .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.30);
+        }
 
-        .page { display: none; padding: 16px 16px 24px; animation: fadeUp 0.35s ease; }
-        .page.active { display: block; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        /* ===== BOTTOM NAV ===== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 32px);
+            max-width: 448px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 8px;
+            z-index: 30;
+            border-radius: 60px;
+            box-shadow: 0 8px 40px rgba(15, 59, 122, 0.12);
+        }
+        .bottom-nav .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: none;
+            border: none;
+            padding: 6px 12px;
+            cursor: pointer;
+            color: var(--xl-muted);
+            font-size: 11px;
+            font-weight: 600;
+            transition: var(--xl-transition);
+            border-radius: 40px;
+            min-width: 56px;
+            position: relative;
+        }
+        .bottom-nav .nav-item .nav-icon {
+            font-size: 20px;
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+        .bottom-nav .nav-item .nav-label {
+            font-size: 9px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+        .bottom-nav .nav-item.active {
+            color: #fff;
+            background: var(--xl-blue-grad);
+            box-shadow: 0 4px 16px rgba(15, 59, 122, 0.35);
+            padding: 6px 16px;
+        }
+        .bottom-nav .nav-item.active .nav-label {
+            opacity: 1;
+        }
 
-        .card { background: #fff; border-radius: var(--xl-radius); padding: 18px 20px; margin-bottom: 16px; box-shadow: var(--xl-shadow); border: 1px solid var(--xl-border); transition: var(--xl-transition); }
-        .card:hover { box-shadow: 0 12px 40px rgba(15, 59, 122, 0.10); }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-        .card-title { font-size: 16px; font-weight: 700; color: var(--xl-dark); display: flex; align-items: center; gap: 8px; }
-        .card-title .emoji { font-size: 18px; }
+        /* ===== PAGES ===== */
+        .page {
+            display: none;
+            padding: 16px 16px 24px;
+            animation: fadeUp 0.35s ease;
+        }
+        .page.active {
+            display: block;
+        }
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
 
-        .month-selector { display: flex; align-items: center; gap: 6px; background: var(--xl-gray); padding: 4px 10px; border-radius: 20px; border: 1px solid var(--xl-border); }
-        .month-selector button { background: none; border: none; cursor: pointer; font-size: 12px; font-weight: 700; color: var(--xl-blue); padding: 2px 6px; border-radius: 50%; transition: var(--xl-transition); }
-        .month-selector button:hover { background: var(--xl-blue-soft); }
-        .month-selector select { background: transparent; border: none; font-size: 13px; font-weight: 600; color: var(--xl-dark); cursor: pointer; outline: none; }
+        /* ===== CARDS ===== */
+        .card {
+            background: #fff;
+            border-radius: var(--xl-radius);
+            padding: 18px 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--xl-shadow);
+            border: 1px solid var(--xl-border);
+            transition: var(--xl-transition);
+        }
+        .card:hover {
+            box-shadow: 0 12px 40px rgba(15, 59, 122, 0.10);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--xl-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-title .emoji {
+            font-size: 18px;
+        }
 
-        .progress-wrap { margin-top: 4px; }
-        .progress-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-        .progress-row .prog-label { font-size: 14px; font-weight: 700; min-width: 48px; color: var(--xl-dark); }
-        .progress-row .prog-label .sub { font-weight: 400; font-size: 10px; color: var(--xl-muted); display: block; }
-        .progress-row .prog-track { flex: 1; height: 10px; background: var(--xl-gray-light); border-radius: 30px; overflow: hidden; position: relative; box-shadow: inset 0 1px 3px rgba(0,0,0,0.06); }
-        .progress-row .prog-track .prog-fill { height: 100%; border-radius: 30px; background: var(--xl-blue-grad); transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1); width: 0%; box-shadow: 0 0 12px rgba(26, 91, 181, 0.25); }
-        .progress-row .prog-numbers { font-size: 14px; font-weight: 700; min-width: 70px; text-align: right; color: var(--xl-dark); }
-        .progress-row .prog-numbers .target { color: var(--xl-muted); font-weight: 400; font-size: 12px; }
-        .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 40px; background: var(--xl-blue-soft); color: var(--xl-blue); }
+        /* ===== MONTH SELECTOR ===== */
+        .month-selector {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--xl-gray);
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--xl-border);
+            flex-wrap: wrap;
+        }
+        .month-selector button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--xl-blue);
+            padding: 2px 6px;
+            border-radius: 50%;
+            transition: var(--xl-transition);
+        }
+        .month-selector button:hover {
+            background: var(--xl-blue-soft);
+        }
+        .month-selector select {
+            background: transparent;
+            border: none;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--xl-dark);
+            cursor: pointer;
+            outline: none;
+        }
 
-        .daily-input-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
-        .daily-input-group .field { flex: 1; min-width: 75px; }
-        .daily-input-group .field label { display: block; font-size: 10px; font-weight: 700; color: var(--xl-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .daily-input-group .field input { width: 100%; padding: 10px 12px; border: 2px solid var(--xl-border); border-radius: var(--xl-radius-sm); font-size: 15px; font-weight: 700; background: var(--xl-gray); outline: none; color: var(--xl-dark); }
-        .daily-input-group .field input[type="date"] { font-size: 13px; font-weight: 600; padding: 10px 6px; }
+        /* ===== PROGRESS ===== */
+        .progress-wrap {
+            margin-top: 4px;
+        }
+        .progress-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .progress-row .prog-label {
+            font-size: 14px;
+            font-weight: 700;
+            min-width: 48px;
+            color: var(--xl-dark);
+        }
+        .progress-row .prog-label .sub {
+            font-weight: 400;
+            font-size: 10px;
+            color: var(--xl-muted);
+            display: block;
+        }
+        .progress-row .prog-track {
+            flex: 1;
+            height: 10px;
+            background: var(--xl-gray-light);
+            border-radius: 30px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+        .progress-row .prog-track .prog-fill {
+            height: 100%;
+            border-radius: 30px;
+            background: var(--xl-blue-grad);
+            transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+            width: 0%;
+            box-shadow: 0 0 12px rgba(26, 91, 181, 0.25);
+        }
+        .progress-row .prog-numbers {
+            font-size: 14px;
+            font-weight: 700;
+            min-width: 70px;
+            text-align: right;
+            color: var(--xl-dark);
+        }
+        .progress-row .prog-numbers .target {
+            color: var(--xl-muted);
+            font-weight: 400;
+            font-size: 12px;
+        }
+        .stat-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 40px;
+            background: var(--xl-blue-soft);
+            color: var(--xl-blue);
+        }
 
-        .btn-primary { background: var(--xl-blue-grad); color: #fff; border: none; padding: 12px 24px; border-radius: var(--xl-radius-sm); font-weight: 700; font-size: 14px; cursor: pointer; transition: var(--xl-transition); box-shadow: 0 4px 16px rgba(15, 59, 122, 0.25); width: 100%; margin-top: 6px; }
-        .btn-primary:active { transform: scale(0.97); }
-        .btn-primary.small { padding: 10px 14px; font-size: 12px; width: auto; margin-top: 0; border-radius: 40px; }
+        /* ===== DAILY INPUT ===== */
+        .daily-input-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 2px;
+        }
+        .daily-input-group .field {
+            flex: 1;
+            min-width: 75px;
+        }
+        .daily-input-group .field label {
+            display: block;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--xl-muted);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .daily-input-group .field input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid var(--xl-border);
+            border-radius: var(--xl-radius-sm);
+            font-size: 15px;
+            font-weight: 700;
+            background: var(--xl-gray);
+            outline: none;
+            color: var(--xl-dark);
+        }
+        .daily-input-group .field input[type="date"] {
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px 6px;
+        }
 
-        .tracker-wrap { overflow-x: auto; margin: 0 -4px; padding: 0 4px; -webkit-overflow-scrolling: touch; border-radius: var(--xl-radius-sm); }
-        .tracker-table { width: 100%; min-width: 540px; border-collapse: collapse; font-size: 12px; }
-        .tracker-table th { text-align: center; padding: 8px 2px; font-weight: 700; color: var(--xl-muted); font-size: 9px; text-transform: uppercase; border-bottom: 2px solid var(--xl-border); background: var(--xl-gray); }
-        .tracker-table td { text-align: center; padding: 8px 2px; font-weight: 600; color: var(--xl-dark); border-bottom: 1px solid var(--xl-gray-light); font-size: 13px; }
-        .tracker-table .row-label { text-align: left; font-weight: 700; color: var(--xl-dark); font-size: 12px; padding-right: 8px; border-right: 2px solid var(--xl-border); background: var(--xl-gray); }
-        .tracker-table .today-col { background: var(--xl-blue-soft); border-radius: 4px; position: relative; }
-        .tracker-table .today-col td { background: var(--xl-blue-soft); color: var(--xl-blue); font-weight: 700; }
-        .tracker-table .cum-col { background: var(--xl-blue-soft); font-weight: 700; color: var(--xl-blue); border-left: 2px solid var(--xl-border); }
-        .tracker-table .empty-cell { color: #ccc; }
+        .btn-primary {
+            background: var(--xl-blue-grad);
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--xl-radius-sm);
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--xl-transition);
+            box-shadow: 0 4px 16px rgba(15, 59, 122, 0.25);
+            width: 100%;
+            margin-top: 6px;
+        }
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+        .btn-primary.small {
+            padding: 10px 14px;
+            font-size: 12px;
+            width: auto;
+            margin-top: 0;
+            border-radius: 40px;
+        }
 
-        .login-page { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 85vh; padding: 20px 16px 30px; background: var(--neu-bg); }
-        .login-card { width: 100%; max-width: 380px; background: var(--neu-bg); border-radius: var(--neu-radius); padding: 36px 28px 32px; box-shadow: 12px 12px 24px var(--neu-shadow-dark), -12px -12px 24px var(--neu-shadow-light); }
-        .login-card .login-logo-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
-        .login-card .login-logo { height: 56px; width: auto; object-fit: contain; }
-        .login-card .login-title { text-align: center; font-size: 26px; font-weight: 800; color: var(--xl-dark); margin-bottom: 2px; }
-        .login-card .login-title span { color: var(--xl-blue); }
-        .login-card .login-sub { text-align: center; font-size: 14px; color: var(--xl-muted); margin-bottom: 28px; font-weight: 500; }
-        
-        .neu-input-group { margin-bottom: 18px; }
-        .neu-input-group label { display: block; font-size: 11px; font-weight: 700; color: var(--xl-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; padding-left: 4px; }
-        .neu-input-group select, .neu-input-group input { width: 100%; padding: 14px 18px; border: none; border-radius: var(--xl-radius-sm); font-size: 15px; font-weight: 500; color: var(--xl-dark); background: var(--neu-bg); box-shadow: inset 4px 4px 8px var(--neu-shadow-dark), inset -4px -4px 8px var(--neu-shadow-light); outline: none; appearance: none; -webkit-appearance: none; }
-        .neu-input-group select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; cursor: pointer; }
-        .neu-input-group input[type="password"] { letter-spacing: 2px; }
-        
-        .neu-btn { width: 100%; padding: 16px; border: none; border-radius: var(--xl-radius-sm); font-size: 16px; font-weight: 700; color: #fff; background: var(--xl-blue-grad); box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light); cursor: pointer; margin-top: 6px; }
-        .admin-toggle-wrap { margin-top: 24px; text-align: center; }
-        .admin-toggle-btn { background: none; border: none; color: var(--xl-muted); font-size: 13px; font-weight: 600; cursor: pointer; padding: 8px 20px; border-radius: 40px; background: var(--neu-bg); box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light); }
+        /* ===== TRACKER TABLE ===== */
+        .tracker-wrap {
+            overflow-x: auto;
+            margin: 0 -4px;
+            padding: 0 4px;
+            -webkit-overflow-scrolling: touch;
+            border-radius: var(--xl-radius-sm);
+        }
+        .tracker-table {
+            width: 100%;
+            min-width: 540px;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .tracker-table th {
+            text-align: center;
+            padding: 8px 2px;
+            font-weight: 700;
+            color: var(--xl-muted);
+            font-size: 9px;
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--xl-border);
+            background: var(--xl-gray);
+        }
+        .tracker-table td {
+            text-align: center;
+            padding: 8px 2px;
+            font-weight: 600;
+            color: var(--xl-dark);
+            border-bottom: 1px solid var(--xl-gray-light);
+            font-size: 13px;
+        }
+        .tracker-table .row-label {
+            text-align: left;
+            font-weight: 700;
+            color: var(--xl-dark);
+            font-size: 12px;
+            padding-right: 8px;
+            border-right: 2px solid var(--xl-border);
+            background: var(--xl-gray);
+            white-space: nowrap;
+            min-width: 80px;
+        }
+        .tracker-table .today-col {
+            background: var(--xl-blue-soft);
+            border-radius: 4px;
+            position: relative;
+        }
+        .tracker-table .today-col td {
+            background: var(--xl-blue-soft);
+            color: var(--xl-blue);
+            font-weight: 700;
+        }
+        .tracker-table .cum-col {
+            background: var(--xl-blue-soft);
+            font-weight: 700;
+            color: var(--xl-blue);
+            border-left: 2px solid var(--xl-border);
+        }
+        .tracker-table .empty-cell {
+            color: #ccc;
+        }
 
-        .login-error { background: #fde8e8; color: #C0392B; padding: 12px 16px; border-radius: var(--xl-radius-sm); font-size: 13px; font-weight: 600; margin-bottom: 16px; display: none; text-align: center; }
-        .login-error.show { display: block; }
-        
-        .admin-section { margin-bottom: 24px; }
-        .admin-section .section-title { font-size: 14px; font-weight: 700; color: var(--xl-dark); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--xl-gray-light); }
-        .admin-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--xl-gray); border-radius: var(--xl-radius-sm); margin-bottom: 8px; border: 1px solid var(--xl-border); }
-        .admin-list-item .name { font-weight: 700; font-size: 14px; color: var(--xl-dark); }
-        .admin-list-item .detail { font-size: 12px; color: var(--xl-muted); }
-        .admin-list-item .actions .btn-sm { background: none; border: none; color: var(--xl-blue); font-weight: 600; font-size: 13px; cursor: pointer; padding: 4px 10px; border-radius: 6px; }
-        .admin-list-item .actions .btn-sm.danger { color: #C0392B; }
+        /* ===== LOGIN ===== */
+        .login-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 85vh;
+            padding: 20px 16px 30px;
+            background: var(--neu-bg);
+        }
+        .login-card {
+            width: 100%;
+            max-width: 380px;
+            background: var(--neu-bg);
+            border-radius: var(--neu-radius);
+            padding: 36px 28px 32px;
+            box-shadow: 12px 12px 24px var(--neu-shadow-dark), -12px -12px 24px var(--neu-shadow-light);
+        }
+        .login-card .login-logo-wrap {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .login-card .login-logo {
+            height: 56px;
+            width: auto;
+            object-fit: contain;
+        }
+        .login-card .login-title {
+            text-align: center;
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--xl-dark);
+            margin-bottom: 2px;
+        }
+        .login-card .login-title span {
+            color: var(--xl-blue);
+        }
+        .login-card .login-sub {
+            text-align: center;
+            font-size: 14px;
+            color: var(--xl-muted);
+            margin-bottom: 28px;
+            font-weight: 500;
+        }
 
-        .admin-form-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
-        .admin-form-row .field { flex: 1; min-width: 100px; }
-        .admin-form-row .field input { width: 100%; padding: 10px 14px; border: 2px solid var(--xl-border); border-radius: var(--xl-radius-sm); font-size: 14px; background: var(--xl-gray); outline: none; }
+        .neu-input-group {
+            margin-bottom: 18px;
+        }
+        .neu-input-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--xl-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 6px;
+            padding-left: 4px;
+        }
+        .neu-input-group select,
+        .neu-input-group input {
+            width: 100%;
+            padding: 14px 18px;
+            border: none;
+            border-radius: var(--xl-radius-sm);
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--xl-dark);
+            background: var(--neu-bg);
+            box-shadow: inset 4px 4px 8px var(--neu-shadow-dark), inset -4px -4px 8px var(--neu-shadow-light);
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        .neu-input-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+        .neu-input-group input[type="password"] {
+            letter-spacing: 2px;
+        }
 
-        .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); max-width: 400px; width: 90%; padding: 14px 24px; border-radius: var(--xl-radius-sm); background: #1A1A2E; color: #fff; font-weight: 600; font-size: 14px; text-align: center; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25); z-index: 999; opacity: 0; transition: all 0.4s ease; pointer-events: none; }
-        .toast.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
-        .toast.success { background: #0F7B3A; }
-        .toast.error { background: #C0392B; }
+        .neu-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: var(--xl-radius-sm);
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            background: var(--xl-blue-grad);
+            box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light);
+            cursor: pointer;
+            margin-top: 6px;
+        }
+        .admin-toggle-wrap {
+            margin-top: 24px;
+            text-align: center;
+        }
+        .admin-toggle-btn {
+            background: none;
+            border: none;
+            color: var(--xl-muted);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 8px 20px;
+            border-radius: 40px;
+            background: var(--neu-bg);
+            box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
+        }
+        .login-error {
+            background: #fde8e8;
+            color: #C0392B;
+            padding: 12px 16px;
+            border-radius: var(--xl-radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: none;
+            text-align: center;
+        }
+        .login-error.show {
+            display: block;
+        }
 
-        .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255, 255, 255, 0.25); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        /* ===== ADMIN ===== */
+        .admin-section {
+            margin-bottom: 24px;
+        }
+        .admin-section .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--xl-dark);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--xl-gray-light);
+        }
+        .admin-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            background: var(--xl-gray);
+            border-radius: var(--xl-radius-sm);
+            margin-bottom: 8px;
+            border: 1px solid var(--xl-border);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .admin-list-item .name {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--xl-dark);
+        }
+        .admin-list-item .detail {
+            font-size: 12px;
+            color: var(--xl-muted);
+        }
+        .admin-list-item .actions .btn-sm {
+            background: none;
+            border: none;
+            color: var(--xl-blue);
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+        .admin-list-item .actions .btn-sm.danger {
+            color: #C0392B;
+        }
 
-        .welcome-card { background: var(--xl-blue-grad) !important; border: none !important; color: #fff; border-radius: var(--xl-radius) !important; padding: 20px !important; }
-        .welcome-card .welcome-name { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
-        .welcome-card .welcome-sub { font-size: 13px; opacity: 0.8; font-weight: 500; }
-        .welcome-card .welcome-date { font-size: 12px; opacity: 0.7; text-align: right; }
+        .admin-form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .admin-form-row .field {
+            flex: 1;
+            min-width: 100px;
+        }
+        .admin-form-row .field input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--xl-border);
+            border-radius: var(--xl-radius-sm);
+            font-size: 14px;
+            background: var(--xl-gray);
+            outline: none;
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 400px;
+            width: 90%;
+            padding: 14px 24px;
+            border-radius: var(--xl-radius-sm);
+            background: #1A1A2E;
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+            z-index: 999;
+            opacity: 0;
+            transition: all 0.4s ease;
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.success {
+            background: #0F7B3A;
+        }
+        .toast.error {
+            background: #C0392B;
+        }
+
+        /* ===== SPINNER ===== */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.25);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ===== WELCOME CARD ===== */
+        .welcome-card {
+            background: var(--xl-blue-grad) !important;
+            border: none !important;
+            color: #fff;
+            border-radius: var(--xl-radius) !important;
+            padding: 20px !important;
+        }
+        .welcome-card .welcome-name {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+        .welcome-card .welcome-sub {
+            font-size: 13px;
+            opacity: 0.8;
+            font-weight: 500;
+        }
+        .welcome-card .welcome-date {
+            font-size: 12px;
+            opacity: 0.7;
+            text-align: right;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 420px) {
+            .card {
+                padding: 14px 14px;
+            }
+            .daily-input-group .field {
+                min-width: 60px;
+            }
+            .daily-input-group .field input {
+                font-size: 13px;
+                padding: 8px 10px;
+            }
+            .tracker-table {
+                font-size: 10px;
+                min-width: 400px;
+            }
+            .tracker-table td,
+            .tracker-table th {
+                padding: 6px 1px;
+            }
+            .tracker-table .row-label {
+                font-size: 10px;
+                min-width: 60px;
+            }
+            .month-selector select {
+                font-size: 11px;
+            }
+            .app-header .user-badge {
+                font-size: 11px;
+                padding: 4px 10px 4px 14px;
+            }
+            .bottom-nav .nav-item {
+                padding: 4px 8px;
+                min-width: 44px;
+            }
+            .bottom-nav .nav-item .nav-icon {
+                font-size: 16px;
+            }
+            .bottom-nav .nav-item .nav-label {
+                font-size: 8px;
+            }
+            .login-card {
+                padding: 24px 16px 24px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .tracker-table {
+                min-width: 320px;
+                font-size: 9px;
+            }
+            .tracker-table td,
+            .tracker-table th {
+                padding: 4px 1px;
+            }
+            .tracker-table .row-label {
+                font-size: 9px;
+                min-width: 50px;
+            }
+            .card-title {
+                font-size: 14px;
+            }
+            .month-selector {
+                padding: 2px 6px;
+                gap: 4px;
+            }
+            .month-selector select {
+                font-size: 10px;
+            }
+            .month-selector button {
+                font-size: 10px;
+                padding: 0 4px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -151,12 +797,9 @@
                     <div class="login-logo-wrap">
                         <img class="login-logo" src="https://satu.xl.co.id/_next/image?url=https%3A%2F%2Fstatic-xlsatu.xl.co.id%2Fimages%2Fpost%2F46bf5fe2-0960-45be-958b-3a7cc6fb12a3.png&w=96&q=75" alt="XL Satu" />
                     </div>
-
                     <div class="login-title">Sales <span>Tracker</span></div>
                     <div class="login-sub">Masuk untuk melanjutkan</div>
-
                     <div class="login-error" id="loginError">PIN salah, coba lagi.</div>
-
                     <form id="loginForm" autocomplete="off">
                         <div class="neu-input-group">
                             <label>Nama AE</label>
@@ -170,7 +813,6 @@
                         </div>
                         <button type="submit" class="neu-btn" id="loginBtn">Masuk</button>
                     </form>
-
                     <div class="admin-toggle-wrap">
                         <button class="admin-toggle-btn" id="btnGoToAdminLogin">🔐 Login sebagai Admin</button>
                     </div>
@@ -185,19 +827,15 @@
                     <div class="login-logo-wrap">
                         <img class="login-logo" src="https://satu.xl.co.id/_next/image?url=https%3A%2F%2Fstatic-xlsatu.xl.co.id%2Fimages%2Fpost%2F46bf5fe2-0960-45be-958b-3a7cc6fb12a3.png&w=96&q=75" alt="XL Satu" />
                     </div>
-                    
                     <div class="login-title">Admin <span>Panel</span></div>
                     <div class="login-sub">Masukkan PIN untuk masuk</div>
-
                     <div class="login-error" id="adminLoginError">PIN Admin salah.</div>
-
                     <form id="adminLoginForm">
                         <div class="neu-input-group">
                             <label>PIN Admin</label>
                             <input type="password" id="adminPin" placeholder="Masukkan PIN Admin" maxlength="6" inputmode="numeric" required />
                         </div>
                         <button type="submit" class="neu-btn" id="adminLoginBtn" style="background:var(--xl-blue-dark);">Masuk Admin</button>
-                        
                         <div class="admin-toggle-wrap" style="margin-top:20px;">
                             <button type="button" class="admin-toggle-btn" id="btnBackToLogin">← Kembali ke Login AE</button>
                         </div>
@@ -249,7 +887,7 @@
                 </div>
             </div>
 
-            <!-- Form Performa Harian (Hanya untuk AE) -->
+            <!-- Form Performa Harian (AE only) -->
             <div class="card" id="dailyInputCard">
                 <div class="card-header">
                     <span class="card-title"><span class="emoji">📅</span> Performa Harian</span>
@@ -273,22 +911,22 @@
                         </div>
                     </div>
                     <div style="font-size:11px;color:var(--xl-muted);margin-top:6px;">
-                        ⚡ Anda bisa memilih tanggal lampau jika ada input yang terlewat.
+                        ⚡ Bisa pilih tanggal lampau jika ada input terlewat.
                     </div>
                 </form>
             </div>
 
-            <!-- Tracker Harian di Dashboard -->
+            <!-- Tracker Harian -->
             <div class="card" style="padding-bottom:12px;">
                 <div class="card-header">
                     <span class="card-title" id="trackerCardTitle"><span class="emoji">📋</span> Tracker Harian</span>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <!-- Dropdown Minimalis FTTH / FWA khusus Admin -->
-                        <select id="dashboardProductFilter" style="display:none; padding:4px 8px; font-size:11px; font-weight:700; border-radius:16px; border:1px solid var(--xl-border); background:var(--xl-blue-soft); color:var(--xl-blue); outline:none; cursor:pointer;">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                        <!-- Dropdown FTTH / FWA khusus Admin -->
+                        <select id="dashboardProductFilter" style="display:none; padding:4px 10px; font-size:11px; font-weight:700; border-radius:16px; border:1px solid var(--xl-border); background:var(--xl-blue-soft); color:var(--xl-blue); outline:none; cursor:pointer;">
                             <option value="FTTH">FTTH</option>
                             <option value="FWA">FWA</option>
                         </select>
-                        <span class="text-muted" style="font-size:13px;font-weight:600;" id="trackerMonthLabel">Bulan</span>
+                        <span style="font-size:13px;font-weight:600;color:var(--xl-muted);" id="trackerMonthLabel">Bulan</span>
                     </div>
                 </div>
                 <div class="tracker-wrap" id="trackerWrap">
@@ -303,12 +941,12 @@
             </div>
         </div>
 
-        <!-- ADMIN -->
+        <!-- ADMIN PAGE -->
         <div class="page" id="pageAdmin">
             <div class="card">
                 <div class="card-header">
                     <span class="card-title"><span class="emoji">🔧</span> Admin Panel</span>
-                    <span class="text-muted" style="font-size:13px;">Kelola AE & Target</span>
+                    <span style="font-size:13px;color:var(--xl-muted);">Kelola AE & Target</span>
                 </div>
 
                 <div class="admin-section">
@@ -359,33 +997,61 @@
         </nav>
     </div>
 
-    <!-- ===== JAVASCRIPT ===== -->
+    <!-- ============================================================ -->
+    <!-- JAVASCRIPT -->
+    <!-- ============================================================ -->
     <script>
+        // ============================================================
+        // KONFIGURASI
+        // ============================================================
         const CONFIG = {
-            API_URL: 'https://script.google.com/macros/s/AKfycbztilr5ydJAWsnYpAu2mXHfADzELbDfAtQ9kN2rqww-YDN1eQCbiDKA164Tv70hh7aTOQ/exec', // Ganti dengan URL deployment aktif Anda
+            // GANTI dengan URL deployment Apps Script Anda yang AKTIF
+            API_URL: 'https://script.google.com/macros/s/AKfycbztilr5ydJAWsnYpAu2mXHfADzELbDfAtQ9kN2rqww-YDN1eQCbiDKA164Tv70hh7aTOQ/exec',
             ADMIN_PIN: '123456',
         };
 
+        // ============================================================
+        // STATE
+        // ============================================================
         let state = {
-            currentUser: null,
+            currentUser: null, // { name, pin, targetFtth, targetFwa, isAdmin }
             isAdmin: false,
-            aeList: [],
-            trackerData: {},
-            adminTrackerData: {},
-            selectedDate: new Date()
+            aeList: [], // daftar semua AE dari sheet AE
+            trackerData: {}, // data harian untuk AE yang login (non-admin)
+            adminTrackerData: {}, // data harian semua AE (hanya admin) { aeName: { date: { ftth, fwa } } }
+            selectedDate: new Date(),
         };
 
+        // ============================================================
+        // UTILITY
+        // ============================================================
         const $ = id => document.getElementById(id);
         const $$ = sel => document.querySelectorAll(sel);
 
         function formatDate(d) {
-            const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
+            const y = d.getFullYear(),
+                m = String(d.getMonth() + 1).padStart(2, '0'),
+                day = String(d.getDate()).padStart(2, '0');
             return `${y}-${m}-${day}`;
         }
-        function formatDateDisplay(d) { return d.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }); }
-        function getMonthName(m) { return ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][m] || ''; }
-        function getDaysInMonth(year, month) { return new Date(year, month + 1, 0).getDate(); }
-        function todayStr() { return formatDate(new Date()); }
+
+        function formatDateDisplay(d) {
+            return d.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function getMonthName(m) {
+            return ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober',
+                'November', 'Desember'
+            ][m] || '';
+        }
+
+        function getDaysInMonth(year, month) {
+            return new Date(year, month + 1, 0).getDate();
+        }
+
+        function todayStr() {
+            return formatDate(new Date());
+        }
 
         function showToast(msg, type = '') {
             const t = $('toast');
@@ -395,41 +1061,50 @@
             clearTimeout(t._timer);
             t._timer = setTimeout(() => t.classList.remove('show'), 3200);
         }
+
         function showError(msg) { showToast(msg, 'error'); }
+
         function showSuccess(msg) { showToast(msg, 'success'); }
 
         function setLoading(el, loading) {
             if (!el) return;
             if (loading) {
                 el.disabled = true;
-                el.innerHTML = '<span class="spinner"></span> ';
                 el._origText = el._origText || el.textContent;
+                el.innerHTML = '<span class="spinner"></span> ';
             } else {
                 el.disabled = false;
                 el.textContent = el._origText || 'Submit';
             }
         }
 
+        // ============================================================
+        // API
+        // ============================================================
         async function apiCall(action, payload = {}) {
             try {
-                const response = await fetch(CONFIG.API_URL, {
+                const resp = await fetch(CONFIG.API_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action, ...payload })
                 });
-                const text = await response.text();
-                try {
-                    return JSON.parse(text);
-                } catch(e) {
-                    console.error("Invalid JSON response:", text);
-                    return { success: false, error: "Invalid JSON response from server" };
+                const text = await resp.text();
+                try { return JSON.parse(text); } catch (e) {
+                    console.error('Invalid JSON:', text);
+                    return { success: false, error: 'Respon server tidak valid' };
                 }
-            } catch (error) {
-                console.error('API POST error:', error);
-                return { success: false, error: error.message };
+            } catch (err) {
+                console.error('API error:', err);
+                return { success: false, error: err.message };
             }
         }
-        async function fetchData(action, params = {}) { return await apiCall(action, params); }
 
+        async function fetchData(action, params = {}) {
+            return await apiCall(action, params);
+        }
+
+        // ============================================================
+        // DATA LOADER
+        // ============================================================
         async function loadAeList() {
             const result = await fetchData('getAeList');
             if (result.success && result.data) {
@@ -439,48 +1114,48 @@
             return [];
         }
 
+        // ============================================================
+        // RENDER: DROPDOWN AE
+        // ============================================================
         function renderAeDropdowns() {
-            const selects = ['loginAeSelect'];
-            let list = state.aeList || [];
-            
-            const dropdownList = list
+            const sel = $('loginAeSelect');
+            if (!sel) return;
+            const current = sel.value;
+            const list = (state.aeList || [])
                 .filter(ae => String(ae.name).toUpperCase() !== 'ADMIN')
                 .sort((a, b) => a.name.localeCompare(b.name));
 
-            selects.forEach(id => {
-                const sel = $(id);
-                if (!sel) return;
-                const current = sel.value;
-                sel.innerHTML = '<option value="">— Pilih AE —</option>';
-                dropdownList.forEach(ae => {
-                    const opt = document.createElement('option');
-                    opt.value = ae.name;
-                    opt.textContent = ae.name;
-                    sel.appendChild(opt);
-                });
-                if (current && dropdownList.some(a => a.name === current)) {
-                    sel.value = current;
-                }
+            sel.innerHTML = '<option value="">— Pilih AE —</option>';
+            list.forEach(ae => {
+                const opt = document.createElement('option');
+                opt.value = ae.name;
+                opt.textContent = ae.name;
+                sel.appendChild(opt);
             });
+            if (current && list.some(a => a.name === current)) {
+                sel.value = current;
+            }
         }
 
+        // ============================================================
+        // RENDER: ADMIN DAFTAR AE
+        // ============================================================
         function renderAdminAeList() {
             const container = $('adminAeList');
-            let list = state.aeList || [];
-            
+            const list = state.aeList || [];
             if (!list.length) {
-                container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--xl-muted);font-size:13px;">Belum ada AE terdaftar.</div>';
+                container.innerHTML =
+                    '<div style="text-align:center;padding:20px;color:var(--xl-muted);font-size:13px;">Belum ada AE terdaftar.</div>';
                 return;
             }
-
-            const sortedList = [...list].sort((a, b) => {
+            const sorted = [...list].sort((a, b) => {
                 if (String(a.name).toUpperCase() === 'ADMIN') return -1;
                 if (String(b.name).toUpperCase() === 'ADMIN') return 1;
                 return a.name.localeCompare(b.name);
             });
 
             let html = '';
-            sortedList.forEach(ae => {
+            sorted.forEach(ae => {
                 html += `
                     <div class="admin-list-item">
                         <div>
@@ -508,57 +1183,38 @@
                     showToast('Edit data AE di form atas, lalu klik Simpan');
                 });
             });
+
             container.querySelectorAll('[data-action="delete"]').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     const name = btn.dataset.name;
+                    if (String(name).toUpperCase() === 'ADMIN') {
+                        showError('Tidak bisa menghapus akun Admin');
+                        return;
+                    }
                     if (!confirm(`Hapus AE "${name}"?`)) return;
-                    await apiCall('deleteAe', { name });
-                    showSuccess(`AE "${name}" dihapus`);
-                    await refreshAllData();
+                    const result = await apiCall('deleteAe', { name });
+                    if (result.success) {
+                        showSuccess(`AE "${name}" dihapus`);
+                        await refreshAllData();
+                    } else {
+                        showError('Gagal hapus: ' + (result.error || ''));
+                    }
                 });
             });
         }
 
-        function initMonthYearSelectors() {
-            const mSel = $('monthSelect');
-            const ySel = $('yearSelect');
-            
-            mSel.innerHTML = '';
-            for (let i = 0; i < 12; i++) {
-                const opt = document.createElement('option');
-                opt.value = i;
-                opt.textContent = getMonthName(i);
-                mSel.appendChild(opt);
-            }
-
-            ySel.innerHTML = '';
-            const currentYear = new Date().getFullYear();
-            for (let y = currentYear - 2; y <= currentYear + 2; y++) {
-                const opt = document.createElement('option');
-                opt.value = y;
-                opt.textContent = y;
-                ySel.appendChild(opt);
-            }
-        }
-
-        function updateMonthYearSelectorsUI() {
-            $('monthSelect').value = state.selectedDate.getMonth();
-            $('yearSelect').value = state.selectedDate.getFullYear();
-        }
-
-        async function changeMonth(offset) {
-            state.selectedDate.setMonth(state.selectedDate.getMonth() + offset);
-            updateMonthYearSelectorsUI();
-            await refreshAllData();
-        }
-
+        // ============================================================
+        // RENDER: DASHBOARD
+        // ============================================================
         function renderDashboard() {
             const user = state.currentUser;
             if (!user) return;
+
             const year = state.selectedDate.getFullYear();
             const month = state.selectedDate.getMonth();
             const days = getDaysInMonth(year, month);
-            
+
+            // --- Welcome ---
             if (user.isAdmin) {
                 $('welcomeSubLabel').textContent = 'Panel Administrator';
                 $('dashboardAeName').textContent = 'Akumulasi Seluruh AE';
@@ -568,12 +1224,13 @@
                 $('dashboardAeName').textContent = user.name;
                 $('dailyInputCard').style.display = 'block';
             }
-
             $('dashboardDate').textContent = formatDateDisplay(new Date());
 
-            let targetFtth = 0, targetFwa = 0;
+            // --- Target ---
+            let targetFtth = 0,
+                targetFwa = 0;
             if (user.isAdmin) {
-                state.aeList.forEach(ae => {
+                (state.aeList || []).forEach(ae => {
                     if (String(ae.name).toUpperCase() !== 'ADMIN') {
                         targetFtth += parseInt(ae.targetFtth) || 0;
                         targetFwa += parseInt(ae.targetFwa) || 0;
@@ -583,21 +1240,22 @@
                 targetFtth = parseInt(user.targetFtth) || 0;
                 targetFwa = parseInt(user.targetFwa) || 0;
             }
-
             $('ftthTarget').textContent = targetFtth;
             $('fwaTarget').textContent = targetFwa;
 
-            let totalFtth = 0, totalFwa = 0;
+            // --- Aktual ---
+            let totalFtth = 0,
+                totalFwa = 0;
             if (user.isAdmin) {
-                // Untuk Admin, hitung akumulasi dari adminTrackerData
-                const aeList = state.aeList.filter(ae => String(ae.name).toUpperCase() !== 'ADMIN');
+                const aeList = (state.aeList || []).filter(ae => String(ae.name).toUpperCase() !== 'ADMIN');
                 aeList.forEach(ae => {
                     const aeData = state.adminTrackerData[ae.name] || {};
                     for (let d = 1; d <= days; d++) {
-                        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                        const dayEntry = aeData[dateStr] || { ftth: 0, fwa: 0 };
-                        totalFtth += parseInt(dayEntry.ftth) || 0;
-                        totalFwa += parseInt(dayEntry.fwa) || 0;
+                        const dateStr =
+                            `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                        const entry = aeData[dateStr] || { ftth: 0, fwa: 0 };
+                        totalFtth += parseInt(entry.ftth) || 0;
+                        totalFwa += parseInt(entry.fwa) || 0;
                     }
                 });
             } else {
@@ -619,82 +1277,118 @@
             $('ftthPercent').textContent = pctFtth + '%';
             $('fwaPercent').textContent = pctFwa + '%';
 
+            // --- Tracker ---
             renderTracker(month, year);
         }
 
+        // ============================================================
+        // RENDER: TRACKER (pintu masuk)
+        // ============================================================
         function renderTracker(month, year) {
             const user = state.currentUser;
             if (!user) return;
 
-            const productFilterEl = $('dashboardProductFilter');
-
+            const filterEl = $('dashboardProductFilter');
             if (user.isAdmin) {
-                if (productFilterEl) productFilterEl.style.display = 'inline-block';
+                if (filterEl) filterEl.style.display = 'inline-block';
                 renderAdminDashboardTracker(month, year);
             } else {
-                if (productFilterEl) productFilterEl.style.display = 'none';
+                if (filterEl) filterEl.style.display = 'none';
                 renderAeDashboardTracker(month, year);
             }
         }
 
+        // ============================================================
+        // RENDER: TRACKER untuk AE (non-admin)
+        // ============================================================
         function renderAeDashboardTracker(month, year) {
-            const thead = $('trackerHead'), tbody = $('trackerBody'), days = getDaysInMonth(year, month);
-            const today = new Date(), todayDay = today.getDate(), todayMonth = today.getMonth(), todayYear = today.getFullYear();
+            const thead = $('trackerHead'),
+                tbody = $('trackerBody');
+            const days = getDaysInMonth(year, month);
+            const today = new Date(),
+                todayDay = today.getDate(),
+                todayMonth = today.getMonth(),
+                todayYear = today.getFullYear();
 
             let headHtml = '<tr><th style="text-align:left;min-width:48px;">Tanggal</th>';
             for (let d = 1; d <= days; d++) {
-                const isTodayCol = (d === todayDay && month === todayMonth && year === todayYear);
-                headHtml += `<th${isTodayCol ? ' style="background:var(--xl-blue-soft);color:var(--xl-blue);"' : ''}>${d}</th>`;
+                const isToday = (d === todayDay && month === todayMonth && year === todayYear);
+                headHtml +=
+                    `<th${isToday ? ' style="background:var(--xl-blue-soft);color:var(--xl-blue);"' : ''}>${d}</th>`;
             }
-            headHtml += '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
+            headHtml +=
+                '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
             thead.innerHTML = headHtml;
 
-            let totalFtth = 0, totalFwa = 0; const ftthValues = [], fwaValues = [];
+            let totalFtth = 0,
+                totalFwa = 0;
+            const ftthVals = [],
+                fwaVals = [];
             for (let d = 1; d <= days; d++) {
                 const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 const entry = state.trackerData[dateStr] || {};
-                totalFtth += (parseInt(entry.ftth) || 0); totalFwa += (parseInt(entry.fwa) || 0);
-                ftthValues.push(parseInt(entry.ftth) || 0); fwaValues.push(parseInt(entry.fwa) || 0);
+                const f = parseInt(entry.ftth) || 0,
+                    w = parseInt(entry.fwa) || 0;
+                totalFtth += f;
+                totalFwa += w;
+                ftthVals.push(f);
+                fwaVals.push(w);
             }
 
             let ftthHtml = '<tr><td class="row-label">FTTH</td>';
             for (let d = 0; d < days; d++) {
-                const cls = ((d + 1) === todayDay && month === todayMonth && year === todayYear) ? 'today-col' : '';
-                ftthHtml += `<td class="${cls}">${ftthValues[d] > 0 ? ftthValues[d] : '<span class="empty-cell">—</span>'}</td>`;
+                const isToday = ((d + 1) === todayDay && month === todayMonth && year === todayYear);
+                const cls = isToday ? 'today-col' : '';
+                ftthHtml += `<td class="${cls}">${ftthVals[d] > 0 ? ftthVals[d] : '<span class="empty-cell">—</span>'}</td>`;
             }
             ftthHtml += `<td class="cum-col">${totalFtth}</td></tr>`;
             tbody.innerHTML = ftthHtml;
 
             let fwaHtml = '<tr><td class="row-label">FWA</td>';
             for (let d = 0; d < days; d++) {
-                const cls = ((d + 1) === todayDay && month === todayMonth && year === todayYear) ? 'today-col' : '';
-                fwaHtml += `<td class="${cls}">${fwaValues[d] > 0 ? fwaValues[d] : '<span class="empty-cell">—</span>'}</td>`;
+                const isToday = ((d + 1) === todayDay && month === todayMonth && year === todayYear);
+                const cls = isToday ? 'today-col' : '';
+                fwaHtml += `<td class="${cls}">${fwaVals[d] > 0 ? fwaVals[d] : '<span class="empty-cell">—</span>'}</td>`;
             }
             fwaHtml += `<td class="cum-col">${totalFwa}</td></tr>`;
             tbody.innerHTML += fwaHtml;
+
             $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year;
         }
 
-        // Tracker Multi-AE di Dashboard Admin (Baris = Nama AE, Kolom = Tanggal) dengan Filter FTTH / FWA
+        // ============================================================
+        // RENDER: TRACKER untuk ADMIN (Baris = AE, Kolom = Tanggal)
+        // ============================================================
         function renderAdminDashboardTracker(month, year) {
-            const thead = $('trackerHead'), tbody = $('trackerBody'), days = getDaysInMonth(year, month);
+            const thead = $('trackerHead'),
+                tbody = $('trackerBody');
+            const days = getDaysInMonth(year, month);
             const productFilter = $('dashboardProductFilter')?.value || 'FTTH';
-            const today = new Date(), todayDay = today.getDate(), todayMonth = today.getMonth(), todayYear = today.getFullYear();
+            const today = new Date(),
+                todayDay = today.getDate(),
+                todayMonth = today.getMonth(),
+                todayYear = today.getFullYear();
 
-            let headHtml = '<tr><th style="text-align:left;min-width:110px;">Nama AE</th>';
+            // Header
+            let headHtml = '<tr><th style="text-align:left;min-width:100px;">Nama AE</th>';
             for (let d = 1; d <= days; d++) {
-                const isTodayCol = (d === todayDay && month === todayMonth && year === todayYear);
-                headHtml += `<th${isTodayCol ? ' style="background:var(--xl-blue-soft);color:var(--xl-blue);"' : ''}>${d}</th>`;
+                const isToday = (d === todayDay && month === todayMonth && year === todayYear);
+                headHtml +=
+                    `<th${isToday ? ' style="background:var(--xl-blue-soft);color:var(--xl-blue);"' : ''}>${d}</th>`;
             }
-            headHtml += '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
+            headHtml +=
+                '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
             thead.innerHTML = headHtml;
 
-            const aeList = state.aeList
+            // Filter AE (kecuali ADMIN)
+            const aeList = (state.aeList || [])
                 .filter(ae => String(ae.name).toUpperCase() !== 'ADMIN')
                 .sort((a, b) => a.name.localeCompare(b.name));
 
             if (!aeList.length) {
-                tbody.innerHTML = `<tr><td colspan="${days + 2}" style="text-align:center;padding:16px;color:var(--xl-muted);">Belum ada AE terdaftar</td></tr>`;
+                tbody.innerHTML =
+                    `<tr><td colspan="${days + 2}" style="text-align:center;padding:16px;color:var(--xl-muted);">Belum ada AE terdaftar</td></tr>`;
+                $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year;
                 return;
             }
 
@@ -703,16 +1397,17 @@
                 const aeData = state.adminTrackerData[ae.name] || {};
                 let rowKum = 0;
                 let rowHtml = `<tr><td class="row-label">${ae.name}</td>`;
-
                 for (let d = 1; d <= days; d++) {
-                    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                    const dayEntry = aeData[dateStr] || { ftth: 0, fwa: 0 };
-                    const val = productFilter === 'FTTH' ? (parseInt(dayEntry.ftth) || 0) : (parseInt(dayEntry.fwa) || 0);
+                    const dateStr =
+                        `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                    const entry = aeData[dateStr] || { ftth: 0, fwa: 0 };
+                    const val = productFilter === 'FTTH' ? (parseInt(entry.ftth) || 0) : (parseInt(entry.fwa) ||
+                    0);
                     rowKum += val;
-
-                    const isTodayCol = (d === todayDay && month === todayMonth && year === todayYear);
-                    const cls = isTodayCol ? 'today-col' : '';
-                    rowHtml += `<td class="${cls}">${val > 0 ? val : '<span class="empty-cell">—</span>'}</td>`;
+                    const isToday = (d === todayDay && month === todayMonth && year === todayYear);
+                    const cls = isToday ? 'today-col' : '';
+                    rowHtml +=
+                        `<td class="${cls}">${val > 0 ? val : '<span class="empty-cell">—</span>'}</td>`;
                 }
                 rowHtml += `<td class="cum-col">${rowKum}</td></tr>`;
                 bodyHtml += rowHtml;
@@ -722,38 +1417,79 @@
             $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year + ` (${productFilter})`;
         }
 
+        // ============================================================
+        // MONTH / YEAR SELECTOR
+        // ============================================================
+        function initMonthYearSelectors() {
+            const mSel = $('monthSelect'),
+                ySel = $('yearSelect');
+            mSel.innerHTML = '';
+            for (let i = 0; i < 12; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = getMonthName(i);
+                mSel.appendChild(opt);
+            }
+            const curYear = new Date().getFullYear();
+            ySel.innerHTML = '';
+            for (let y = curYear - 2; y <= curYear + 2; y++) {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                ySel.appendChild(opt);
+            }
+            mSel.value = state.selectedDate.getMonth();
+            ySel.value = state.selectedDate.getFullYear();
+        }
+
+        function updateMonthYearUI() {
+            $('monthSelect').value = state.selectedDate.getMonth();
+            $('yearSelect').value = state.selectedDate.getFullYear();
+        }
+
+        // ============================================================
+        // REFRESH SEMUA DATA
+        // ============================================================
         async function refreshAllData() {
             const user = state.currentUser;
             if (!user) return;
-            const month = state.selectedDate.getMonth() + 1;
+
+            const month = state.selectedDate.getMonth() + 1; // 1-12
             const year = state.selectedDate.getFullYear();
 
-            const aeList = await loadAeList();
-            if (aeList.length) state.aeList = aeList;
+            // 1. Load AE list
+            await loadAeList();
             renderAeDropdowns();
 
+            // 2. Load tracker (untuk AE yang login)
             const queryName = user.isAdmin ? 'Admin' : user.name;
             const tracker = await fetchData('getTracker', { aeName: queryName, month, year });
-            if (tracker.success) state.trackerData = tracker.data;
+            if (tracker.success) state.trackerData = tracker.data || {};
 
+            // 3. Load admin tracker (semua AE) jika admin
             if (user.isAdmin) {
                 const adminTracker = await fetchData('getAdminTracker', { month, year });
-                if (adminTracker.success) state.adminTrackerData = adminTracker.data;
+                if (adminTracker.success) state.adminTrackerData = adminTracker.data || {};
             }
 
-            renderDashboard(); 
+            // 4. Render
+            renderDashboard();
             renderAdminAeList();
+
+            // Nav admin
             $('navAdmin').style.display = user.isAdmin ? 'flex' : 'none';
         }
 
+        // ============================================================
+        // LOGIN HANDLER
+        // ============================================================
         async function handleLogin(e) {
             e.preventDefault();
             const name = $('loginAeSelect').value;
             const inputPin = String($('loginPin').value).trim();
-
             if (!name) { showError('Pilih nama AE'); return; }
 
-            const ae = state.aeList.find(a => a.name.toLowerCase() === name.toLowerCase());
+            const ae = (state.aeList || []).find(a => a.name.toLowerCase() === name.toLowerCase());
             if (!ae) { showError('AE tidak ditemukan'); return; }
 
             const dbPin = String(ae.pin).trim();
@@ -763,7 +1499,14 @@
                 return;
             }
 
-            state.currentUser = { name: ae.name, pin: ae.pin, targetFtth: ae.targetFtth, targetFwa: ae.targetFwa, isAdmin: false };
+            state.currentUser = {
+                name: ae.name,
+                pin: ae.pin,
+                targetFtth: ae.targetFtth || 0,
+                targetFwa: ae.targetFwa || 0,
+                isAdmin: false
+            };
+            state.isAdmin = false;
             $('loginError').classList.remove('show');
             $('loginPin').value = '';
 
@@ -777,8 +1520,8 @@
             e.preventDefault();
             const inputPin = String($('adminPin').value).trim();
 
-            const adminPinFromSheet = state.aeList.find(a => String(a.name).toUpperCase() === 'ADMIN');
-            const validPin = adminPinFromSheet ? String(adminPinFromSheet.pin).trim() : CONFIG.ADMIN_PIN;
+            const adminEntry = (state.aeList || []).find(a => String(a.name).toUpperCase() === 'ADMIN');
+            const validPin = adminEntry ? String(adminEntry.pin).trim() : CONFIG.ADMIN_PIN;
 
             if (validPin !== inputPin) {
                 $('adminLoginError').textContent = 'PIN Admin salah.';
@@ -786,7 +1529,14 @@
                 return;
             }
 
-            state.currentUser = { name: 'Admin', pin: validPin, targetFtth: 0, targetFwa: 0, isAdmin: true };
+            state.currentUser = {
+                name: 'Admin',
+                pin: validPin,
+                targetFtth: 0,
+                targetFwa: 0,
+                isAdmin: true
+            };
+            state.isAdmin = true;
             $('adminLoginError').classList.remove('show');
             $('adminPin').value = '';
 
@@ -796,55 +1546,90 @@
             showSuccess('Login Admin berhasil (Akumulasi Seluruh AE)');
         }
 
+        // ============================================================
+        // LOGOUT
+        // ============================================================
         function handleLogout() {
-            state.currentUser = null; state.trackerData = {}; state.adminTrackerData = {};
-            showPage('pageLogin'); $('headerUserName').textContent = 'Guest';
+            state.currentUser = null;
+            state.isAdmin = false;
+            state.trackerData = {};
+            state.adminTrackerData = {};
+            showPage('pageLogin');
+            $('headerUserName').textContent = 'Guest';
             showToast('Anda telah keluar');
         }
 
+        // ============================================================
+        // DAILY SUBMIT
+        // ============================================================
         async function handleDailySubmit(e) {
             e.preventDefault();
-            if (!state.currentUser || state.currentUser.isAdmin) return showError('Silakan login sebagai AE');
-            const ftth = parseInt($('dailyFtth').value) || 0, fwa = parseInt($('dailyFwa').value) || 0;
+            if (!state.currentUser || state.currentUser.isAdmin) {
+                showError('Silakan login sebagai AE');
+                return;
+            }
+            const ftth = parseInt($('dailyFtth').value) || 0;
+            const fwa = parseInt($('dailyFwa').value) || 0;
             const inputDate = $('dailyDateInput').value;
-            
-            if (!inputDate) return showError('Pilih tanggal terlebih dahulu');
-            if (ftth === 0 && fwa === 0) return showError('Masukkan minimal 1 angka pencapaian');
+            if (!inputDate) { showError('Pilih tanggal terlebih dahulu'); return; }
+            if (ftth === 0 && fwa === 0) { showError('Masukkan minimal 1 angka pencapaian'); return; }
 
             const btn = $('dailySubmitBtn');
             setLoading(btn, true);
-            const result = await apiCall('saveDaily', { aeName: state.currentUser.name, date: inputDate, ftth, fwa });
+            const result = await apiCall('saveDaily', {
+                aeName: state.currentUser.name,
+                date: inputDate,
+                ftth,
+                fwa
+            });
             setLoading(btn, false);
 
             if (result.success) {
-                $('dailyFtth').value = ''; $('dailyFwa').value = '';
-                showSuccess('Performa harian berhasil disimpan!'); 
+                $('dailyFtth').value = '';
+                $('dailyFwa').value = '';
+                showSuccess('Performa harian berhasil disimpan!');
                 await refreshAllData();
-            } else showError('Gagal menyimpan, coba lagi');
+            } else {
+                showError('Gagal menyimpan: ' + (result.error || ''));
+            }
         }
 
+        // ============================================================
+        // ADMIN: TAMBAH / EDIT AE
+        // ============================================================
         async function handleAddAe() {
-            const name = $('adminNewName').value.trim(), pin = $('adminNewPin').value.trim();
-            const targetFtth = parseInt($('adminNewTargetFtth').value) || 0, targetFwa = parseInt($('adminNewTargetFwa').value) || 0;
-            if (!name) return showError('Nama AE wajib diisi');
+            const name = $('adminNewName').value.trim();
+            const pin = $('adminNewPin').value.trim();
+            const targetFtth = parseInt($('adminNewTargetFtth').value) || 0;
+            const targetFwa = parseInt($('adminNewTargetFwa').value) || 0;
+            if (!name) { showError('Nama AE wajib diisi'); return; }
 
-            const btn = $('adminAddAeBtn'); setLoading(btn, true);
+            const btn = $('adminAddAeBtn');
+            setLoading(btn, true);
             const result = await apiCall('saveAe', { name, pin, targetFtth, targetFwa });
             setLoading(btn, false);
 
             if (result.success) {
                 showSuccess('AE berhasil disimpan!');
-                $('adminNewName').value = ''; $('adminNewPin').value = '';
-                $('adminNewTargetFtth').value = ''; $('adminNewTargetFwa').value = '';
+                $('adminNewName').value = '';
+                $('adminNewPin').value = '';
+                $('adminNewTargetFtth').value = '';
+                $('adminNewTargetFwa').value = '';
                 await refreshAllData();
-            } else showError('Gagal menyimpan AE');
+            } else {
+                showError('Gagal menyimpan: ' + (result.error || ''));
+            }
         }
 
+        // ============================================================
+        // ADMIN: UBAH PIN ADMIN
+        // ============================================================
         async function handleChangeAdminPin() {
             const newPin = $('adminNewAdminPin').value.trim();
-            if (!newPin || newPin.length < 4) return showError('PIN minimal 4 karakter');
+            if (!newPin || newPin.length < 4) { showError('PIN minimal 4 karakter'); return; }
 
-            const btn = $('adminChangePinBtn'); setLoading(btn, true);
+            const btn = $('adminChangePinBtn');
+            setLoading(btn, true);
             const result = await apiCall('saveAe', { name: 'ADMIN', pin: newPin, targetFtth: 0, targetFwa: 0 });
             setLoading(btn, false);
 
@@ -853,23 +1638,40 @@
                 $('adminNewAdminPin').value = '';
                 CONFIG.ADMIN_PIN = newPin;
                 await refreshAllData();
-            } else showError('Gagal update PIN Admin');
+            } else {
+                showError('Gagal update: ' + (result.error || ''));
+            }
         }
 
+        // ============================================================
+        // NAVIGASI
+        // ============================================================
         function showPage(pageId) {
             $$('.page').forEach(p => p.classList.remove('active'));
-            $(pageId)?.classList.add('active');
+            const target = $(pageId);
+            if (target) target.classList.add('active');
+
             $$('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
-            document.querySelector(`.bottom-nav .nav-item[data-page="${pageId}"]`)?.classList.add('active');
+            const navBtn = document.querySelector(`.bottom-nav .nav-item[data-page="${pageId}"]`);
+            if (navBtn) navBtn.classList.add('active');
+
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        // ============================================================
+        // BOTTOM NAV CLICK
+        // ============================================================
         document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
             btn.addEventListener('click', () => {
                 const page = btn.dataset.page;
-                if (page === 'pageAdmin' && !state.currentUser?.isAdmin) return showError('Akses admin diperlukan');
+                if (page === 'pageAdmin' && !state.currentUser?.isAdmin) {
+                    showError('Akses admin diperlukan');
+                    return;
+                }
                 if (page === 'pageDashboard' && !state.currentUser) {
-                    showError('Silakan login terlebih dahulu'); return showPage('pageLogin');
+                    showError('Silakan login terlebih dahulu');
+                    showPage('pageLogin');
+                    return;
                 }
                 showPage(page);
                 if (page === 'pageDashboard') renderDashboard();
@@ -877,37 +1679,56 @@
             });
         });
 
+        // ============================================================
+        // INIT
+        // ============================================================
         async function init() {
+            // Month/Year
             initMonthYearSelectors();
-            updateMonthYearSelectorsUI();
+            updateMonthYearUI();
 
-            const aeList = await loadAeList();
-            if (aeList.length) state.aeList = aeList;
+            // Load AE list
+            await loadAeList();
             renderAeDropdowns();
 
+            // Buat akun ADMIN jika belum ada
             if (!state.aeList.some(a => String(a.name).toUpperCase() === 'ADMIN')) {
                 await apiCall('saveAe', { name: 'ADMIN', pin: CONFIG.ADMIN_PIN, targetFtth: 0, targetFwa: 0 });
+                await loadAeList();
+                renderAeDropdowns();
             }
 
-            $('prevMonthBtn').addEventListener('click', () => changeMonth(-1));
-            $('nextMonthBtn').addEventListener('click', () => changeMonth(1));
-            $('monthSelect').addEventListener('change', async (e) => {
-                state.selectedDate.setMonth(parseInt(e.target.value));
+            // Event: month/year change
+            $('monthSelect').addEventListener('change', async () => {
+                state.selectedDate.setMonth(parseInt($('monthSelect').value));
                 await refreshAllData();
             });
-            $('yearSelect').addEventListener('change', async (e) => {
-                state.selectedDate.setFullYear(parseInt(e.target.value));
+            $('yearSelect').addEventListener('change', async () => {
+                state.selectedDate.setFullYear(parseInt($('yearSelect').value));
+                await refreshAllData();
+            });
+            $('prevMonthBtn').addEventListener('click', async () => {
+                state.selectedDate.setMonth(state.selectedDate.getMonth() - 1);
+                updateMonthYearUI();
+                await refreshAllData();
+            });
+            $('nextMonthBtn').addEventListener('click', async () => {
+                state.selectedDate.setMonth(state.selectedDate.getMonth() + 1);
+                updateMonthYearUI();
                 await refreshAllData();
             });
 
+            // Filter FTTH/FWA untuk admin
             $('dashboardProductFilter')?.addEventListener('change', () => {
                 renderDashboard();
             });
 
+            // Login forms
             $('loginForm').addEventListener('submit', handleLogin);
             $('adminLoginForm').addEventListener('submit', handleAdminLogin);
             $('dailyForm').addEventListener('submit', handleDailySubmit);
-            
+
+            // Toggle login pages
             $('btnGoToAdminLogin').addEventListener('click', () => {
                 $('adminLoginError').classList.remove('show');
                 showPage('pageAdminLogin');
@@ -917,17 +1738,24 @@
                 $('loginError').classList.remove('show');
                 showPage('pageLogin');
             });
+
+            // Logout
             $('logoutBtn').addEventListener('click', handleLogout);
+
+            // Admin actions
             $('adminAddAeBtn').addEventListener('click', handleAddAe);
             $('adminChangePinBtn').addEventListener('click', handleChangeAdminPin);
 
+            // Set default date
             $('dailyDateInput').value = todayStr();
 
+            // Tampilkan login
             showPage('pageLogin');
             console.log('🚀 XL Satu Sales Tracker siap!');
         }
 
         document.addEventListener('DOMContentLoaded', init);
     </script>
+
 </body>
 </html>
