@@ -12,13 +12,14 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
         }
-
         :root {
             --xl-blue: #0F3B7A;
             --xl-blue-light: #1A5BB5;
             --xl-blue-dark: #0A2A55;
             --xl-blue-grad: linear-gradient(135deg, #0F3B7A 0%, #1A5BB5 100%);
             --xl-blue-soft: #E8F0FE;
+            --xl-amber: #9A6400;
+            --xl-amber-soft: #FDF3E0;
             --xl-gray: #F5F7FA;
             --xl-gray-light: #EDEFF2;
             --xl-dark: #1A1A2E;
@@ -34,7 +35,6 @@
             --neu-shadow-dark: #c8cdd5;
             --neu-radius: 20px;
         }
-
         body {
             background: var(--neu-bg);
             min-height: 100vh;
@@ -45,7 +45,6 @@
             font-size: 14px;
             color: var(--xl-text);
         }
-
         #app {
             max-width: 480px;
             width: 100%;
@@ -55,7 +54,6 @@
             position: relative;
             padding-bottom: 20px;
         }
-
         /* ===== HEADER ===== */
         .app-header {
             background: var(--xl-blue-grad);
@@ -100,7 +98,6 @@
         .app-header .user-badge .logout-btn:hover {
             background: rgba(255, 255, 255, 0.30);
         }
-
         /* ===== BOTTOM NAV ===== */
         .bottom-nav {
             position: fixed;
@@ -155,7 +152,6 @@
         .bottom-nav .nav-item.active .nav-label {
             opacity: 1;
         }
-
         /* ===== PAGES ===== */
         .page {
             display: none;
@@ -175,7 +171,6 @@
                 transform: translateY(0) scale(1);
             }
         }
-
         /* ===== CARDS ===== */
         .card {
             background: #fff;
@@ -208,7 +203,6 @@
         .card-title .emoji {
             font-size: 18px;
         }
-
         /* ===== MONTH SELECTOR ===== */
         .month-selector {
             display: flex;
@@ -243,7 +237,6 @@
             cursor: pointer;
             outline: none;
         }
-
         /* ===== PROGRESS ===== */
         .progress-wrap {
             margin-top: 4px;
@@ -306,7 +299,6 @@
             background: var(--xl-blue-soft);
             color: var(--xl-blue);
         }
-
         /* ===== DAILY INPUT ===== */
         .daily-input-group {
             display: flex;
@@ -343,7 +335,6 @@
             font-weight: 600;
             padding: 10px 6px;
         }
-
         .btn-primary {
             background: var(--xl-blue-grad);
             color: #fff;
@@ -368,7 +359,6 @@
             margin-top: 0;
             border-radius: 40px;
         }
-
         /* ===== TRACKER TABLE ===== */
         .tracker-wrap {
             overflow-x: auto;
@@ -431,7 +421,228 @@
         .tracker-table .empty-cell {
             color: #ccc;
         }
-
+        /* ===== RINGKASAN TARGET TIM (ADMIN) ===== */
+        .target-summary-card {
+            padding-bottom: 14px !important;
+        }
+        .target-summary-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .target-search-wrap {
+            position: relative;
+            flex: 1 1 180px;
+            min-width: 150px;
+        }
+        .target-search-wrap::before {
+            content: "🔍";
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            opacity: 0.6;
+        }
+        .target-search-wrap input {
+            width: 100%;
+            padding: 9px 12px 9px 32px;
+            border: 1.5px solid var(--xl-border);
+            border-radius: var(--xl-radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            background: var(--xl-gray);
+            outline: none;
+            color: var(--xl-dark);
+            transition: var(--xl-transition);
+        }
+        .target-search-wrap input:focus {
+            border-color: var(--xl-blue-light);
+            background: #fff;
+            box-shadow: 0 0 0 3px var(--xl-blue-soft);
+        }
+        .ts-meta {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--xl-muted);
+            white-space: nowrap;
+        }
+        .ts-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+        .btn-outline {
+            background: #fff;
+            border: 1.5px solid var(--xl-border);
+            color: var(--xl-blue);
+            font-weight: 700;
+            font-size: 12px;
+            padding: 8px 14px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: var(--xl-transition);
+            white-space: nowrap;
+        }
+        .btn-outline:hover {
+            background: var(--xl-blue-soft);
+            border-color: var(--xl-blue-light);
+        }
+        .btn-save {
+            background: var(--xl-blue-grad);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 9px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(15, 59, 122, 0.28);
+            transition: var(--xl-transition);
+            white-space: nowrap;
+        }
+        .btn-save:active {
+            transform: scale(0.96);
+        }
+        .btn-save:disabled,
+        .btn-outline:disabled {
+            opacity: 0.6;
+            cursor: default;
+        }
+        .target-table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: var(--xl-radius-sm);
+            border: 1px solid var(--xl-border);
+        }
+        .target-table {
+            width: 100%;
+            min-width: 660px;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 12px;
+        }
+        .target-table thead th {
+            padding: 9px 6px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 10px;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--xl-border);
+            white-space: nowrap;
+        }
+        .target-table thead .group-ftth {
+            background: var(--xl-blue-soft);
+            color: var(--xl-blue);
+        }
+        .target-table thead .group-fwa {
+            background: var(--xl-amber-soft);
+            color: var(--xl-amber);
+        }
+        .target-table thead th.name-cell {
+            background: var(--xl-gray);
+            color: var(--xl-muted);
+        }
+        .target-table tbody td {
+            padding: 8px 6px;
+            text-align: center;
+            border-bottom: 1px solid var(--xl-gray-light);
+            font-weight: 600;
+            color: var(--xl-dark);
+        }
+        .target-table tbody tr:hover td {
+            background: #FAFBFE;
+        }
+        .target-table .name-cell {
+            text-align: left;
+            font-weight: 700;
+            position: sticky;
+            left: 0;
+            background: #fff;
+            z-index: 2;
+            white-space: nowrap;
+            min-width: 130px;
+            border-right: 2px solid var(--xl-border);
+        }
+        .target-table tbody tr:hover .name-cell {
+            background: #FAFBFE;
+        }
+        .target-table input.target-input {
+            width: 54px;
+            text-align: center;
+            padding: 6px 4px;
+            border: 1.5px solid var(--xl-border);
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--xl-blue);
+            background: var(--xl-gray);
+            outline: none;
+            transition: var(--xl-transition);
+        }
+        .target-table input.target-input:focus {
+            border-color: var(--xl-blue-light);
+            background: #fff;
+            box-shadow: 0 0 0 3px var(--xl-blue-soft);
+        }
+        .ts-pct {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 700;
+        }
+        .ts-pct .bar {
+            width: 40px;
+            height: 6px;
+            border-radius: 10px;
+            background: var(--xl-gray-light);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .ts-pct .bar span {
+            display: block;
+            height: 100%;
+            border-radius: 10px;
+        }
+        .pct-low { color: #C0392B; }
+        .pct-low .bar span { background: #C0392B; }
+        .pct-mid { color: var(--xl-amber); }
+        .pct-mid .bar span { background: #E0930B; }
+        .pct-high { color: #0F7B3A; }
+        .pct-high .bar span { background: #0F7B3A; }
+        .ts-gap {
+            font-weight: 800;
+            color: #C0392B;
+        }
+        .ts-gap-ok {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 7px;
+            background: #E3F6EA;
+            color: #0F7B3A;
+            font-weight: 800;
+            font-size: 12px;
+            margin: 0 auto;
+        }
+        .target-table tfoot td {
+            padding: 10px 6px;
+            font-weight: 800;
+            background: var(--xl-blue-soft);
+            color: var(--xl-blue);
+            border-top: 2px solid var(--xl-border);
+            text-align: center;
+        }
+        .target-table tfoot .name-cell {
+            text-align: left;
+            background: var(--xl-blue-soft);
+            color: var(--xl-blue);
+        }
         /* ===== LOGIN ===== */
         .login-page {
             display: flex;
@@ -477,7 +688,6 @@
             margin-bottom: 28px;
             font-weight: 500;
         }
-
         .neu-input-group {
             margin-bottom: 18px;
         }
@@ -516,7 +726,6 @@
         .neu-input-group input[type="password"] {
             letter-spacing: 2px;
         }
-
         .neu-btn {
             width: 100%;
             padding: 16px;
@@ -560,7 +769,6 @@
         .login-error.show {
             display: block;
         }
-
         /* ===== ADMIN ===== */
         .admin-section {
             margin-bottom: 24px;
@@ -607,7 +815,6 @@
         .admin-list-item .actions .btn-sm.danger {
             color: #C0392B;
         }
-
         .admin-form-row {
             display: flex;
             flex-wrap: wrap;
@@ -627,7 +834,6 @@
             background: var(--xl-gray);
             outline: none;
         }
-
         /* ===== TOAST ===== */
         .toast {
             position: fixed;
@@ -660,7 +866,6 @@
         .toast.error {
             background: #C0392B;
         }
-
         /* ===== SPINNER ===== */
         .spinner {
             display: inline-block;
@@ -676,7 +881,6 @@
                 transform: rotate(360deg);
             }
         }
-
         /* ===== WELCOME CARD ===== */
         .welcome-card {
             background: var(--xl-blue-grad) !important;
@@ -700,7 +904,6 @@
             opacity: 0.7;
             text-align: right;
         }
-
         /* ===== RESPONSIVE ===== */
         @media (max-width: 420px) {
             .card {
@@ -745,8 +948,23 @@
             .login-card {
                 padding: 24px 16px 24px;
             }
+            .target-table {
+                min-width: 560px;
+                font-size: 10px;
+            }
+            .target-table input.target-input {
+                width: 42px;
+                font-size: 11px;
+                padding: 5px 2px;
+            }
+            .ts-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            .ts-meta {
+                width: 100%;
+            }
         }
-
         @media (max-width: 360px) {
             .tracker-table {
                 min-width: 320px;
@@ -778,9 +996,7 @@
     </style>
 </head>
 <body>
-
     <div id="app">
-
         <!-- HEADER -->
         <header class="app-header" id="appHeader">
             <img class="logo" src="https://satu.xl.co.id/_next/image?url=https%3A%2F%2Fstatic-xlsatu.xl.co.id%2Fimages%2Fpost%2F46bf5fe2-0960-45be-958b-3a7cc6fb12a3.png&w=96&q=75" alt="XL Satu" />
@@ -789,7 +1005,6 @@
                 <button class="logout-btn" id="logoutBtn" title="Logout">✕</button>
             </div>
         </header>
-
         <!-- LOGIN AE PAGE -->
         <div class="page active" id="pageLogin">
             <div class="login-page">
@@ -819,7 +1034,6 @@
                 </div>
             </div>
         </div>
-
         <!-- LOGIN ADMIN PAGE -->
         <div class="page" id="pageAdminLogin">
             <div class="login-page">
@@ -843,7 +1057,6 @@
                 </div>
             </div>
         </div>
-
         <!-- ===== DASHBOARD PAGE ===== -->
         <div class="page" id="pageDashboard">
             <!-- Welcome Card -->
@@ -859,7 +1072,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Performa Bulanan -->
             <div class="card">
                 <div class="card-header">
@@ -885,10 +1097,9 @@
                 </div>
                 <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;">
                     <span class="stat-badge">✅ FTTH: <strong id="ftthPercent">0%</strong></span>
-                    <span class="stat-badge">✅ FWA: <strong id="fwaPercent">0%</span>
+                    <span class="stat-badge">✅ FWA: <strong id="fwaPercent">0%</strong></span>
                 </div>
             </div>
-
             <!-- Form Performa Harian (AE only) -->
             <div class="card" id="dailyInputCard">
                 <div class="card-header">
@@ -917,7 +1128,62 @@
                     </div>
                 </form>
             </div>
-
+            <!-- ===== RINGKASAN TARGET TIM (HANYA UNTUK ADMIN) ===== -->
+            <div class="card target-summary-card" id="adminTargetSummaryCard" style="display:none;">
+                <div class="card-header">
+                    <span class="card-title"><span class="emoji">🎯</span> Ringkasan Target Tim</span>
+                </div>
+                <div class="target-summary-toolbar">
+                    <div class="target-search-wrap">
+                        <input type="text" id="targetSearchInput" placeholder="Cari nama AE..." />
+                    </div>
+                    <div class="ts-meta">
+                        <span id="tsMemberCount">0 anggota</span> · <span id="tsDaysLeft">0 hari tersisa</span>
+                    </div>
+                    <div class="ts-actions">
+                        <button type="button" class="btn-outline" id="tsReloadBtn">↻ Muat DB</button>
+                        <button type="button" class="btn-save" id="tsSaveBtn">💾 Simpan</button>
+                    </div>
+                </div>
+                <div class="target-table-wrap">
+                    <table class="target-table" id="targetSummaryTable">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" class="name-cell">Nama AE</th>
+                                <th colspan="4" class="group-ftth">🚀 FTTH</th>
+                                <th colspan="4" class="group-fwa">☀️ FWA</th>
+                            </tr>
+                            <tr>
+                                <th class="group-ftth">Target</th>
+                                <th class="group-ftth">Aktual</th>
+                                <th class="group-ftth">%</th>
+                                <th class="group-ftth">Gap</th>
+                                <th class="group-fwa">Target</th>
+                                <th class="group-fwa">Aktual</th>
+                                <th class="group-fwa">%</th>
+                                <th class="group-fwa">Gap</th>
+                            </tr>
+                        </thead>
+                        <tbody id="targetSummaryBody"></tbody>
+                        <tfoot>
+                            <tr>
+                                <td class="name-cell">TOTAL TIM</td>
+                                <td id="tsTotalFtthTarget">0</td>
+                                <td id="tsTotalFtthActual">0</td>
+                                <td id="tsTotalFtthPct">0%</td>
+                                <td id="tsTotalFtthGap">0</td>
+                                <td id="tsTotalFwaTarget">0</td>
+                                <td id="tsTotalFwaActual">0</td>
+                                <td id="tsTotalFwaPct">0%</td>
+                                <td id="tsTotalFwaGap">0</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div style="font-size:10px;color:var(--xl-muted);margin-top:8px;">
+                    ✏️ Ubah angka Target langsung di tabel, lalu klik <strong>Simpan</strong> untuk menyimpan ke database.
+                </div>
+            </div>
             <!-- ===== TRACKER HARIAN SEMUA AE (HANYA UNTUK ADMIN) DI DASHBOARD ===== -->
             <div class="card" style="padding-bottom:12px;" id="adminTrackerCard">
                 <div class="card-header">
@@ -942,7 +1208,6 @@
                 </div>
             </div>
         </div>
-
         <!-- ===== ADMIN PAGE (HANYA KELOLA AE & TARGET, TIDAK ADA TRACKER) ===== -->
         <div class="page" id="pageAdmin">
             <div class="card">
@@ -950,7 +1215,6 @@
                     <span class="card-title"><span class="emoji">🔧</span> Admin Panel</span>
                     <span style="font-size:13px;color:var(--xl-muted);">Kelola AE & Target</span>
                 </div>
-
                 <div class="admin-section">
                     <div class="section-title">➕ Tambah / Edit AE</div>
                     <div class="admin-form-row">
@@ -961,14 +1225,12 @@
                         <button class="btn-primary" id="adminAddAeBtn" style="flex:0 0 auto;padding:10px 20px;">Simpan</button>
                     </div>
                 </div>
-
                 <div class="admin-section">
                     <div class="section-title">📋 Daftar AE</div>
                     <div id="adminAeList">
                         <div style="text-align:center;padding:20px;color:var(--xl-muted);font-size:13px;">Memuat...</div>
                     </div>
                 </div>
-
                 <div class="admin-section" style="margin-top:16px;">
                     <div class="section-title">🔑 Ubah PIN Admin</div>
                     <div class="admin-form-row">
@@ -976,16 +1238,13 @@
                         <button class="btn-primary" id="adminChangePinBtn" style="flex:0 0 auto;padding:10px 20px;">Update</button>
                     </div>
                 </div>
-
                 <div style="font-size:11px;color:var(--xl-muted);text-align:center;padding:4px 0;">
                     Perubahan langsung tersimpan di database.
                 </div>
             </div>
         </div>
-
         <!-- TOAST -->
         <div class="toast" id="toast"></div>
-
         <!-- BOTTOM NAV -->
         <nav class="bottom-nav" id="bottomNav">
             <button class="nav-item active" data-page="pageDashboard">
@@ -998,7 +1257,6 @@
             </button>
         </nav>
     </div>
-
     <!-- ============================================================ -->
     <!-- JAVASCRIPT -->
     <!-- ============================================================ -->
@@ -1011,7 +1269,6 @@
             API_URL: 'https://script.google.com/macros/s/AKfycbztilr5ydJAWsnYpAu2mXHfADzELbDfAtQ9kN2rqww-YDN1eQCbiDKA164Tv70hh7aTOQ/exec',
             ADMIN_PIN: '123456',
         };
-
         // ============================================================
         // STATE
         // ============================================================
@@ -1022,39 +1279,34 @@
             trackerData: {},
             adminTrackerData: {},
             selectedDate: new Date(),
+            editedTargets: {},
+            targetSearchQuery: '',
         };
-
         // ============================================================
         // UTILITY
         // ============================================================
         const $ = id => document.getElementById(id);
         const $$ = sel => document.querySelectorAll(sel);
-
         function formatDate(d) {
             const y = d.getFullYear(),
                 m = String(d.getMonth() + 1).padStart(2, '0'),
                 day = String(d.getDate()).padStart(2, '0');
             return `${y}-${m}-${day}`;
         }
-
         function formatDateDisplay(d) {
             return d.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
         }
-
         function getMonthName(m) {
             return ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober',
                 'November', 'Desember'
             ][m] || '';
         }
-
         function getDaysInMonth(year, month) {
             return new Date(year, month + 1, 0).getDate();
         }
-
         function todayStr() {
             return formatDate(new Date());
         }
-
         function showToast(msg, type = '') {
             const t = $('toast');
             t.textContent = msg;
@@ -1063,11 +1315,8 @@
             clearTimeout(t._timer);
             t._timer = setTimeout(() => t.classList.remove('show'), 3200);
         }
-
         function showError(msg) { showToast(msg, 'error'); }
-
         function showSuccess(msg) { showToast(msg, 'success'); }
-
         function setLoading(el, loading) {
             if (!el) return;
             if (loading) {
@@ -1079,7 +1328,6 @@
                 el.textContent = el._origText || 'Submit';
             }
         }
-
         // ============================================================
         // API
         // ============================================================
@@ -1099,11 +1347,9 @@
                 return { success: false, error: err.message };
             }
         }
-
         async function fetchData(action, params = {}) {
             return await apiCall(action, params);
         }
-
         // ============================================================
         // DATA LOADER
         // ============================================================
@@ -1115,7 +1361,6 @@
             }
             return [];
         }
-
         // ============================================================
         // RENDER: DROPDOWN AE
         // ============================================================
@@ -1126,7 +1371,6 @@
             const list = (state.aeList || [])
                 .filter(ae => String(ae.name).toUpperCase() !== 'ADMIN')
                 .sort((a, b) => a.name.localeCompare(b.name));
-
             sel.innerHTML = '<option value="">— Pilih AE —</option>';
             list.forEach(ae => {
                 const opt = document.createElement('option');
@@ -1138,7 +1382,6 @@
                 sel.value = current;
             }
         }
-
         // ============================================================
         // RENDER: ADMIN DAFTAR AE
         // ============================================================
@@ -1155,7 +1398,6 @@
                 if (String(b.name).toUpperCase() === 'ADMIN') return 1;
                 return a.name.localeCompare(b.name);
             });
-
             let html = '';
             sorted.forEach(ae => {
                 html += `
@@ -1172,7 +1414,6 @@
                 `;
             });
             container.innerHTML = html;
-
             container.querySelectorAll('[data-action="edit"]').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const name = btn.dataset.name;
@@ -1185,7 +1426,6 @@
                     showToast('Edit data AE di form atas, lalu klik Simpan');
                 });
             });
-
             container.querySelectorAll('[data-action="delete"]').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     const name = btn.dataset.name;
@@ -1204,18 +1444,15 @@
                 });
             });
         }
-
         // ============================================================
         // RENDER: DASHBOARD
         // ============================================================
         function renderDashboard() {
             const user = state.currentUser;
             if (!user) return;
-
             const year = state.selectedDate.getFullYear();
             const month = state.selectedDate.getMonth();
             const days = getDaysInMonth(year, month);
-
             // --- Welcome ---
             if (user.isAdmin) {
                 $('welcomeSubLabel').textContent = 'Panel Administrator';
@@ -1229,7 +1466,6 @@
                 $('adminTrackerCard').style.display = 'none'; // sembunyikan tracker semua AE
             }
             $('dashboardDate').textContent = formatDateDisplay(new Date());
-
             // --- Target ---
             let targetFtth = 0,
                 targetFwa = 0;
@@ -1246,7 +1482,6 @@
             }
             $('ftthTarget').textContent = targetFtth;
             $('fwaTarget').textContent = targetFwa;
-
             // --- Aktual ---
             let totalFtth = 0,
                 totalFwa = 0;
@@ -1270,28 +1505,25 @@
                     totalFwa += parseInt(entry.fwa) || 0;
                 }
             }
-
             $('ftthActual').textContent = totalFtth;
             $('fwaActual').textContent = totalFwa;
-
             const pctFtth = targetFtth > 0 ? Math.min(100, Math.round((totalFtth / targetFtth) * 100)) : 0;
             const pctFwa = targetFwa > 0 ? Math.min(100, Math.round((totalFwa / targetFwa) * 100)) : 0;
             $('ftthProgress').style.width = pctFtth + '%';
             $('fwaProgress').style.width = pctFwa + '%';
             $('ftthPercent').textContent = pctFtth + '%';
             $('fwaPercent').textContent = pctFwa + '%';
-
             // --- Tracker ---
             renderTracker(month, year);
+            // --- Ringkasan Target Tim (admin only) ---
+            renderTargetSummaryCard();
         }
-
         // ============================================================
         // RENDER: TRACKER
         // ============================================================
         function renderTracker(month, year) {
             const user = state.currentUser;
             if (!user) return;
-
             const filterEl = $('dashboardProductFilter');
             if (user.isAdmin) {
                 // Admin: tampilkan tracker semua AE dengan dropdown filter
@@ -1303,7 +1535,6 @@
                 renderAeDashboardTracker(month, year);
             }
         }
-
         // ============================================================
         // RENDER: TRACKER untuk AE (non-admin)
         // ============================================================
@@ -1315,7 +1546,6 @@
                 todayDay = today.getDate(),
                 todayMonth = today.getMonth(),
                 todayYear = today.getFullYear();
-
             let headHtml = '<tr><th style="text-align:left;min-width:48px;">Tanggal</th>';
             for (let d = 1; d <= days; d++) {
                 const isToday = (d === todayDay && month === todayMonth && year === todayYear);
@@ -1325,7 +1555,6 @@
             headHtml +=
                 '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
             thead.innerHTML = headHtml;
-
             let totalFtth = 0,
                 totalFwa = 0;
             const ftthVals = [],
@@ -1340,7 +1569,6 @@
                 ftthVals.push(f);
                 fwaVals.push(w);
             }
-
             let ftthHtml = '<tr><td class="row-label">FTTH</td>';
             for (let d = 0; d < days; d++) {
                 const isToday = ((d + 1) === todayDay && month === todayMonth && year === todayYear);
@@ -1349,7 +1577,6 @@
             }
             ftthHtml += `<td class="cum-col">${totalFtth}</td></tr>`;
             tbody.innerHTML = ftthHtml;
-
             let fwaHtml = '<tr><td class="row-label">FWA</td>';
             for (let d = 0; d < days; d++) {
                 const isToday = ((d + 1) === todayDay && month === todayMonth && year === todayYear);
@@ -1358,10 +1585,8 @@
             }
             fwaHtml += `<td class="cum-col">${totalFwa}</td></tr>`;
             tbody.innerHTML += fwaHtml;
-
             $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year;
         }
-
         // ============================================================
         // RENDER: TRACKER untuk ADMIN (Baris = AE, Kolom = Tanggal)
         // ============================================================
@@ -1374,7 +1599,6 @@
                 todayDay = today.getDate(),
                 todayMonth = today.getMonth(),
                 todayYear = today.getFullYear();
-
             let headHtml = '<tr><th style="text-align:left;min-width:100px;">Nama AE</th>';
             for (let d = 1; d <= days; d++) {
                 const isToday = (d === todayDay && month === todayMonth && year === todayYear);
@@ -1384,18 +1608,15 @@
             headHtml +=
                 '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
             thead.innerHTML = headHtml;
-
             const aeList = (state.aeList || [])
                 .filter(ae => String(ae.name).toUpperCase() !== 'ADMIN')
                 .sort((a, b) => a.name.localeCompare(b.name));
-
             if (!aeList.length) {
                 tbody.innerHTML =
                     `<tr><td colspan="${days + 2}" style="text-align:center;padding:16px;color:var(--xl-muted);">Belum ada AE terdaftar</td></tr>`;
                 $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year;
                 return;
             }
-
             let bodyHtml = '';
             aeList.forEach(ae => {
                 const aeData = state.adminTrackerData[ae.name] || {};
@@ -1416,11 +1637,102 @@
                 rowHtml += `<td class="cum-col">${rowKum}</td></tr>`;
                 bodyHtml += rowHtml;
             });
-
             tbody.innerHTML = bodyHtml;
             $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year + ` (${productFilter})`;
         }
-
+        // ============================================================
+        // RENDER: RINGKASAN TARGET TIM (ADMIN) — di Dashboard
+        // ============================================================
+        function targetCellsHtml(name, fieldKey, target, actual) {
+            const pct = target > 0 ? Math.round((actual / target) * 100) : 0;
+            const pctClass = pct >= 80 ? 'pct-high' : (pct >= 50 ? 'pct-mid' : 'pct-low');
+            const gap = target - actual;
+            const gapHtml = gap <= 0 && target > 0
+                ? `<span class="ts-gap-ok" title="Target tercapai">✓</span>`
+                : `<span class="ts-gap">${Math.max(0, gap)}</span>`;
+            return `
+                <td><input type="number" class="target-input" min="0" step="1" value="${target}" data-name="${name.replace(/"/g,'&quot;')}" data-field="${fieldKey}" /></td>
+                <td>${actual}</td>
+                <td><span class="ts-pct ${pctClass}"><span class="bar"><span style="width:${Math.min(100, pct)}%;"></span></span>${pct}%</span></td>
+                <td>${gapHtml}</td>
+            `;
+        }
+        function renderTargetSummaryCard() {
+            const user = state.currentUser;
+            const card = $('adminTargetSummaryCard');
+            if (!card) return;
+            if (!user || !user.isAdmin) {
+                card.style.display = 'none';
+                return;
+            }
+            card.style.display = 'block';
+            const year = state.selectedDate.getFullYear();
+            const month = state.selectedDate.getMonth();
+            const days = getDaysInMonth(year, month);
+            const aeList = (state.aeList || [])
+                .filter(ae => String(ae.name).toUpperCase() !== 'ADMIN')
+                .sort((a, b) => a.name.localeCompare(b.name));
+            const query = (state.targetSearchQuery || '').toLowerCase().trim();
+            const filtered = query ? aeList.filter(ae => ae.name.toLowerCase().includes(query)) : aeList;
+            $('tsMemberCount').textContent = aeList.length + ' anggota';
+            // Hari tersisa di bulan yang sedang dipilih
+            const today = new Date();
+            let daysLeftText;
+            if (today.getFullYear() === year && today.getMonth() === month) {
+                daysLeftText = Math.max(0, days - today.getDate()) + ' hari tersisa';
+            } else if (new Date(year, month, 1) > today) {
+                daysLeftText = days + ' hari tersisa';
+            } else {
+                daysLeftText = '0 hari tersisa';
+            }
+            $('tsDaysLeft').textContent = daysLeftText;
+            let totFtthT = 0, totFtthA = 0, totFwaT = 0, totFwaA = 0;
+            if (!filtered.length) {
+                $('targetSummaryBody').innerHTML =
+                    `<tr><td colspan="9" style="text-align:center;padding:18px;color:var(--xl-muted);">Tidak ada AE ditemukan</td></tr>`;
+            } else {
+                let rowsHtml = '';
+                filtered.forEach(ae => {
+                    const edited = state.editedTargets[ae.name] || {};
+                    const targetFtth = edited.targetFtth !== undefined ? edited.targetFtth : (parseInt(ae.targetFtth) || 0);
+                    const targetFwa = edited.targetFwa !== undefined ? edited.targetFwa : (parseInt(ae.targetFwa) || 0);
+                    const aeData = state.adminTrackerData[ae.name] || {};
+                    let actFtth = 0, actFwa = 0;
+                    for (let d = 1; d <= days; d++) {
+                        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                        const entry = aeData[dateStr] || {};
+                        actFtth += parseInt(entry.ftth) || 0;
+                        actFwa += parseInt(entry.fwa) || 0;
+                    }
+                    totFtthT += targetFtth; totFtthA += actFtth;
+                    totFwaT += targetFwa; totFwaA += actFwa;
+                    rowsHtml += `<tr>
+                        <td class="name-cell">${ae.name}</td>
+                        ${targetCellsHtml(ae.name, 'targetFtth', targetFtth, actFtth)}
+                        ${targetCellsHtml(ae.name, 'targetFwa', targetFwa, actFwa)}
+                    </tr>`;
+                });
+                $('targetSummaryBody').innerHTML = rowsHtml;
+                $('targetSummaryBody').querySelectorAll('.target-input').forEach(input => {
+                    input.addEventListener('change', () => {
+                        const name = input.dataset.name;
+                        const field = input.dataset.field;
+                        const val = Math.max(0, parseInt(input.value) || 0);
+                        if (!state.editedTargets[name]) state.editedTargets[name] = {};
+                        state.editedTargets[name][field] = val;
+                        renderTargetSummaryCard();
+                    });
+                });
+            }
+            $('tsTotalFtthTarget').textContent = totFtthT;
+            $('tsTotalFtthActual').textContent = totFtthA;
+            $('tsTotalFtthPct').textContent = (totFtthT > 0 ? Math.round((totFtthA / totFtthT) * 100) : 0) + '%';
+            $('tsTotalFtthGap').textContent = Math.max(0, totFtthT - totFtthA);
+            $('tsTotalFwaTarget').textContent = totFwaT;
+            $('tsTotalFwaActual').textContent = totFwaA;
+            $('tsTotalFwaPct').textContent = (totFwaT > 0 ? Math.round((totFwaA / totFwaT) * 100) : 0) + '%';
+            $('tsTotalFwaGap').textContent = Math.max(0, totFwaT - totFwaA);
+        }
         // ============================================================
         // MONTH / YEAR SELECTOR
         // ============================================================
@@ -1445,25 +1757,20 @@
             mSel.value = state.selectedDate.getMonth();
             ySel.value = state.selectedDate.getFullYear();
         }
-
         function updateMonthYearUI() {
             $('monthSelect').value = state.selectedDate.getMonth();
             $('yearSelect').value = state.selectedDate.getFullYear();
         }
-
         // ============================================================
         // REFRESH SEMUA DATA
         // ============================================================
         async function refreshAllData() {
             const user = state.currentUser;
             if (!user) return;
-
             const month = state.selectedDate.getMonth() + 1;
             const year = state.selectedDate.getFullYear();
-
             await loadAeList();
             renderAeDropdowns();
-
             if (user.isAdmin) {
                 const adminTracker = await fetchData('getAdminTracker', { month, year });
                 if (adminTracker.success) state.adminTrackerData = adminTracker.data || {};
@@ -1473,13 +1780,10 @@
                 if (tracker.success) state.trackerData = tracker.data || {};
                 state.adminTrackerData = {};
             }
-
             renderDashboard();
             renderAdminAeList();
-
             $('navAdmin').style.display = user.isAdmin ? 'flex' : 'none';
         }
-
         // ============================================================
         // LOGIN HANDLER
         // ============================================================
@@ -1488,17 +1792,14 @@
             const name = $('loginAeSelect').value;
             const inputPin = String($('loginPin').value).trim();
             if (!name) { showError('Pilih nama AE'); return; }
-
             const ae = (state.aeList || []).find(a => a.name.toLowerCase() === name.toLowerCase());
             if (!ae) { showError('AE tidak ditemukan'); return; }
-
             const dbPin = String(ae.pin).trim();
             if (dbPin !== inputPin) {
                 $('loginError').textContent = 'PIN salah, coba lagi.';
                 $('loginError').classList.add('show');
                 return;
             }
-
             state.currentUser = {
                 name: ae.name,
                 pin: ae.pin,
@@ -1509,26 +1810,21 @@
             state.isAdmin = false;
             $('loginError').classList.remove('show');
             $('loginPin').value = '';
-
             showPage('pageDashboard');
             $('headerUserName').textContent = ae.name;
             await refreshAllData();
             showSuccess('Selamat datang, ' + ae.name + '!');
         }
-
         async function handleAdminLogin(e) {
             e.preventDefault();
             const inputPin = String($('adminPin').value).trim();
-
             const adminEntry = (state.aeList || []).find(a => String(a.name).toUpperCase() === 'ADMIN');
             const validPin = adminEntry ? String(adminEntry.pin).trim() : CONFIG.ADMIN_PIN;
-
             if (validPin !== inputPin) {
                 $('adminLoginError').textContent = 'PIN Admin salah.';
                 $('adminLoginError').classList.add('show');
                 return;
             }
-
             state.currentUser = {
                 name: 'Admin',
                 pin: validPin,
@@ -1539,13 +1835,11 @@
             state.isAdmin = true;
             $('adminLoginError').classList.remove('show');
             $('adminPin').value = '';
-
             showPage('pageDashboard');
             $('headerUserName').textContent = 'Admin';
             await refreshAllData();
             showSuccess('Login Admin berhasil (Akumulasi Seluruh AE)');
         }
-
         // ============================================================
         // LOGOUT
         // ============================================================
@@ -1554,11 +1848,14 @@
             state.isAdmin = false;
             state.trackerData = {};
             state.adminTrackerData = {};
+            state.editedTargets = {};
+            state.targetSearchQuery = '';
+            const searchInput = $('targetSearchInput');
+            if (searchInput) searchInput.value = '';
             showPage('pageLogin');
             $('headerUserName').textContent = 'Guest';
             showToast('Anda telah keluar');
         }
-
         // ============================================================
         // DAILY SUBMIT
         // ============================================================
@@ -1573,7 +1870,6 @@
             const inputDate = $('dailyDateInput').value;
             if (!inputDate) { showError('Pilih tanggal terlebih dahulu'); return; }
             if (ftth === 0 && fwa === 0) { showError('Masukkan minimal 1 angka pencapaian'); return; }
-
             const btn = $('dailySubmitBtn');
             setLoading(btn, true);
             const result = await apiCall('saveDaily', {
@@ -1583,7 +1879,6 @@
                 fwa
             });
             setLoading(btn, false);
-
             if (result.success) {
                 $('dailyFtth').value = '';
                 $('dailyFwa').value = '';
@@ -1593,7 +1888,6 @@
                 showError('Gagal menyimpan: ' + (result.error || ''));
             }
         }
-
         // ============================================================
         // ADMIN: TAMBAH / EDIT AE
         // ============================================================
@@ -1603,12 +1897,10 @@
             const targetFtth = parseInt($('adminNewTargetFtth').value) || 0;
             const targetFwa = parseInt($('adminNewTargetFwa').value) || 0;
             if (!name) { showError('Nama AE wajib diisi'); return; }
-
             const btn = $('adminAddAeBtn');
             setLoading(btn, true);
             const result = await apiCall('saveAe', { name, pin, targetFtth, targetFwa });
             setLoading(btn, false);
-
             if (result.success) {
                 showSuccess('AE berhasil disimpan!');
                 $('adminNewName').value = '';
@@ -1620,19 +1912,16 @@
                 showError('Gagal menyimpan: ' + (result.error || ''));
             }
         }
-
         // ============================================================
         // ADMIN: UBAH PIN ADMIN
         // ============================================================
         async function handleChangeAdminPin() {
             const newPin = $('adminNewAdminPin').value.trim();
             if (!newPin || newPin.length < 4) { showError('PIN minimal 4 karakter'); return; }
-
             const btn = $('adminChangePinBtn');
             setLoading(btn, true);
             const result = await apiCall('saveAe', { name: 'ADMIN', pin: newPin, targetFtth: 0, targetFwa: 0 });
             setLoading(btn, false);
-
             if (result.success) {
                 showSuccess('PIN Admin diupdate!');
                 $('adminNewAdminPin').value = '';
@@ -1642,7 +1931,41 @@
                 showError('Gagal update: ' + (result.error || ''));
             }
         }
-
+        // ============================================================
+        // RINGKASAN TARGET TIM: SIMPAN & MUAT ULANG
+        // ============================================================
+        async function handleSaveTargets() {
+            const edited = state.editedTargets;
+            const names = Object.keys(edited);
+            if (!names.length) {
+                showToast('Tidak ada perubahan untuk disimpan');
+                return;
+            }
+            const btn = $('tsSaveBtn');
+            setLoading(btn, true);
+            let successCount = 0;
+            for (const name of names) {
+                const ae = state.aeList.find(a => a.name === name);
+                if (!ae) continue;
+                const targetFtth = edited[name].targetFtth !== undefined ? edited[name].targetFtth : (parseInt(ae.targetFtth) || 0);
+                const targetFwa = edited[name].targetFwa !== undefined ? edited[name].targetFwa : (parseInt(ae.targetFwa) || 0);
+                const result = await apiCall('saveAe', { name: ae.name, pin: ae.pin, targetFtth, targetFwa });
+                if (result.success) successCount++;
+            }
+            setLoading(btn, false);
+            if (successCount === names.length) {
+                showSuccess(`Target berhasil disimpan untuk ${successCount} AE`);
+            } else {
+                showError(`Tersimpan ${successCount}/${names.length}, sebagian gagal`);
+            }
+            state.editedTargets = {};
+            await refreshAllData();
+        }
+        async function handleReloadTargets() {
+            state.editedTargets = {};
+            await refreshAllData();
+            showToast('Data dimuat ulang dari database');
+        }
         // ============================================================
         // NAVIGASI
         // ============================================================
@@ -1650,14 +1973,11 @@
             $$('.page').forEach(p => p.classList.remove('active'));
             const target = $(pageId);
             if (target) target.classList.add('active');
-
             $$('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
             const navBtn = document.querySelector(`.bottom-nav .nav-item[data-page="${pageId}"]`);
             if (navBtn) navBtn.classList.add('active');
-
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-
         // ============================================================
         // BOTTOM NAV CLICK
         // ============================================================
@@ -1678,23 +1998,19 @@
                 if (page === 'pageAdmin') renderAdminAeList();
             });
         });
-
         // ============================================================
         // INIT
         // ============================================================
         async function init() {
             initMonthYearSelectors();
             updateMonthYearUI();
-
             await loadAeList();
             renderAeDropdowns();
-
             if (!state.aeList.some(a => String(a.name).toUpperCase() === 'ADMIN')) {
                 await apiCall('saveAe', { name: 'ADMIN', pin: CONFIG.ADMIN_PIN, targetFtth: 0, targetFwa: 0 });
                 await loadAeList();
                 renderAeDropdowns();
             }
-
             $('monthSelect').addEventListener('change', async () => {
                 state.selectedDate.setMonth(parseInt($('monthSelect').value));
                 await refreshAllData();
@@ -1713,15 +2029,12 @@
                 updateMonthYearUI();
                 await refreshAllData();
             });
-
             $('dashboardProductFilter')?.addEventListener('change', () => {
                 renderDashboard();
             });
-
             $('loginForm').addEventListener('submit', handleLogin);
             $('adminLoginForm').addEventListener('submit', handleAdminLogin);
             $('dailyForm').addEventListener('submit', handleDailySubmit);
-
             $('btnGoToAdminLogin').addEventListener('click', () => {
                 $('adminLoginError').classList.remove('show');
                 showPage('pageAdminLogin');
@@ -1731,19 +2044,20 @@
                 $('loginError').classList.remove('show');
                 showPage('pageLogin');
             });
-
             $('logoutBtn').addEventListener('click', handleLogout);
             $('adminAddAeBtn').addEventListener('click', handleAddAe);
             $('adminChangePinBtn').addEventListener('click', handleChangeAdminPin);
-
+            $('tsSaveBtn').addEventListener('click', handleSaveTargets);
+            $('tsReloadBtn').addEventListener('click', handleReloadTargets);
+            $('targetSearchInput').addEventListener('input', (e) => {
+                state.targetSearchQuery = e.target.value;
+                renderTargetSummaryCard();
+            });
             $('dailyDateInput').value = todayStr();
-
             showPage('pageLogin');
             console.log('🚀 XL Satu Sales Tracker siap!');
         }
-
         document.addEventListener('DOMContentLoaded', init);
     </script>
-
 </body>
 </html>
