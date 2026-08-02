@@ -1343,7 +1343,7 @@
         //  KONFIGURASI
         // ============================================================
         const CONFIG = {
-            API_URL: 'https://script.google.com/macros/s/AKfycbyx0APgDDABgOq0ZDdx6URluoW2TzquX0_ChKVmPlbF9JbrtwOrY8ZxQ4TGTkjEXneRbQ/exec',
+            API_URL: 'https://script.google.com/macros/s/AKfycbx50eemVCaCyfQFK7_UYWlmwCOvj32_7B19tBJtpPUXF9BY68-GNnyxChcmA23-uxfc3A/exec',
             ADMIN_PIN: '123456',
         };
 
@@ -1419,7 +1419,7 @@
             }
         }
 
-       // ============================================================
+// ============================================================
 //  API CALLS (dengan CORS dan error handling)
 // ============================================================
 async function apiCall(action, payload = {}) {
@@ -1427,7 +1427,10 @@ async function apiCall(action, payload = {}) {
     const response = await fetch(CONFIG.API_URL, {
       method: 'POST',
       mode: 'cors',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       body: JSON.stringify({ action, ...payload })
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
