@@ -64,14 +64,15 @@
         .progress-row .prog-numbers .target { color: var(--xl-muted); font-weight: 400; font-size: 12px; }
         .stat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 40px; background: var(--xl-blue-soft); color: var(--xl-blue); }
 
-        .daily-input-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 2px; }
-        .daily-input-group .field { flex: 1; min-width: 80px; }
+        .daily-input-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+        .daily-input-group .field { flex: 1; min-width: 75px; }
         .daily-input-group .field label { display: block; font-size: 10px; font-weight: 700; color: var(--xl-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .daily-input-group .field input { width: 100%; padding: 12px 14px; border: 2px solid var(--xl-border); border-radius: var(--xl-radius-sm); font-size: 18px; font-weight: 700; background: var(--xl-gray); outline: none; color: var(--xl-dark); }
+        .daily-input-group .field input { width: 100%; padding: 10px 12px; border: 2px solid var(--xl-border); border-radius: var(--xl-radius-sm); font-size: 15px; font-weight: 700; background: var(--xl-gray); outline: none; color: var(--xl-dark); }
+        .daily-input-group .field input[type="date"] { font-size: 13px; font-weight: 600; padding: 10px 6px; }
 
         .btn-primary { background: var(--xl-blue-grad); color: #fff; border: none; padding: 12px 24px; border-radius: var(--xl-radius-sm); font-weight: 700; font-size: 14px; cursor: pointer; transition: var(--xl-transition); box-shadow: 0 4px 16px rgba(15, 59, 122, 0.25); width: 100%; margin-top: 6px; }
         .btn-primary:active { transform: scale(0.97); }
-        .btn-primary.small { padding: 10px 16px; font-size: 13px; width: auto; margin-top: 0; border-radius: 40px; }
+        .btn-primary.small { padding: 10px 14px; font-size: 12px; width: auto; margin-top: 0; border-radius: 40px; }
 
         .tracker-wrap { overflow-x: auto; margin: 0 -4px; padding: 0 4px; -webkit-overflow-scrolling: touch; border-radius: var(--xl-radius-sm); }
         .tracker-table { width: 100%; min-width: 540px; border-collapse: collapse; font-size: 12px; }
@@ -82,15 +83,6 @@
         .tracker-table .today-col td { background: var(--xl-blue-soft); color: var(--xl-blue); font-weight: 700; }
         .tracker-table .cum-col { background: var(--xl-blue-soft); font-weight: 700; color: var(--xl-blue); border-left: 2px solid var(--xl-border); }
 
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--xl-dark); margin-bottom: 5px; }
-        .form-group label .required { color: #E74C3C; margin-left: 2px; }
-        .form-group select, .form-group input[type="text"], .form-group input[type="date"] { width: 100%; padding: 12px 16px; border: 2px solid var(--xl-border); border-radius: var(--xl-radius-sm); font-size: 15px; font-weight: 500; background: var(--xl-gray); outline: none; color: var(--xl-dark); appearance: none; -webkit-appearance: none; }
-        .form-group select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; }
-        .form-group .check-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
-        .form-group .check-group label { display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 13px; color: var(--xl-dark); cursor: pointer; background: var(--xl-gray); padding: 8px 14px 8px 10px; border-radius: 40px; border: 1px solid var(--xl-border); }
-        .form-group .check-group input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--xl-blue); cursor: pointer; }
-        
         .login-page { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 85vh; padding: 20px 16px 30px; background: var(--neu-bg); }
         .login-card { width: 100%; max-width: 380px; background: var(--neu-bg); border-radius: var(--neu-radius); padding: 36px 28px 32px; box-shadow: 12px 12px 24px var(--neu-shadow-dark), -12px -12px 24px var(--neu-shadow-light); }
         .login-card .login-logo-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
@@ -256,14 +248,17 @@
                 </div>
             </div>
 
-            <!-- Form input harian disembunyikan untuk Admin karena Admin adalah akumulasi seluruh AE -->
+            <!-- Form Performa Harian (Dapat memilih tanggal untuk antisipasi tanggal terlewat) -->
             <div class="card" id="dailyInputCard">
                 <div class="card-header">
                     <span class="card-title"><span class="emoji">📅</span> Performa Harian</span>
-                    <span class="text-muted" style="font-size:13px;font-weight:600;" id="todayLabel">Hari ini</span>
                 </div>
                 <form id="dailyForm">
                     <div class="daily-input-group">
+                        <div class="field" style="flex:1.3;">
+                            <label>Tanggal</label>
+                            <input type="date" id="dailyDateInput" required />
+                        </div>
                         <div class="field">
                             <label>FTTH</label>
                             <input type="number" id="dailyFtth" placeholder="0" min="0" step="1" />
@@ -272,20 +267,19 @@
                             <label>FWA</label>
                             <input type="number" id="dailyFwa" placeholder="0" min="0" step="1" />
                         </div>
-                        <div class="field" style="flex:0 0 auto;min-width:60px;display:flex;align-items:flex-end;">
+                        <div class="field" style="flex:0 0 auto;min-width:55px;display:flex;align-items:flex-end;">
                             <button type="submit" class="btn-primary small" id="dailySubmitBtn">Simpan</button>
                         </div>
                     </div>
                     <div style="font-size:11px;color:var(--xl-muted);margin-top:6px;">
-                        ⚡ Input angka hari ini otomatis sinkron dengan tracker.
+                        ⚡ Anda bisa memilih tanggal lampau jika ada input yang terlewat.
                     </div>
                 </form>
-                <div id="dailyStatus" style="font-size:13px;font-weight:600;margin-top:8px;padding:8px 12px;background:var(--xl-gray);border-radius:var(--xl-radius-sm);"></div>
             </div>
 
             <div class="card" style="padding-bottom:12px;">
                 <div class="card-header">
-                    <span class="card-title"><span class="emoji">📋</span> Tracker Harian (Akumulasi)</span>
+                    <span class="card-title"><span class="emoji">📋</span> Tracker Harian</span>
                     <span class="text-muted" style="font-size:13px;font-weight:600;" id="trackerMonthLabel">Bulan</span>
                 </div>
                 <div class="tracker-wrap" id="trackerWrap">
@@ -297,55 +291,6 @@
                 <div style="font-size:10px;color:var(--xl-muted);margin-top:8px;display:flex;justify-content:flex-end;align-items:center;gap:8px;">
                     <span style="display:inline-block;width:14px;height:14px;background:var(--xl-blue-soft);border-radius:4px;border:1px solid var(--xl-blue-light);"></span> kolom biru = hari ini
                 </div>
-            </div>
-        </div>
-
-        <!-- INPUT -->
-        <div class="page" id="pageInput">
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title"><span class="emoji">📝</span> Input Data Pemasangan</span>
-                </div>
-                <div id="inputForm">
-                    <div class="form-group">
-                        <label>Nama AE <span class="required">*</span></label>
-                        <select id="inputAeSelect" required>
-                            <option value="">— Pilih AE —</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Kategori Produk <span class="required">*</span></label>
-                        <select id="inputCategory" required>
-                            <option value="">— Pilih —</option>
-                            <option value="FTTH">FTTH</option>
-                            <option value="FWA">FWA</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Nama Pelanggan <span class="required">*</span></label>
-                        <input type="text" id="inputCustomer" placeholder="Masukkan nama pelanggan" required />
-                    </div>
-                    <div class="form-group">
-                        <label>Tanggal Pemasangan <span class="required">*</span></label>
-                        <input type="date" id="inputInstallDate" required />
-                    </div>
-                    <div class="form-group">
-                        <label>Tanggal Input SO <span class="required">*</span></label>
-                        <input type="date" id="inputSoDate" required />
-                    </div>
-                    <div class="form-group">
-                        <label>Kelengkapan Data <span class="required">*</span></label>
-                        <div class="check-group">
-                            <label><input type="checkbox" id="chkPhotoCustomer" /> Foto Customer</label>
-                            <label><input type="checkbox" id="chkPhotoKtp" /> Foto KTP</label>
-                            <label><input type="checkbox" id="chkPhotoHouse" /> Foto Depan Rumah</label>
-                        </div>
-                    </div>
-                    <button type="button" class="btn-primary" id="inputSubmitBtn">Simpan Data</button>
-                </div>
-            </div>
-            <div style="font-size:11px;color:var(--xl-muted);text-align:center;padding:4px 0 8px;">
-                Semua data tersimpan di Google Spreadsheet.
             </div>
         </div>
 
@@ -375,7 +320,24 @@
                     </div>
                 </div>
 
-                <div class="admin-section" style="margin-top:8px;">
+                <!-- Tracker Harian Gabungan Semua AE dengan Filter FTTH/FWA -->
+                <div class="admin-section" style="margin-top:20px;">
+                    <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>📋 Tracker Harian Semua AE</span>
+                        <select id="adminProductFilter" style="padding:4px 10px; font-size:12px; font-weight:600; border-radius:6px; border:1px solid var(--xl-border); background:var(--xl-gray); outline:none;">
+                            <option value="FTTH">FTTH</option>
+                            <option value="FWA">FWA</option>
+                        </select>
+                    </div>
+                    <div class="tracker-wrap" id="adminTrackerWrap">
+                        <table class="tracker-table" id="adminTrackerTable">
+                            <thead id="adminTrackerHead"></thead>
+                            <tbody id="adminTrackerBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="admin-section" style="margin-top:16px;">
                     <div class="section-title">🔑 Ubah PIN Admin</div>
                     <div class="admin-form-row">
                         <div class="field"><input type="password" id="adminNewAdminPin" placeholder="PIN Admin Baru" maxlength="6" inputmode="numeric" /></div>
@@ -398,10 +360,6 @@
                 <span class="nav-icon">📊</span>
                 <span class="nav-label">Dashboard</span>
             </button>
-            <button class="nav-item" data-page="pageInput">
-                <span class="nav-icon">📝</span>
-                <span class="nav-label">Input</span>
-            </button>
             <button class="nav-item admin-item" data-page="pageAdmin" id="navAdmin" style="display:none;">
                 <span class="nav-icon">⚙️</span>
                 <span class="nav-label">Admin</span>
@@ -412,7 +370,7 @@
     <!-- ===== JAVASCRIPT ===== -->
     <script>
         const CONFIG = {
-            API_URL: 'https://script.google.com/macros/s/AKfycbwvCFrufqdtS89r59OvthXMV1HJhVRzQ2wOuv3mIG-RpjKDBPCgrEIu7rYAc05B0d7P8g/exec',
+            API_URL: 'https://script.google.com/macros/s/AKfycbzH43pmzMmfoubnKKBAAUrFubNezrVagvbwXEVsO0c9XuM8c2QJkHtONknH_i4XrHgRCg/exec',
             ADMIN_PIN: '123456',
         };
 
@@ -421,6 +379,7 @@
             isAdmin: false,
             aeList: [],
             trackerData: {},
+            adminTrackerData: {},
             selectedDate: new Date()
         };
 
@@ -484,7 +443,7 @@
         }
 
         function renderAeDropdowns() {
-            const selects = ['loginAeSelect', 'inputAeSelect'];
+            const selects = ['loginAeSelect'];
             let list = state.aeList || [];
             
             const dropdownList = list
@@ -615,7 +574,6 @@
 
             $('dashboardDate').textContent = formatDateDisplay(new Date());
 
-            // Hitung Target (Jika Admin, jumlahkan target semua AE selain Admin)
             let targetFtth = 0, targetFwa = 0;
             if (user.isAdmin) {
                 state.aeList.forEach(ae => {
@@ -649,22 +607,9 @@
             $('fwaProgress').style.width = pctFwa + '%';
             $('ftthPercent').textContent = pctFtth + '%';
             $('fwaPercent').textContent = pctFwa + '%';
-            $('todayLabel').textContent = formatDateDisplay(new Date());
 
-            const todayStrKey = todayStr();
-            const todayEntry = state.trackerData[todayStrKey] || {};
-            const todayFtth = parseInt(todayEntry.ftth) || 0, todayFwa = parseInt(todayEntry.fwa) || 0;
-            const statusEl = $('dailyStatus');
-            if (!user.isAdmin) {
-                if (todayFtth > 0 || todayFwa > 0) {
-                    statusEl.innerHTML = `✅ Hari ini: FTTH <strong>${todayFtth}</strong> · FWA <strong>${todayFwa}</strong>`;
-                    statusEl.style.background = '#E8F5E9'; statusEl.style.color = '#1E6B3A';
-                } else {
-                    statusEl.innerHTML = `⏳ Belum ada input untuk hari ini (${formatDateDisplay(new Date())})`;
-                    statusEl.style.background = 'var(--xl-gray)'; statusEl.style.color = 'var(--xl-muted)';
-                }
-            }
             renderTracker(month, year);
+            if (user.isAdmin) renderAdminTracker(month, year);
         }
 
         function renderTracker(month, year) {
@@ -705,6 +650,52 @@
             $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year;
         }
 
+        // Render tabel multi-AE di menu Admin dengan filter FTTH / FWA
+        function renderAdminTracker(month, year) {
+            const thead = $('adminTrackerHead'), tbody = $('adminTrackerBody'), days = getDaysInMonth(year, month);
+            const productFilter = $('adminProductFilter')?.value || 'FTTH';
+            const today = new Date(), todayDay = today.getDate(), todayMonth = today.getMonth(), todayYear = today.getFullYear();
+
+            let headHtml = '<tr><th style="text-align:left;min-width:100px;">Nama AE</th>';
+            for (let d = 1; d <= days; d++) {
+                const isTodayCol = (d === todayDay && month === todayMonth && year === todayYear);
+                headHtml += `<th${isTodayCol ? ' style="background:var(--xl-blue-soft);color:var(--xl-blue);"' : ''}>${d}</th>`;
+            }
+            headHtml += '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
+            thead.innerHTML = headHtml;
+
+            const aeList = state.aeList
+                .filter(ae => String(ae.name).toUpperCase() !== 'ADMIN')
+                .sort((a, b) => a.name.localeCompare(b.name));
+
+            if (!aeList.length) {
+                tbody.innerHTML = '<tr><td colspan="33" style="text-align:center;padding:16px;color:var(--xl-muted);">Belum ada AE</td></tr>';
+                return;
+            }
+
+            let bodyHtml = '';
+            aeList.forEach(ae => {
+                const aeData = state.adminTrackerData[ae.name] || {};
+                let rowKum = 0;
+                let rowHtml = `<tr><td class="row-label">${ae.name}</td>`;
+
+                for (let d = 1; d <= days; d++) {
+                    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                    const dayEntry = aeData[dateStr] || { ftth: 0, fwa: 0 };
+                    const val = productFilter === 'FTTH' ? (parseInt(dayEntry.ftth) || 0) : (parseInt(dayEntry.fwa) || 0);
+                    rowKum += val;
+
+                    const isTodayCol = (d === todayDay && month === todayMonth && year === todayYear);
+                    const cls = isTodayCol ? 'today-col' : '';
+                    rowHtml += `<td class="${cls}">${val > 0 ? val : '<span class="empty-cell">—</span>'}</td>`;
+                }
+                rowHtml += `<td class="cum-col">${rowKum}</td></tr>`;
+                bodyHtml += rowHtml;
+            });
+
+            tbody.innerHTML = bodyHtml;
+        }
+
         async function refreshAllData() {
             const user = state.currentUser;
             if (!user) return;
@@ -715,14 +706,17 @@
             if (aeList.length) state.aeList = aeList;
             renderAeDropdowns();
 
-            // Jika admin, request dengan aeName 'Admin' sehingga backend mengakumulasi seluruh data AE secara kilat
             const queryName = user.isAdmin ? 'Admin' : user.name;
             const tracker = await fetchData('getTracker', { aeName: queryName, month, year });
             if (tracker.success) state.trackerData = tracker.data;
 
+            if (user.isAdmin) {
+                const adminTracker = await fetchData('getAdminTracker', { month, year });
+                if (adminTracker.success) state.adminTrackerData = adminTracker.data;
+            }
+
             renderDashboard(); 
             renderAdminAeList();
-            $('inputAeSelect').value = user.isAdmin ? '' : user.name;
             $('navAdmin').style.display = user.isAdmin ? 'flex' : 'none';
         }
 
@@ -770,7 +764,6 @@
             $('adminLoginError').classList.remove('show');
             $('adminPin').value = '';
 
-            // Login admin langsung ke Dashboard dengan data akumulasi seluruh AE
             showPage('pageDashboard');
             $('headerUserName').textContent = 'Admin';
             await refreshAllData();
@@ -778,7 +771,7 @@
         }
 
         function handleLogout() {
-            state.currentUser = null; state.trackerData = {};
+            state.currentUser = null; state.trackerData = {}; state.adminTrackerData = {};
             showPage('pageLogin'); $('headerUserName').textContent = 'Guest';
             showToast('Anda telah keluar');
         }
@@ -787,67 +780,23 @@
             e.preventDefault();
             if (!state.currentUser || state.currentUser.isAdmin) return showError('Silakan login sebagai AE');
             const ftth = parseInt($('dailyFtth').value) || 0, fwa = parseInt($('dailyFwa').value) || 0;
-            if (ftth === 0 && fwa === 0) return showError('Masukkan minimal 1 angka');
+            const inputDate = $('dailyDateInput').value;
+            
+            if (!inputDate) return showError('Pilih tanggal terlebih dahulu');
+            if (ftth === 0 && fwa === 0) return showError('Masukkan minimal 1 angka pencapaian');
 
-            const today = todayStr(), btn = $('dailySubmitBtn');
+            const btn = $('dailySubmitBtn');
             setLoading(btn, true);
-            const result = await apiCall('saveDaily', { aeName: state.currentUser.name, date: today, ftth, fwa });
+            const result = await apiCall('saveDaily', { aeName: state.currentUser.name, date: inputDate, ftth, fwa });
             setLoading(btn, false);
 
             if (result.success) {
-                if (!state.trackerData[today]) state.trackerData[today] = { ftth: 0, fwa: 0 };
-                state.trackerData[today].ftth += ftth; state.trackerData[today].fwa += fwa;
+                if (!state.trackerData[inputDate]) state.trackerData[inputDate] = { ftth: 0, fwa: 0 };
+                state.trackerData[inputDate].ftth += ftth; state.trackerData[inputDate].fwa += fwa;
                 $('dailyFtth').value = ''; $('dailyFwa').value = '';
-                showSuccess('Data harian disimpan!'); renderDashboard();
+                showSuccess('Performa harian berhasil disimpan!'); 
+                renderDashboard();
             } else showError('Gagal menyimpan, coba lagi');
-        }
-
-        async function handleInputSubmit(e) {
-            if (!state.currentUser) {
-                showError('Sesi habis, silakan login kembali');
-                showPage('pageLogin');
-                return;
-            }
-
-            const aeName = $('inputAeSelect').value;
-            const category = $('inputCategory').value;
-            const customer = $('inputCustomer').value.trim();
-            const installDate = $('inputInstallDate').value;
-            const soDate = $('inputSoDate').value;
-            const photoCustomer = $('chkPhotoCustomer').checked;
-            const photoKtp = $('chkPhotoKtp').checked;
-            const photoHouse = $('chkPhotoHouse').checked;
-
-            if (!aeName || !category || !customer || !installDate || !soDate) {
-                showError('Lengkapi semua field yang wajib');
-                return;
-            }
-
-            const btn = $('inputSubmitBtn');
-            setLoading(btn, true);
-
-            const result = await apiCall('saveCustomerInput', {
-                aeName, category, customer, installDate, soDate,
-                photoCustomer, photoKtp, photoHouse
-            });
-
-            setLoading(btn, false);
-
-            if (result.success) {
-                showSuccess('Data pelanggan berhasil disimpan!');
-                $('inputCustomer').value = '';
-                $('chkPhotoCustomer').checked = false;
-                $('chkPhotoKtp').checked = false;
-                $('chkPhotoHouse').checked = false;
-                const now = new Date();
-                $('inputInstallDate').value = formatDate(now);
-                $('inputSoDate').value = formatDate(now);
-
-                await refreshAllData();
-                showPage('pageDashboard');
-            } else {
-                showError('Gagal menyimpan data ke Spreadsheet');
-            }
         }
 
         async function handleAddAe() {
@@ -894,17 +843,16 @@
         document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
             btn.addEventListener('click', () => {
                 const page = btn.dataset.page;
-                if ((page === 'pageDashboard' || page === 'pageInput') && !state.currentUser) {
+                if (page === 'pageAdmin' && !state.currentUser?.isAdmin) return showError('Akses admin diperlukan');
+                if (page === 'pageDashboard' && !state.currentUser) {
                     showError('Silakan login terlebih dahulu'); return showPage('pageLogin');
                 }
                 showPage(page);
                 if (page === 'pageDashboard') renderDashboard();
-                if (page === 'pageInput') {
-                    $('inputInstallDate').value = todayStr();
-                    $('inputSoDate').value = todayStr();
-                    $('inputAeSelect').value = state.currentUser?.isAdmin ? '' : state.currentUser.name;
+                if (page === 'pageAdmin') {
+                    renderAdminAeList();
+                    renderAdminTracker(state.selectedDate.getMonth(), state.selectedDate.getFullYear());
                 }
-                if (page === 'pageAdmin') renderAdminAeList();
             });
         });
 
@@ -931,10 +879,13 @@
                 await refreshAllData();
             });
 
+            $('adminProductFilter')?.addEventListener('change', () => {
+                renderAdminTracker(state.selectedDate.getMonth(), state.selectedDate.getFullYear());
+            });
+
             $('loginForm').addEventListener('submit', handleLogin);
             $('adminLoginForm').addEventListener('submit', handleAdminLogin);
             $('dailyForm').addEventListener('submit', handleDailySubmit);
-            $('inputSubmitBtn').addEventListener('click', handleInputSubmit);
             
             $('btnGoToAdminLogin').addEventListener('click', () => {
                 $('adminLoginError').classList.remove('show');
@@ -949,8 +900,9 @@
             $('adminAddAeBtn').addEventListener('click', handleAddAe);
             $('adminChangePinBtn').addEventListener('click', handleChangeAdminPin);
 
-            $('inputInstallDate').value = todayStr();
-            $('inputSoDate').value = todayStr();
+            // Default tanggal input harian adalah hari ini
+            $('dailyDateInput').value = todayStr();
+
             showPage('pageLogin');
             console.log('🚀 XL Satu Sales Tracker siap!');
         }
