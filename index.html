@@ -82,6 +82,7 @@
         .tracker-table .today-col { background: var(--xl-blue-soft); border-radius: 4px; position: relative; }
         .tracker-table .today-col td { background: var(--xl-blue-soft); color: var(--xl-blue); font-weight: 700; }
         .tracker-table .cum-col { background: var(--xl-blue-soft); font-weight: 700; color: var(--xl-blue); border-left: 2px solid var(--xl-border); }
+        .tracker-table .empty-cell { color: #ccc; }
 
         .login-page { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 85vh; padding: 20px 16px 30px; background: var(--neu-bg); }
         .login-card { width: 100%; max-width: 380px; background: var(--neu-bg); border-radius: var(--neu-radius); padding: 36px 28px 32px; box-shadow: 12px 12px 24px var(--neu-shadow-dark), -12px -12px 24px var(--neu-shadow-light); }
@@ -248,7 +249,7 @@
                 </div>
             </div>
 
-            <!-- Form Performa Harian (Dapat memilih tanggal untuk antisipasi tanggal terlewat) -->
+            <!-- Form Performa Harian (Hanya untuk AE) -->
             <div class="card" id="dailyInputCard">
                 <div class="card-header">
                     <span class="card-title"><span class="emoji">📅</span> Performa Harian</span>
@@ -277,10 +278,17 @@
                 </form>
             </div>
 
+            <!-- Tracker Harian di Dashboard -->
             <div class="card" style="padding-bottom:12px;">
                 <div class="card-header">
-                    <span class="card-title"><span class="emoji">📋</span> Tracker Harian</span>
-                    <span class="text-muted" style="font-size:13px;font-weight:600;" id="trackerMonthLabel">Bulan</span>
+                    <span class="card-title" id="trackerCardTitle"><span class="emoji">📋</span> Tracker Harian</span>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <select id="dashboardProductFilter" style="display:none; padding:4px 10px; font-size:12px; font-weight:600; border-radius:6px; border:1px solid var(--xl-border); background:var(--xl-gray); outline:none;">
+                            <option value="FTTH">FTTH</option>
+                            <option value="FWA">FWA</option>
+                        </select>
+                        <span class="text-muted" style="font-size:13px;font-weight:600;" id="trackerMonthLabel">Bulan</span>
+                    </div>
                 </div>
                 <div class="tracker-wrap" id="trackerWrap">
                     <table class="tracker-table" id="trackerTable">
@@ -320,23 +328,6 @@
                     </div>
                 </div>
 
-                <!-- Tracker Harian Gabungan Semua AE dengan Filter FTTH/FWA -->
-                <div class="admin-section" style="margin-top:20px;">
-                    <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
-                        <span>📋 Tracker Harian Semua AE</span>
-                        <select id="adminProductFilter" style="padding:4px 10px; font-size:12px; font-weight:600; border-radius:6px; border:1px solid var(--xl-border); background:var(--xl-gray); outline:none;">
-                            <option value="FTTH">FTTH</option>
-                            <option value="FWA">FWA</option>
-                        </select>
-                    </div>
-                    <div class="tracker-wrap" id="adminTrackerWrap">
-                        <table class="tracker-table" id="adminTrackerTable">
-                            <thead id="adminTrackerHead"></thead>
-                            <tbody id="adminTrackerBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
                 <div class="admin-section" style="margin-top:16px;">
                     <div class="section-title">🔑 Ubah PIN Admin</div>
                     <div class="admin-form-row">
@@ -370,7 +361,7 @@
     <!-- ===== JAVASCRIPT ===== -->
     <script>
         const CONFIG = {
-            API_URL: 'https://script.google.com/macros/s/AKfycbzH43pmzMmfoubnKKBAAUrFubNezrVagvbwXEVsO0c9XuM8c2QJkHtONknH_i4XrHgRCg/exec',
+            API_URL: 'https://script.google.com/macros/s/AKfycbz5ZiD95AvdngDEA-OAqCbXy1Yy9GXnHqwM3Xy6-uFQNjoB4y3AmI52MfzAoCp30OpKeg/exec',
             ADMIN_PIN: '123456',
         };
 
@@ -565,7 +556,7 @@
             if (user.isAdmin) {
                 $('welcomeSubLabel').textContent = 'Panel Administrator';
                 $('dashboardAeName').textContent = 'Akumulasi Seluruh AE';
-                $('dailyInputCard').style.display = 'none'; // Admin tidak input harian pribadi
+                $('dailyInputCard').style.display = 'none';
             } else {
                 $('welcomeSubLabel').textContent = 'Selamat datang,';
                 $('dashboardAeName').textContent = user.name;
@@ -609,10 +600,23 @@
             $('fwaPercent').textContent = pctFwa + '%';
 
             renderTracker(month, year);
-            if (user.isAdmin) renderAdminTracker(month, year);
         }
 
         function renderTracker(month, year) {
+            const user = state.currentUser;
+            if (!user) return;
+
+            if (user.isAdmin) {
+                $('dashboardProductFilter').style.display = 'inline-block';
+                renderAdminDashboardTracker(month, year);
+            } else {
+                $('dashboardProductFilter').style.display = 'none';
+                renderAeDashboardTracker(month, year);
+            }
+        }
+
+        // Tracker untuk Regular AE (Baris FTTH & FWA)
+        function renderAeDashboardTracker(month, year) {
             const thead = $('trackerHead'), tbody = $('trackerBody'), days = getDaysInMonth(year, month);
             const today = new Date(), todayDay = today.getDate(), todayMonth = today.getMonth(), todayYear = today.getFullYear();
 
@@ -650,10 +654,10 @@
             $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year;
         }
 
-        // Render tabel multi-AE di menu Admin dengan filter FTTH / FWA
-        function renderAdminTracker(month, year) {
-            const thead = $('adminTrackerHead'), tbody = $('adminTrackerBody'), days = getDaysInMonth(year, month);
-            const productFilter = $('adminProductFilter')?.value || 'FTTH';
+        // Tracker Multi-AE di Dashboard Admin dengan Filter FTTH/FWA
+        function renderAdminDashboardTracker(month, year) {
+            const thead = $('trackerHead'), tbody = $('trackerBody'), days = getDaysInMonth(year, month);
+            const productFilter = $('dashboardProductFilter')?.value || 'FTTH';
             const today = new Date(), todayDay = today.getDate(), todayMonth = today.getMonth(), todayYear = today.getFullYear();
 
             let headHtml = '<tr><th style="text-align:left;min-width:100px;">Nama AE</th>';
@@ -694,6 +698,7 @@
             });
 
             tbody.innerHTML = bodyHtml;
+            $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year + ` (${productFilter})`;
         }
 
         async function refreshAllData() {
@@ -727,7 +732,7 @@
 
             if (!name) { showError('Pilih nama AE'); return; }
 
-            const ae = state.aeList.find(a => a.name === name);
+            const ae = state.aeList.find(a => a.name.toLowerCase() === name.toLowerCase());
             if (!ae) { showError('AE tidak ditemukan'); return; }
 
             const dbPin = String(ae.pin).trim();
@@ -791,11 +796,9 @@
             setLoading(btn, false);
 
             if (result.success) {
-                if (!state.trackerData[inputDate]) state.trackerData[inputDate] = { ftth: 0, fwa: 0 };
-                state.trackerData[inputDate].ftth += ftth; state.trackerData[inputDate].fwa += fwa;
                 $('dailyFtth').value = ''; $('dailyFwa').value = '';
                 showSuccess('Performa harian berhasil disimpan!'); 
-                renderDashboard();
+                await refreshAllData();
             } else showError('Gagal menyimpan, coba lagi');
         }
 
@@ -849,10 +852,7 @@
                 }
                 showPage(page);
                 if (page === 'pageDashboard') renderDashboard();
-                if (page === 'pageAdmin') {
-                    renderAdminAeList();
-                    renderAdminTracker(state.selectedDate.getMonth(), state.selectedDate.getFullYear());
-                }
+                if (page === 'pageAdmin') renderAdminAeList();
             });
         });
 
@@ -879,8 +879,8 @@
                 await refreshAllData();
             });
 
-            $('adminProductFilter')?.addEventListener('change', () => {
-                renderAdminTracker(state.selectedDate.getMonth(), state.selectedDate.getFullYear());
+            $('dashboardProductFilter')?.addEventListener('change', () => {
+                renderDashboard();
             });
 
             $('loginForm').addEventListener('submit', handleLogin);
@@ -900,7 +900,6 @@
             $('adminAddAeBtn').addEventListener('click', handleAddAe);
             $('adminChangePinBtn').addEventListener('click', handleChangeAdminPin);
 
-            // Default tanggal input harian adalah hari ini
             $('dailyDateInput').value = todayStr();
 
             showPage('pageLogin');
