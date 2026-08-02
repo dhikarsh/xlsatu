@@ -1423,40 +1423,42 @@
         //  API CALLS
         // ============================================================
         async function apiCall(action, payload = {}) {
-    try {
-        const res = await fetch(CONFIG.API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action, ...payload })
-        });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        return data; // harus memiliki properti success
-    } catch (e) {
-        console.error('API error:', e);
-        return { success: false, error: e.message };
-    }
+  try {
+    const res = await fetch(CONFIG.API_URL, {
+      method: 'POST',
+      mode: 'cors', // ganti dari no-cors
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...payload })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    return data;
+  } catch (e) {
+    console.error('API error:', e);
+    return { success: false, error: e.message };
+  }
 }
 
-        async function fetchData(action, params = {}) {
-            try {
-                const url = new URL(CONFIG.API_URL);
-                url.searchParams.set('action', action);
-                for (const [k, v] of Object.entries(params)) {
-                    if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
-                }
-                const res = await fetch(url.toString(), {
-                    method: 'GET',
-                    headers: { 'Accept': 'application/json' }
-                });
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                const data = await res.json();
-                return data;
-            } catch (e) {
-                console.error('Fetch error:', e);
-                return { success: false, error: e.message };
-            }
-        }
+async function fetchData(action, params = {}) {
+  try {
+    const url = new URL(CONFIG.API_URL);
+    url.searchParams.set('action', action);
+    for (const [k, v] of Object.entries(params)) {
+      if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
+    }
+    const res = await fetch(url.toString(), {
+      method: 'GET',
+      mode: 'cors',
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    return data;
+  } catch (e) {
+    console.error('Fetch error:', e);
+    return { success: false, error: e.message };
+  }
+}
 
         // ============================================================
         //  DATA LOADING
