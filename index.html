@@ -1462,14 +1462,17 @@
             renderAeDropdowns();
 
             // 2. Load tracker (untuk AE yang login)
-            const queryName = user.isAdmin ? 'Admin' : user.name;
-            const tracker = await fetchData('getTracker', { aeName: queryName, month, year });
-            if (tracker.success) state.trackerData = tracker.data || {};
-
-            // 3. Load admin tracker (semua AE) jika admin
             if (user.isAdmin) {
+                // Admin menggunakan getAdminTracker
                 const adminTracker = await fetchData('getAdminTracker', { month, year });
                 if (adminTracker.success) state.adminTrackerData = adminTracker.data || {};
+                // trackerData tidak dipakai admin, tapi kita kosongkan
+                state.trackerData = {};
+            } else {
+                // AE biasa
+                const tracker = await fetchData('getTracker', { aeName: user.name, month, year });
+                if (tracker.success) state.trackerData = tracker.data || {};
+                state.adminTrackerData = {};
             }
 
             // 4. Render
