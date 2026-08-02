@@ -916,12 +916,12 @@
                 </form>
             </div>
 
-            <!-- Tracker Harian -->
-            <div class="card" style="padding-bottom:12px;">
+            <!-- TRACKER HARIAN SEMUA AE (HANYA UNTUK ADMIN) - BERADA DI DASHBOARD -->
+            <div class="card" style="padding-bottom:12px;" id="adminTrackerCard">
                 <div class="card-header">
-                    <span class="card-title" id="trackerCardTitle"><span class="emoji">📋</span> Tracker Harian</span>
+                    <span class="card-title"><span class="emoji">📋</span> Tracker Harian Semua AE</span>
                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                        <!-- Dropdown FTTH / FWA khusus Admin -->
+                        <!-- Dropdown FTTH / FWA untuk Admin -->
                         <select id="dashboardProductFilter" style="display:none; padding:4px 10px; font-size:11px; font-weight:700; border-radius:16px; border:1px solid var(--xl-border); background:var(--xl-blue-soft); color:var(--xl-blue); outline:none; cursor:pointer;">
                             <option value="FTTH">FTTH</option>
                             <option value="FWA">FWA</option>
@@ -941,7 +941,7 @@
             </div>
         </div>
 
-        <!-- ADMIN PAGE -->
+        <!-- ADMIN PAGE (HANYA KELOLA AE & TARGET, TIDAK ADA TRACKER) -->
         <div class="page" id="pageAdmin">
             <div class="card">
                 <div class="card-header">
@@ -1219,10 +1219,13 @@
                 $('welcomeSubLabel').textContent = 'Panel Administrator';
                 $('dashboardAeName').textContent = 'Akumulasi Seluruh AE';
                 $('dailyInputCard').style.display = 'none';
+                // Tampilkan tracker admin
+                $('adminTrackerCard').style.display = 'block';
             } else {
                 $('welcomeSubLabel').textContent = 'Selamat datang,';
                 $('dashboardAeName').textContent = user.name;
                 $('dailyInputCard').style.display = 'block';
+                $('adminTrackerCard').style.display = 'none';
             }
             $('dashboardDate').textContent = formatDateDisplay(new Date());
 
@@ -1290,16 +1293,18 @@
 
             const filterEl = $('dashboardProductFilter');
             if (user.isAdmin) {
+                // Tampilkan dropdown filter dan tracker semua AE
                 if (filterEl) filterEl.style.display = 'inline-block';
                 renderAdminDashboardTracker(month, year);
             } else {
+                // Sembunyikan dropdown, tampilkan tracker pribadi (baris FTTH/FWA)
                 if (filterEl) filterEl.style.display = 'none';
                 renderAeDashboardTracker(month, year);
             }
         }
 
         // ============================================================
-        // RENDER: TRACKER untuk AE (non-admin)
+        // RENDER: TRACKER untuk AE (non-admin) - baris FTTH & FWA
         // ============================================================
         function renderAeDashboardTracker(month, year) {
             const thead = $('trackerHead'),
@@ -1461,12 +1466,11 @@
             await loadAeList();
             renderAeDropdowns();
 
-            // 2. Load tracker (untuk AE yang login)
+            // 2. Load tracker
             if (user.isAdmin) {
-                // Admin menggunakan getAdminTracker
+                // Admin: ambil data semua AE
                 const adminTracker = await fetchData('getAdminTracker', { month, year });
                 if (adminTracker.success) state.adminTrackerData = adminTracker.data || {};
-                // trackerData tidak dipakai admin, tapi kita kosongkan
                 state.trackerData = {};
             } else {
                 // AE biasa
@@ -1475,7 +1479,7 @@
                 state.adminTrackerData = {};
             }
 
-            // 4. Render
+            // 3. Render
             renderDashboard();
             renderAdminAeList();
 
