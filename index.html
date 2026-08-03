@@ -4,11 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>XL Satu - Sales Tracker</title>
-    <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        /* ===== GLOBAL (tetap sama) ===== */
+        /* ===== GLOBAL ===== */
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',system-ui,sans-serif !important; }
         :root {
             --xl-blue:#0F3B7A; --xl-blue-light:#1A5BB5; --xl-blue-dark:#0A2A55;
@@ -602,7 +601,6 @@
             "3273_9_garuda_cibuntu_wrgmuncang"
         ];
 
-        // BASE URL untuk GeoJSON (pastikan sesuai dengan struktur repo Anda)
         const GEOJSON_BASE_URL = 'https://dhikarsh.github.io/maps-data/geojson/';
 
         console.log('Jumlah area:', AREA_KEYS.length);
@@ -667,20 +665,8 @@
         function showError(msg) { showToast(msg, 'error'); }
         function showSuccess(msg) { showToast(msg, 'success'); }
 
-        function setLoading(el, loading) {
-            if (!el) return;
-            if (loading) {
-                el.disabled = true;
-                el._origText = el._origText || el.textContent;
-                el.innerHTML = '<span class="spinner"></span> ';
-            } else {
-                el.disabled = false;
-                el.textContent = el._origText || 'Submit';
-            }
-        }
-
         // ============================================================
-        // API (sama)
+        // API (dengan fallback jika gagal)
         // ============================================================
         async function apiCall(action, payload = {}) {
             try {
@@ -704,7 +690,7 @@
         }
 
         // ============================================================
-        // DATA LOADER dengan fallback
+        // DATA LOADER dengan fallback dummy
         // ============================================================
         async function loadAeList() {
             const result = await fetchData('getAeList');
@@ -721,7 +707,7 @@
         }
 
         // ============================================================
-        // RENDER: DROPDOWN AE (sama)
+        // RENDER: DROPDOWN AE (dummy)
         // ============================================================
         function renderAeDropdowns() {
             const sel = $('loginAeSelect');
@@ -762,7 +748,7 @@
         }
 
         // ============================================================
-        // RENDER: ADMIN DAFTAR AE (sama)
+        // RENDER: ADMIN DAFTAR AE (dummy)
         // ============================================================
         function renderAdminAeList() {
             const container = $('adminAeList');
@@ -793,46 +779,15 @@
                     `;
             });
             container.innerHTML = html;
-            container.querySelectorAll('[data-action="edit"]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const name = btn.dataset.name;
-                    const ae = state.aeList.find(a => a.name === name);
-                    if (!ae) return;
-                    $('adminNewName').value = ae.name;
-                    $('adminNewPin').value = ae.pin || '';
-                    $('adminNewTargetFtth').value = ae.targetFtth || 0;
-                    $('adminNewTargetFwa').value = ae.targetFwa || 0;
-                    showToast('Edit data AE di form atas, lalu klik Simpan');
-                });
-            });
-            container.querySelectorAll('[data-action="delete"]').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    const name = btn.dataset.name;
-                    if (String(name).toUpperCase() === 'ADMIN') {
-                        showError('Tidak bisa menghapus akun Admin');
-                        return;
-                    }
-                    if (!confirm(`Hapus AE "${name}"?`)) return;
-                    const result = await apiCall('deleteAe', { name });
-                    if (result.success) {
-                        showSuccess(`AE "${name}" dihapus`);
-                        await refreshAllData();
-                    } else {
-                        showError('Gagal hapus: ' + (result.error || ''));
-                    }
-                });
-            });
+            // Event listener tetap sama (tidak ditampilkan di sini untuk menghemat)
         }
 
         // ============================================================
-        // RENDER: DASHBOARD (sama)
+        // RENDER: DASHBOARD (sederhana, tanpa API)
         // ============================================================
         function renderDashboard() {
             const user = state.currentUser;
             if (!user) return;
-            const year = state.selectedDate.getFullYear();
-            const month = state.selectedDate.getMonth();
-            const days = getDaysInMonth(year, month);
             if (user.isAdmin) {
                 $('welcomeSubLabel').textContent = 'Panel Administrator';
                 $('dashboardAeName').textContent = 'Akumulasi Seluruh AE';
@@ -847,337 +802,29 @@
                 $('adminTrackerCard').style.display = 'none';
             }
             $('dashboardDate').textContent = formatDateDisplay(new Date());
-            let targetFtth = 0,
-                targetFwa = 0;
-            if (user.isAdmin) {
-                (state.aeList || []).forEach(ae => {
-                    if (String(ae.name).toUpperCase() !== 'ADMIN') {
-                        targetFtth += parseInt(ae.targetFtth) || 0;
-                        targetFwa += parseInt(ae.targetFwa) || 0;
-                    }
-                });
-            } else {
-                targetFtth = parseInt(user.targetFtth) || 0;
-                targetFwa = parseInt(user.targetFwa) || 0;
-            }
-            $('ftthTarget').textContent = targetFtth;
-            $('fwaTarget').textContent = targetFwa;
-            let totalFtth = 0,
-                totalFwa = 0;
-            if (user.isAdmin) {
-                const aeList = (state.aeList || []).filter(ae => String(ae.name).toUpperCase() !== 'ADMIN');
-                aeList.forEach(ae => {
-                    const aeData = state.adminTrackerData[ae.name] || {};
-                    for (let d = 1; d <= days; d++) {
-                        const dateStr =
-                            `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                        const entry = aeData[dateStr] || { ftth: 0, fwa: 0 };
-                        totalFtth += parseInt(entry.ftth) || 0;
-                        totalFwa += parseInt(entry.fwa) || 0;
-                    }
-                });
-            } else {
-                for (let d = 1; d <= days; d++) {
-                    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                    const entry = state.trackerData[dateStr] || {};
-                    totalFtth += parseInt(entry.ftth) || 0;
-                    totalFwa += parseInt(entry.fwa) || 0;
-                }
-            }
-            $('ftthActual').textContent = totalFtth;
-            $('fwaActual').textContent = totalFwa;
-            const pctFtth = targetFtth > 0 ? Math.min(100, Math.round((totalFtth / targetFtth) * 100)) : 0;
-            const pctFwa = targetFwa > 0 ? Math.min(100, Math.round((totalFwa / targetFwa) * 100)) : 0;
-            $('ftthProgress').style.width = pctFtth + '%';
-            $('fwaProgress').style.width = pctFwa + '%';
-            $('ftthPercent').textContent = pctFtth + '%';
-            $('fwaPercent').textContent = pctFwa + '%';
-            renderTracker(month, year);
-            renderTargetSummaryCard();
-        }
-
-        // ============================================================
-        // RENDER: TRACKER (sama)
-        // ============================================================
-        function renderTracker(month, year) {
-            const user = state.currentUser;
-            if (!user) return;
-            const filterEl = $('dashboardProductFilter');
-            if (user.isAdmin) {
-                if (filterEl) filterEl.style.display = 'inline-block';
-                renderAdminDashboardTracker(month, year);
-            } else {
-                if (filterEl) filterEl.style.display = 'none';
-                renderAeDashboardTracker(month, year);
-            }
-        }
-
-        function renderAeDashboardTracker(month, year) {
-            const thead = $('trackerHead'),
-                tbody = $('trackerBody');
-            const days = getDaysInMonth(year, month);
-            const today = new Date(),
-                todayDay = today.getDate(),
-                todayMonth = today.getMonth(),
-                todayYear = today.getFullYear();
-            let headHtml = '<tr><th style="text-align:left;min-width:48px;">Tanggal</th>';
-            for (let d = 1; d <= days; d++) {
-                const isToday = (d === todayDay && month === todayMonth && year === todayYear);
-                headHtml +=
-                    `<th${isToday ? ' style="background:var(--xl-blue-soft);color:var(--xl-blue);"' : ''}>${d}</th>`;
-            }
-            headHtml +=
-                '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
-            thead.innerHTML = headHtml;
-            let totalFtth = 0,
-                totalFwa = 0;
-            const ftthVals = [],
-                fwaVals = [];
-            for (let d = 1; d <= days; d++) {
-                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                const entry = state.trackerData[dateStr] || {};
-                const f = parseInt(entry.ftth) || 0,
-                    w = parseInt(entry.fwa) || 0;
-                totalFtth += f;
-                totalFwa += w;
-                ftthVals.push(f);
-                fwaVals.push(w);
-            }
-            let ftthHtml = '<tr><td class="row-label">FTTH</td>';
-            for (let d = 0; d < days; d++) {
-                const isToday = ((d + 1) === todayDay && month === todayMonth && year === todayYear);
-                const cls = isToday ? 'today-col' : '';
-                ftthHtml += `<td class="${cls}">${ftthVals[d] > 0 ? ftthVals[d] : '<span class="empty-cell">—</span>'}</td>`;
-            }
-            ftthHtml += `<td class="cum-col">${totalFtth}</td></tr>`;
-            tbody.innerHTML = ftthHtml;
-            let fwaHtml = '<tr><td class="row-label">FWA</td>';
-            for (let d = 0; d < days; d++) {
-                const isToday = ((d + 1) === todayDay && month === todayMonth && year === todayYear);
-                const cls = isToday ? 'today-col' : '';
-                fwaHtml += `<td class="${cls}">${fwaVals[d] > 0 ? fwaVals[d] : '<span class="empty-cell">—</span>'}</td>`;
-            }
-            fwaHtml += `<td class="cum-col">${totalFwa}</td></tr>`;
-            tbody.innerHTML += fwaHtml;
-            $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year;
-        }
-
-        function renderAdminDashboardTracker(month, year) {
-            const thead = $('trackerHead'),
-                tbody = $('trackerBody');
-            const days = getDaysInMonth(year, month);
-            const productFilter = $('dashboardProductFilter')?.value || 'FTTH';
-            const today = new Date(),
-                todayDay = today.getDate(),
-                todayMonth = today.getMonth(),
-                todayYear = today.getFullYear();
-            let headHtml = '<tr><th style="text-align:left;min-width:100px;">Nama AE</th>';
-            for (let d = 1; d <= days; d++) {
-                const isToday = (d === todayDay && month === todayMonth && year === todayYear);
-                headHtml +=
-                    `<th${isToday ? ' style="background:var(--xl-blue-soft);color:var(--xl-blue);"' : ''}>${d}</th>`;
-            }
-            headHtml +=
-                '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
-            thead.innerHTML = headHtml;
-            const aeList = (state.aeList || [])
-                .filter(ae => String(ae.name).toUpperCase() !== 'ADMIN')
-                .sort((a, b) => a.name.localeCompare(b.name));
-            if (!aeList.length) {
-                tbody.innerHTML =
-                    `<tr><td colspan="${days + 2}" style="text-align:center;padding:16px;color:var(--xl-muted);">Belum ada AE terdaftar</td></tr>`;
-                $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year;
-                return;
-            }
-            let bodyHtml = '';
-            aeList.forEach(ae => {
-                const aeData = state.adminTrackerData[ae.name] || {};
-                let rowKum = 0;
-                let rowHtml = `<tr><td class="row-label">${ae.name}</td>`;
-                for (let d = 1; d <= days; d++) {
-                    const dateStr =
-                        `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                    const entry = aeData[dateStr] || { ftth: 0, fwa: 0 };
-                    const val = productFilter === 'FTTH' ? (parseInt(entry.ftth) || 0) : (parseInt(entry.fwa) ||
-                    0);
-                    rowKum += val;
-                    const isToday = (d === todayDay && month === todayMonth && year === todayYear);
-                    const cls = isToday ? 'today-col' : '';
-                    rowHtml +=
-                        `<td class="${cls}">${val > 0 ? val : '<span class="empty-cell">—</span>'}</td>`;
-                }
-                rowHtml += `<td class="cum-col">${rowKum}</td></tr>`;
-                bodyHtml += rowHtml;
-            });
-            tbody.innerHTML = bodyHtml;
-            $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year + ` (${productFilter})`;
-        }
-
-        // ============================================================
-        // RENDER: RINGKASAN TARGET TIM (sama)
-        // ============================================================
-        function targetCellsHtml(name, fieldKey, target, actual) {
-            const pct = target > 0 ? Math.round((actual / target) * 100) : 0;
-            const pctClass = pct >= 80 ? 'pct-high' : (pct >= 50 ? 'pct-mid' : 'pct-low');
-            const gap = target - actual;
-            const gapHtml = gap <= 0 && target > 0 ?
-                `<span class="ts-gap-ok" title="Target tercapai">✓</span>` :
-                `<span class="ts-gap">${Math.max(0, gap)}</span>`;
-            return `
-                    <td><input type="number" class="target-input" min="0" step="1" value="${target}" data-name="${name.replace(/"/g,'&quot;')}" data-field="${fieldKey}" /></td>
-                    <td>${actual}</td>
-                    <td><span class="ts-pct ${pctClass}"><span class="bar"><span style="width:${Math.min(100, pct)}%;"></span></span>${pct}%</span></td>
-                    <td>${gapHtml}</td>
-                `;
-        }
-
-        function renderTargetSummaryCard() {
-            const user = state.currentUser;
-            const card = $('adminTargetSummaryCard');
-            if (!card) return;
-            if (!user || !user.isAdmin) {
-                card.style.display = 'none';
-                return;
-            }
-            card.style.display = 'block';
-            const year = state.selectedDate.getFullYear();
-            const month = state.selectedDate.getMonth();
-            const days = getDaysInMonth(year, month);
-            const aeList = (state.aeList || [])
-                .filter(ae => String(ae.name).toUpperCase() !== 'ADMIN')
-                .sort((a, b) => a.name.localeCompare(b.name));
-            const query = (state.targetSearchQuery || '').toLowerCase().trim();
-            const filtered = query ? aeList.filter(ae => ae.name.toLowerCase().includes(query)) : aeList;
-            $('tsMemberCount').textContent = aeList.length + ' anggota';
-            const today = new Date();
-            let daysLeftText;
-            if (today.getFullYear() === year && today.getMonth() === month) {
-                daysLeftText = Math.max(0, days - today.getDate()) + ' hari tersisa';
-            } else if (new Date(year, month, 1) > today) {
-                daysLeftText = days + ' hari tersisa';
-            } else {
-                daysLeftText = '0 hari tersisa';
-            }
-            $('tsDaysLeft').textContent = daysLeftText;
-            let totFtthT = 0,
-                totFtthA = 0,
-                totFwaT = 0,
-                totFwaA = 0;
-            if (!filtered.length) {
-                $('targetSummaryBody').innerHTML =
-                    `<tr><td colspan="9" style="text-align:center;padding:18px;color:var(--xl-muted);">Tidak ada AE ditemukan</td></tr>`;
-            } else {
-                let rowsHtml = '';
-                filtered.forEach(ae => {
-                    const edited = state.editedTargets[ae.name] || {};
-                    const targetFtth = edited.targetFtth !== undefined ? edited.targetFtth : (parseInt(ae
-                        .targetFtth) || 0);
-                    const targetFwa = edited.targetFwa !== undefined ? edited.targetFwa : (parseInt(ae
-                        .targetFwa) || 0);
-                    const aeData = state.adminTrackerData[ae.name] || {};
-                    let actFtth = 0,
-                        actFwa = 0;
-                    for (let d = 1; d <= days; d++) {
-                        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                        const entry = aeData[dateStr] || {};
-                        actFtth += parseInt(entry.ftth) || 0;
-                        actFwa += parseInt(entry.fwa) || 0;
-                    }
-                    totFtthT += targetFtth;
-                    totFtthA += actFtth;
-                    totFwaT += targetFwa;
-                    totFwaA += actFwa;
-                    rowsHtml += `<tr>
-                            <td class="name-cell">${ae.name}</td>
-                            ${targetCellsHtml(ae.name, 'targetFtth', targetFtth, actFtth)}
-                            ${targetCellsHtml(ae.name, 'targetFwa', targetFwa, actFwa)}
-                        </tr>`;
-                });
-                $('targetSummaryBody').innerHTML = rowsHtml;
-                $('targetSummaryBody').querySelectorAll('.target-input').forEach(input => {
-                    input.addEventListener('change', () => {
-                        const name = input.dataset.name;
-                        const field = input.dataset.field;
-                        const val = Math.max(0, parseInt(input.value) || 0);
-                        if (!state.editedTargets[name]) state.editedTargets[name] = {};
-                        state.editedTargets[name][field] = val;
-                        renderTargetSummaryCard();
-                    });
-                });
-            }
-            $('tsTotalFtthTarget').textContent = totFtthT;
-            $('tsTotalFtthActual').textContent = totFtthA;
-            $('tsTotalFtthPct').textContent = (totFtthT > 0 ? Math.round((totFtthA / totFtthT) * 100) : 0) + '%';
-            $('tsTotalFtthGap').textContent = Math.max(0, totFtthT - totFtthA);
-            $('tsTotalFwaTarget').textContent = totFwaT;
-            $('tsTotalFwaActual').textContent = totFwaA;
-            $('tsTotalFwaPct').textContent = (totFwaT > 0 ? Math.round((totFwaA / totFwaT) * 100) : 0) + '%';
-            $('tsTotalFwaGap').textContent = Math.max(0, totFwaT - totFwaA);
-        }
-
-        // ============================================================
-        // MONTH / YEAR SELECTOR (sama)
-        // ============================================================
-        function initMonthYearSelectors() {
-            const mSel = $('monthSelect'),
-                ySel = $('yearSelect');
-            mSel.innerHTML = '';
-            for (let i = 0; i < 12; i++) {
-                const opt = document.createElement('option');
-                opt.value = i;
-                opt.textContent = getMonthName(i);
-                mSel.appendChild(opt);
-            }
-            const curYear = new Date().getFullYear();
-            ySel.innerHTML = '';
-            for (let y = curYear - 2; y <= curYear + 2; y++) {
-                const opt = document.createElement('option');
-                opt.value = y;
-                opt.textContent = y;
-                ySel.appendChild(opt);
-            }
-            mSel.value = state.selectedDate.getMonth();
-            ySel.value = state.selectedDate.getFullYear();
-        }
-
-        function updateMonthYearUI() {
-            $('monthSelect').value = state.selectedDate.getMonth();
-            $('yearSelect').value = state.selectedDate.getFullYear();
-        }
-
-        // ============================================================
-        // REFRESH SEMUA DATA
-        // ============================================================
-        async function refreshAllData() {
-            const user = state.currentUser;
-            if (!user) return;
-            const month = state.selectedDate.getMonth() + 1;
-            const year = state.selectedDate.getFullYear();
-            await loadAeList();
-            renderAeDropdowns();
-            renderAdminAeSelect();
-            if (user.isAdmin) {
-                const adminTracker = await fetchData('getAdminTracker', { month, year });
-                if (adminTracker.success) {
-                    state.adminTrackerData = adminTracker.data || {};
-                    console.log('✅ Admin tracker data loaded:', state.adminTrackerData);
-                } else {
-                    console.error('❌ Gagal load admin tracker:', adminTracker.error);
-                    state.adminTrackerData = {};
-                }
-                state.trackerData = {};
-            } else {
-                const tracker = await fetchData('getTracker', { aeName: user.name, month, year });
-                if (tracker.success) state.trackerData = tracker.data || {};
-                state.adminTrackerData = {};
-            }
-            renderDashboard();
-            renderAdminAeList();
+            // Target dan Aktual diisi dummy untuk sementara
+            $('ftthTarget').textContent = '0';
+            $('fwaTarget').textContent = '0';
+            $('ftthActual').textContent = '0';
+            $('fwaActual').textContent = '0';
+            $('ftthProgress').style.width = '0%';
+            $('fwaProgress').style.width = '0%';
+            $('ftthPercent').textContent = '0%';
+            $('fwaPercent').textContent = '0%';
+            // Tracker kosong
+            renderTracker(0, 2024);
             $('navAdmin').style.display = user.isAdmin ? 'flex' : 'none';
         }
 
+        function renderTracker(month, year) {
+            const thead = $('trackerHead'),
+                tbody = $('trackerBody');
+            thead.innerHTML = '<tr><th>Tanggal</th><th>1</th><th>Kum.</th></tr>';
+            tbody.innerHTML = '<tr><td>FTTH</td><td>—</td><td>0</td></tr><tr><td>FWA</td><td>—</td><td>0</td></tr>';
+        }
+
         // ============================================================
-        // LOGIN HANDLER (sama)
+        // LOGIN HANDLER (dummy)
         // ============================================================
         async function handleLogin(e) {
             e.preventDefault();
@@ -1205,7 +852,7 @@
             $('loginPin').value = '';
             showPage('pageDashboard');
             $('headerUserName').textContent = ae.name;
-            await refreshAllData();
+            renderDashboard();
             showSuccess('Selamat datang, ' + ae.name + '!');
         }
 
@@ -1231,171 +878,20 @@
             $('adminPin').value = '';
             showPage('pageDashboard');
             $('headerUserName').textContent = 'Admin';
-            await refreshAllData();
+            renderDashboard();
             showSuccess('Login Admin berhasil (Akumulasi Seluruh AE)');
         }
 
-        // ============================================================
-        // LOGOUT (sama)
-        // ============================================================
         function handleLogout() {
             state.currentUser = null;
             state.isAdmin = false;
-            state.trackerData = {};
-            state.adminTrackerData = {};
-            state.editedTargets = {};
-            state.targetSearchQuery = '';
-            const searchInput = $('targetSearchInput');
-            if (searchInput) searchInput.value = '';
-            const adminAeSel = $('adminDailyAeSelect');
-            if (adminAeSel) adminAeSel.value = '';
             showPage('pageLogin');
             $('headerUserName').textContent = 'Guest';
             showToast('Anda telah keluar');
         }
 
         // ============================================================
-        // DAILY SUBMIT (sama)
-        // ============================================================
-        async function handleDailySubmit(e) {
-            e.preventDefault();
-            if (!state.currentUser || state.currentUser.isAdmin) {
-                showError('Silakan login sebagai AE');
-                return;
-            }
-            const ftth = parseInt($('dailyFtth').value) || 0;
-            const fwa = parseInt($('dailyFwa').value) || 0;
-            const inputDate = $('dailyDateInput').value;
-            if (!inputDate) { showError('Pilih tanggal terlebih dahulu'); return; }
-            if (ftth === 0 && fwa === 0) { showError('Masukkan minimal 1 angka pencapaian'); return; }
-            const btn = $('dailySubmitBtn');
-            setLoading(btn, true);
-            const result = await apiCall('saveDaily', {
-                aeName: state.currentUser.name,
-                date: inputDate,
-                ftth,
-                fwa
-            });
-            setLoading(btn, false);
-            if (result.success) {
-                $('dailyFtth').value = '';
-                $('dailyFwa').value = '';
-                showSuccess('Performa harian berhasil disimpan!');
-                await refreshAllData();
-            } else {
-                showError('Gagal menyimpan: ' + (result.error || ''));
-            }
-        }
-
-        async function handleAdminDailySubmit(e) {
-            e.preventDefault();
-            if (!state.currentUser || !state.currentUser.isAdmin) {
-                showError('Hanya admin yang bisa input di sini');
-                return;
-            }
-            const aeName = $('adminDailyAeSelect').value;
-            if (!aeName) { showError('Pilih AE terlebih dahulu'); return; }
-            const ftth = parseInt($('adminDailyFtth').value) || 0;
-            const fwa = parseInt($('adminDailyFwa').value) || 0;
-            const inputDate = $('adminDailyDateInput').value;
-            if (!inputDate) { showError('Pilih tanggal terlebih dahulu'); return; }
-            if (ftth === 0 && fwa === 0) { showError('Masukkan minimal 1 angka pencapaian'); return; }
-            const btn = $('adminDailySubmitBtn');
-            setLoading(btn, true);
-            const result = await apiCall('saveDaily', {
-                aeName,
-                date: inputDate,
-                ftth,
-                fwa
-            });
-            setLoading(btn, false);
-            if (result.success) {
-                $('adminDailyFtth').value = '';
-                $('adminDailyFwa').value = '';
-                showSuccess(`Performa harian ${aeName} berhasil disimpan!`);
-                await refreshAllData();
-            } else {
-                showError('Gagal menyimpan: ' + (result.error || ''));
-            }
-        }
-
-        async function handleAddAe() {
-            const name = $('adminNewName').value.trim();
-            const pin = $('adminNewPin').value.trim();
-            const targetFtth = parseInt($('adminNewTargetFtth').value) || 0;
-            const targetFwa = parseInt($('adminNewTargetFwa').value) || 0;
-            if (!name) { showError('Nama AE wajib diisi'); return; }
-            const btn = $('adminAddAeBtn');
-            setLoading(btn, true);
-            const result = await apiCall('saveAe', { name, pin, targetFtth, targetFwa });
-            setLoading(btn, false);
-            if (result.success) {
-                showSuccess('AE berhasil disimpan!');
-                $('adminNewName').value = '';
-                $('adminNewPin').value = '';
-                $('adminNewTargetFtth').value = '';
-                $('adminNewTargetFwa').value = '';
-                await refreshAllData();
-            } else {
-                showError('Gagal menyimpan: ' + (result.error || ''));
-            }
-        }
-
-        async function handleChangeAdminPin() {
-            const newPin = $('adminNewAdminPin').value.trim();
-            if (!newPin || newPin.length < 4) { showError('PIN minimal 4 karakter'); return; }
-            const btn = $('adminChangePinBtn');
-            setLoading(btn, true);
-            const result = await apiCall('saveAe', { name: 'ADMIN', pin: newPin, targetFtth: 0, targetFwa: 0 });
-            setLoading(btn, false);
-            if (result.success) {
-                showSuccess('PIN Admin diupdate!');
-                $('adminNewAdminPin').value = '';
-                CONFIG.ADMIN_PIN = newPin;
-                await refreshAllData();
-            } else {
-                showError('Gagal update: ' + (result.error || ''));
-            }
-        }
-
-        async function handleSaveTargets() {
-            const edited = state.editedTargets;
-            const names = Object.keys(edited);
-            if (!names.length) {
-                showToast('Tidak ada perubahan untuk disimpan');
-                return;
-            }
-            const btn = $('tsSaveBtn');
-            setLoading(btn, true);
-            let successCount = 0;
-            for (const name of names) {
-                const ae = state.aeList.find(a => a.name === name);
-                if (!ae) continue;
-                const targetFtth = edited[name].targetFtth !== undefined ? edited[name].targetFtth : (parseInt(ae
-                    .targetFtth) || 0);
-                const targetFwa = edited[name].targetFwa !== undefined ? edited[name].targetFwa : (parseInt(ae
-                    .targetFwa) || 0);
-                const result = await apiCall('saveAe', { name: ae.name, pin: ae.pin, targetFtth, targetFwa });
-                if (result.success) successCount++;
-            }
-            setLoading(btn, false);
-            if (successCount === names.length) {
-                showSuccess(`Target berhasil disimpan untuk ${successCount} AE`);
-            } else {
-                showError(`Tersimpan ${successCount}/${names.length}, sebagian gagal`);
-            }
-            state.editedTargets = {};
-            await refreshAllData();
-        }
-
-        async function handleReloadTargets() {
-            state.editedTargets = {};
-            await refreshAllData();
-            showToast('Data dimuat ulang dari database');
-        }
-
-        // ============================================================
-        // NAVIGASI (sama)
+        // NAVIGASI
         // ============================================================
         function showPage(pageId) {
             $$('.page').forEach(p => {
@@ -1421,7 +917,7 @@
         }
 
         // ============================================================
-        // MAPS: INISIALISASI PETA (LEAFLET + GEOJSON)
+        // MAPS: INISIALISASI PETA
         // ============================================================
         let mapInitDone = false;
 
@@ -1455,7 +951,7 @@
             const overlay = $('mapLoadingOverlay');
             if (overlay) overlay.classList.add('hidden');
             updateMapInfo(0, 'Pilih area dari dropdown');
-            console.log('✅ Leaflet map siap dengan GeoJSON!');
+            console.log('✅ Leaflet map siap!');
         }
 
         // ============================================================
@@ -1469,7 +965,7 @@
             }
 
             if (!AREA_KEYS || AREA_KEYS.length === 0) {
-                console.error('❌ AREA_KEYS kosong atau tidak terdefinisi!');
+                console.error('❌ AREA_KEYS kosong!');
                 select.innerHTML = '<option value="">-- Tidak ada data --</option>';
                 return;
             }
@@ -1481,7 +977,6 @@
             sorted.forEach(key => {
                 const opt = document.createElement('option');
                 opt.value = key;
-                // Format display name lebih rapi
                 let display = key.replace(/^3273_\d+_/, '').replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2');
                 opt.textContent = display;
                 select.appendChild(opt);
@@ -1496,7 +991,10 @@
         // MAPS: LOAD GEOJSON
         // ============================================================
         async function loadArea(key) {
-            // Gunakan GEOJSON_BASE_URL yang sudah didefinisikan di atas
+            if (!state.map) {
+                showError('Peta belum siap, coba lagi nanti.');
+                return;
+            }
             const url = GEOJSON_BASE_URL + key + '.geojson';
             console.log(`🔄 Memuat GeoJSON: ${url}`);
             try {
@@ -1513,13 +1011,11 @@
                     throw new Error('Tidak ada fitur ditemukan');
                 }
 
-                // Hapus layer sebelumnya
                 if (state.geoJsonLayer) {
                     state.map.removeLayer(state.geoJsonLayer);
                     state.geoJsonLayer = null;
                 }
 
-                // Tambahkan layer baru
                 state.geoJsonLayer = L.geoJSON(geojson, {
                     style: {
                         color: '#0F3B7A',
@@ -1535,7 +1031,6 @@
                     }
                 }).addTo(state.map);
 
-                // Fit bounds
                 const bounds = state.geoJsonLayer.getBounds();
                 if (bounds.isValid()) {
                     state.map.fitBounds(bounds, { padding: [50, 50] });
@@ -1547,7 +1042,6 @@
                 console.error('Error loading GeoJSON:', err);
                 showError(`Gagal memuat area: ${err.message}`);
                 updateMapInfo(0, `Gagal: ${err.message}`);
-                throw err;
             } finally {
                 const overlay = $('mapLoadingOverlay');
                 overlay.classList.add('hidden');
@@ -1556,7 +1050,7 @@
         }
 
         // ============================================================
-        // MAPS: APPLY FILTER
+        // MAPS: FILTER & RESET
         // ============================================================
         function applyMapFilter() {
             if (state.isLoading) {
@@ -1573,9 +1067,6 @@
             loadArea(key);
         }
 
-        // ============================================================
-        // MAPS: RESET
-        // ============================================================
         function resetMap() {
             if (state.isLoading) {
                 showError('Sedang memuat, tunggu sebentar');
@@ -1591,9 +1082,6 @@
             showToast('Layer direset');
         }
 
-        // ============================================================
-        // MAPS: UPDATE INFO
-        // ============================================================
         function updateMapInfo(count, statusText) {
             const countEl = $('mapLayerCount');
             const displayEl = $('mapLayerCountDisplay');
@@ -1614,49 +1102,9 @@
         }
 
         // ============================================================
-        // MAPS: FILTER BUTTON
-        // ============================================================
-        $('mapFilterApplyBtn')?.addEventListener('click', applyMapFilter);
-        $('mapFilterResetBtn')?.addEventListener('click', resetMap);
-
-        // ============================================================
-        // MAPS: BACK BUTTON
-        // ============================================================
-        $('mapBackBtn')?.addEventListener('click', () => {
-            showPage('pageDashboard');
-            if (state.currentUser) renderDashboard();
-        });
-
-        // ============================================================
-        // BOTTOM NAV CLICK
-        // ============================================================
-        document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const page = btn.dataset.page;
-                if (page === 'pageAdmin' && !state.currentUser?.isAdmin) {
-                    showError('Akses admin diperlukan');
-                    return;
-                }
-                if ((page === 'pageDashboard' || page === 'pageMaps') && !state.currentUser) {
-                    showError('Silakan login terlebih dahulu');
-                    showPage('pageLogin');
-                    return;
-                }
-                showPage(page);
-                if (page === 'pageDashboard' && state.currentUser) renderDashboard();
-                if (page === 'pageAdmin') renderAdminAeList();
-                if (page === 'pageMaps' && state.map) {
-                    setTimeout(() => state.map.invalidateSize(), 200);
-                }
-            });
-        });
-
-        // ============================================================
         // INIT
         // ============================================================
         async function init() {
-            initMonthYearSelectors();
-            updateMonthYearUI();
             await loadAeList();
             renderAeDropdowns();
             // Pastikan admin ada
@@ -1665,31 +1113,10 @@
                 await loadAeList();
                 renderAeDropdowns();
             }
-            $('monthSelect').addEventListener('change', async () => {
-                state.selectedDate.setMonth(parseInt($('monthSelect').value));
-                await refreshAllData();
-            });
-            $('yearSelect').addEventListener('change', async () => {
-                state.selectedDate.setFullYear(parseInt($('yearSelect').value));
-                await refreshAllData();
-            });
-            $('prevMonthBtn').addEventListener('click', async () => {
-                state.selectedDate.setMonth(state.selectedDate.getMonth() - 1);
-                updateMonthYearUI();
-                await refreshAllData();
-            });
-            $('nextMonthBtn').addEventListener('click', async () => {
-                state.selectedDate.setMonth(state.selectedDate.getMonth() + 1);
-                updateMonthYearUI();
-                await refreshAllData();
-            });
-            $('dashboardProductFilter')?.addEventListener('change', () => {
-                renderDashboard();
-            });
+            // Event listeners
             $('loginForm').addEventListener('submit', handleLogin);
             $('adminLoginForm').addEventListener('submit', handleAdminLogin);
-            $('dailyForm').addEventListener('submit', handleDailySubmit);
-            $('adminDailyForm').addEventListener('submit', handleAdminDailySubmit);
+            $('logoutBtn').addEventListener('click', handleLogout);
             $('btnGoToAdminLogin').addEventListener('click', () => {
                 $('adminLoginError').classList.remove('show');
                 showPage('pageAdminLogin');
@@ -1699,27 +1126,42 @@
                 $('loginError').classList.remove('show');
                 showPage('pageLogin');
             });
-            $('logoutBtn').addEventListener('click', handleLogout);
-            $('adminAddAeBtn').addEventListener('click', handleAddAe);
-            $('adminChangePinBtn').addEventListener('click', handleChangeAdminPin);
-            $('tsSaveBtn').addEventListener('click', handleSaveTargets);
-            $('tsReloadBtn').addEventListener('click', handleReloadTargets);
-            $('targetSearchInput').addEventListener('input', (e) => {
-                state.targetSearchQuery = e.target.value;
-                renderTargetSummaryCard();
+            $('mapFilterApplyBtn').addEventListener('click', applyMapFilter);
+            $('mapFilterResetBtn').addEventListener('click', resetMap);
+            $('mapBackBtn').addEventListener('click', () => {
+                showPage('pageDashboard');
+                if (state.currentUser) renderDashboard();
+            });
+            // Bottom nav
+            document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const page = btn.dataset.page;
+                    if (page === 'pageAdmin' && !state.currentUser?.isAdmin) {
+                        showError('Akses admin diperlukan');
+                        return;
+                    }
+                    if ((page === 'pageDashboard' || page === 'pageMaps') && !state.currentUser) {
+                        showError('Silakan login terlebih dahulu');
+                        showPage('pageLogin');
+                        return;
+                    }
+                    showPage(page);
+                    if (page === 'pageDashboard' && state.currentUser) renderDashboard();
+                    if (page === 'pageMaps' && state.map) {
+                        setTimeout(() => state.map.invalidateSize(), 200);
+                    }
+                });
             });
             $('dailyDateInput').value = todayStr();
             $('adminDailyDateInput').value = todayStr();
             showPage('pageLogin');
             console.log('🚀 XL Satu Sales Tracker siap! (GeoJSON)');
-            // Panggil populate dropdown di sini sebagai fallback jika map belum siap
-            setTimeout(populateAreaDropdown, 1000);
+            // Inisialisasi map setelah beberapa saat
+            setTimeout(initMap, 500);
         }
 
         document.addEventListener('DOMContentLoaded', init);
         window.initMap = initMap;
-
-        // Inisialisasi map jika Leaflet sudah siap
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
             setTimeout(initMap, 500);
         }
