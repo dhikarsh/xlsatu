@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        /* ===== GLOBAL (tetap sama) ===== */
+        /* ===== GLOBAL ===== */
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',system-ui,sans-serif !important; }
         :root {
             --xl-blue:#0F3B7A; --xl-blue-light:#1A5BB5; --xl-blue-dark:#0A2A55;
@@ -36,6 +36,7 @@
         .page { display:none; padding:16px 16px 24px; animation:fadeUp 0.35s ease; }
         .page.active { display:block; }
         @keyframes fadeUp { from { opacity:0; transform:translateY(20px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+        /* ===== MAPS PAGE (FULL SCREEN) ===== */
         #pageMaps { padding:0; position:fixed; top:0; left:0; right:0; bottom:0; z-index:5; background:#f0f0f0; display:none; animation:none; }
         #pageMaps.active { display:block; }
         #map { width:100%; height:100%; background:#e5e5e5; }
@@ -71,6 +72,7 @@
         .map-loading-box .progress-text { font-size:12px; font-weight:600; color:var(--xl-muted); margin-top:6px; }
         .map-back-btn { position:absolute; top:12px; right:16px; z-index:20; background:rgba(255,255,255,0.90); backdrop-filter:blur(8px); border:none; border-radius:40px; padding:8px 16px; font-weight:700; font-size:13px; color:var(--xl-blue); box-shadow:0 4px 16px rgba(0,0,0,0.10); cursor:pointer; display:flex; align-items:center; gap:6px; transition:var(--xl-transition); }
         .map-back-btn:hover { background:#fff; box-shadow:0 6px 24px rgba(0,0,0,0.15); }
+        /* ===== CARDS (dashboard) ===== */
         .card { background:#fff; border-radius:var(--xl-radius); padding:18px 20px; margin-bottom:16px; box-shadow:var(--xl-shadow); border:1px solid var(--xl-border); transition:var(--xl-transition); }
         .card:hover { box-shadow:0 12px 40px rgba(15,59,122,0.10); }
         .card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
@@ -602,9 +604,7 @@
             "3273_9_garuda_cibuntu_wrgmuncang"
         ];
 
-        // BASE URL untuk GeoJSON (pastikan sesuai dengan struktur repo Anda)
         const GEOJSON_BASE_URL = 'https://dhikarsh.github.io/maps-data/geojson/';
-
         console.log('Jumlah area:', AREA_KEYS.length);
 
         // ============================================================
@@ -622,6 +622,7 @@
             map: null,
             geoJsonLayer: null,
             isLoading: false,
+            isMapInitializing: false, // FIX: cegah double-init map yang bersamaan
         };
 
         // ============================================================
@@ -680,7 +681,7 @@
         }
 
         // ============================================================
-        // API (sama)
+        // API (dengan fallback)
         // ============================================================
         async function apiCall(action, payload = {}) {
             try {
@@ -704,7 +705,7 @@
         }
 
         // ============================================================
-        // DATA LOADER dengan fallback
+        // DATA LOADER dengan fallback dummy
         // ============================================================
         async function loadAeList() {
             const result = await fetchData('getAeList');
@@ -715,13 +716,14 @@
             console.warn('⚠️ Gagal load AE list, menggunakan data dummy');
             state.aeList = [
                 { name: 'ADMIN', pin: '123456', targetFtth: 0, targetFwa: 0 },
-                { name: 'AE001', pin: '1234', targetFtth: 100, targetFwa: 50 }
+                { name: 'AE001', pin: '1234', targetFtth: 100, targetFwa: 50 },
+                { name: 'AE002', pin: '4321', targetFtth: 80, targetFwa: 30 }
             ];
             return state.aeList;
         }
 
         // ============================================================
-        // RENDER: DROPDOWN AE (sama)
+        // RENDER: DROPDOWN AE
         // ============================================================
         function renderAeDropdowns() {
             const sel = $('loginAeSelect');
@@ -762,7 +764,7 @@
         }
 
         // ============================================================
-        // RENDER: ADMIN DAFTAR AE (sama)
+        // RENDER: ADMIN DAFTAR AE
         // ============================================================
         function renderAdminAeList() {
             const container = $('adminAeList');
@@ -825,7 +827,7 @@
         }
 
         // ============================================================
-        // RENDER: DASHBOARD (sama)
+        // RENDER: DASHBOARD
         // ============================================================
         function renderDashboard() {
             const user = state.currentUser;
@@ -897,7 +899,7 @@
         }
 
         // ============================================================
-        // RENDER: TRACKER (sama)
+        // RENDER: TRACKER
         // ============================================================
         function renderTracker(month, year) {
             const user = state.currentUser;
@@ -1014,7 +1016,7 @@
         }
 
         // ============================================================
-        // RENDER: RINGKASAN TARGET TIM (sama)
+        // RENDER: RINGKASAN TARGET TIM
         // ============================================================
         function targetCellsHtml(name, fieldKey, target, actual) {
             const pct = target > 0 ? Math.round((actual / target) * 100) : 0;
@@ -1116,7 +1118,7 @@
         }
 
         // ============================================================
-        // MONTH / YEAR SELECTOR (sama)
+        // MONTH / YEAR SELECTOR
         // ============================================================
         function initMonthYearSelectors() {
             const mSel = $('monthSelect'),
@@ -1177,7 +1179,7 @@
         }
 
         // ============================================================
-        // LOGIN HANDLER (sama)
+        // LOGIN HANDLER
         // ============================================================
         async function handleLogin(e) {
             e.preventDefault();
@@ -1236,7 +1238,7 @@
         }
 
         // ============================================================
-        // LOGOUT (sama)
+        // LOGOUT
         // ============================================================
         function handleLogout() {
             state.currentUser = null;
@@ -1255,7 +1257,7 @@
         }
 
         // ============================================================
-        // DAILY SUBMIT (sama)
+        // DAILY SUBMIT
         // ============================================================
         async function handleDailySubmit(e) {
             e.preventDefault();
@@ -1395,7 +1397,7 @@
         }
 
         // ============================================================
-        // NAVIGASI (sama)
+        // NAVIGASI
         // ============================================================
         function showPage(pageId) {
             $$('.page').forEach(p => {
@@ -1421,41 +1423,71 @@
         }
 
         // ============================================================
-        // MAPS: INISIALISASI PETA (LEAFLET + GEOJSON)
+        // MAPS: INISIALISASI PETA (LEAFLET) - DIPANGGIL SAAT TAB MAPS DIBUKA
         // ============================================================
-        let mapInitDone = false;
-
+        // FIX: initMap() sekarang HANYA dipanggil saat halaman #pageMaps
+        // sudah/segera ditampilkan (bukan lagi lewat setTimeout global saat
+        // load), supaya container #map punya ukuran nyata saat Leaflet
+        // dibuat. Ditambahkan juga guard isMapInitializing untuk mencegah
+        // dua proses inisialisasi berjalan bersamaan (race condition) yang
+        // sebelumnya bisa membuat state.map jadi null saat dipakai.
         function initMap() {
-            if (mapInitDone) return;
-            mapInitDone = true;
+            if (state.map) return; // sudah ada instance yang valid
+            if (state.isMapInitializing) return; // sedang proses, jangan dobel
+            state.isMapInitializing = true;
             console.log('🗺️ Inisialisasi Leaflet...');
 
             const mapEl = document.getElementById('map');
             if (!mapEl) {
                 console.error('❌ Element #map tidak ditemukan!');
+                state.isMapInitializing = false;
                 return;
             }
 
-            const map = L.map(mapEl, {
-                center: [CONFIG.MAP_CENTER.lat, CONFIG.MAP_CENTER.lng],
-                zoom: CONFIG.MAP_ZOOM,
-                zoomControl: true,
-            });
+            try {
+                const map = L.map(mapEl, {
+                    center: [CONFIG.MAP_CENTER.lat, CONFIG.MAP_CENTER.lng],
+                    zoom: CONFIG.MAP_ZOOM,
+                    zoomControl: true,
+                });
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '© OpenStreetMap',
-            }).addTo(map);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap',
+                }).addTo(map);
 
-            state.map = map;
+                state.map = map;
 
-            // Populate dropdown
-            populateAreaDropdown();
+                // Populate dropdown
+                populateAreaDropdown();
 
-            const overlay = $('mapLoadingOverlay');
-            if (overlay) overlay.classList.add('hidden');
-            updateMapInfo(0, 'Pilih area dari dropdown');
-            console.log('✅ Leaflet map siap dengan GeoJSON!');
+                const overlay = $('mapLoadingOverlay');
+                if (overlay) overlay.classList.add('hidden');
+                updateMapInfo(0, 'Pilih area dari dropdown');
+
+                // Pastikan ukuran dihitung ulang setelah container benar-benar terlihat
+                setTimeout(() => { if (state.map) state.map.invalidateSize(); }, 150);
+
+                console.log('✅ Leaflet map siap dengan GeoJSON!');
+            } catch (err) {
+                console.error('❌ Gagal inisialisasi Leaflet:', err);
+                state.map = null;
+            } finally {
+                state.isMapInitializing = false;
+            }
+        }
+
+        // FIX: helper baru — tunggu sampai peta benar-benar siap (dipakai
+        // sebelum loadArea memakai state.map), maksimal ~2 detik.
+        async function ensureMapReady(timeoutMs = 2000) {
+            const mapReady = () => state.map && state.map.getContainer && document.body.contains(state.map.getContainer());
+            if (mapReady()) return true;
+            initMap();
+            const start = Date.now();
+            while (!mapReady() && (Date.now() - start) < timeoutMs) {
+                await new Promise(r => setTimeout(r, 50));
+            }
+            return mapReady();
         }
 
         // ============================================================
@@ -1481,7 +1513,6 @@
             sorted.forEach(key => {
                 const opt = document.createElement('option');
                 opt.value = key;
-                // Format display name lebih rapi
                 let display = key.replace(/^3273_\d+_/, '').replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2');
                 opt.textContent = display;
                 select.appendChild(opt);
@@ -1496,7 +1527,16 @@
         // MAPS: LOAD GEOJSON
         // ============================================================
         async function loadArea(key) {
-            // Gunakan GEOJSON_BASE_URL yang sudah didefinisikan di atas
+            // FIX: gunakan ensureMapReady() alih-alih cek `if (!state.map)`
+            // saja. Fungsi ini menunggu sampai instance Leaflet benar-benar
+            // terpasang di DOM sebelum lanjut, sehingga .addTo(state.map)
+            // di bawah tidak akan pernah menerima null lagi.
+            const ready = await ensureMapReady();
+            if (!ready) {
+                showError('Peta tidak siap, coba buka Maps lagi.');
+                return;
+            }
+
             const url = GEOJSON_BASE_URL + key + '.geojson';
             console.log(`🔄 Memuat GeoJSON: ${url}`);
             try {
@@ -1511,6 +1551,12 @@
 
                 if (!geojson.features || geojson.features.length === 0) {
                     throw new Error('Tidak ada fitur ditemukan');
+                }
+
+                // Cek ulang tepat sebelum dipakai — jaga-jaga kalau map
+                // sempat hilang selama proses fetch di atas (mis. reload dsb).
+                if (!state.map) {
+                    throw new Error('Peta tidak tersedia lagi, silakan ulangi.');
                 }
 
                 // Hapus layer sebelumnya
@@ -1534,6 +1580,9 @@
                         }
                     }
                 }).addTo(state.map);
+
+                // FIX: pastikan ukuran peta sudah benar sebelum fitBounds
+                state.map.invalidateSize();
 
                 // Fit bounds
                 const bounds = state.geoJsonLayer.getBounds();
@@ -1585,7 +1634,9 @@
                 state.map.removeLayer(state.geoJsonLayer);
                 state.geoJsonLayer = null;
             }
-            state.map.setView([CONFIG.MAP_CENTER.lat, CONFIG.MAP_CENTER.lng], CONFIG.MAP_ZOOM);
+            if (state.map) {
+                state.map.setView([CONFIG.MAP_CENTER.lat, CONFIG.MAP_CENTER.lng], CONFIG.MAP_ZOOM);
+            }
             $('mapAreaSelect').value = '';
             updateMapInfo(0, 'Pilih area dari dropdown');
             showToast('Layer direset');
@@ -1645,8 +1696,16 @@
                 showPage(page);
                 if (page === 'pageDashboard' && state.currentUser) renderDashboard();
                 if (page === 'pageAdmin') renderAdminAeList();
-                if (page === 'pageMaps' && state.map) {
-                    setTimeout(() => state.map.invalidateSize(), 200);
+                if (page === 'pageMaps') {
+                    // FIX: initMap() sekarang dipanggil setelah showPage()
+                    // sehingga container #map sudah dalam kondisi display:block
+                    // saat Leaflet dibuat.
+                    if (!state.map) {
+                        initMap();
+                    }
+                    if (state.map) {
+                        setTimeout(() => state.map.invalidateSize(), 200);
+                    }
                 }
             });
         });
@@ -1710,19 +1769,25 @@
             });
             $('dailyDateInput').value = todayStr();
             $('adminDailyDateInput').value = todayStr();
+
+            // FIX: initMap() TIDAK lagi dipanggil otomatis di sini
+            // (dulu: setTimeout(initMap, 500)) karena #pageMaps masih
+            // display:none saat init() berjalan — itu penyebab utama
+            // state.map bisa jadi tidak valid saat dipakai di loadArea().
+            // Peta sekarang diinisialisasi tepat saat user membuka tab
+            // Maps (lihat listener bottom-nav di atas) atau otomatis
+            // lewat ensureMapReady() saat loadArea() dipanggil.
+
+            // Populate dropdown area tetap aman dipanggil lebih awal,
+            // karena tidak bergantung pada ukuran container.
+            populateAreaDropdown();
+
             showPage('pageLogin');
             console.log('🚀 XL Satu Sales Tracker siap! (GeoJSON)');
-            // Panggil populate dropdown di sini sebagai fallback jika map belum siap
-            setTimeout(populateAreaDropdown, 1000);
         }
 
         document.addEventListener('DOMContentLoaded', init);
         window.initMap = initMap;
-
-        // Inisialisasi map jika Leaflet sudah siap
-        if (document.readyState === 'complete' || document.readyState === 'interactive') {
-            setTimeout(initMap, 500);
-        }
     </script>
 </body>
 </html>
