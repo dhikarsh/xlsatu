@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        /* ===== GLOBAL (tetap sama, tidak diubah) ===== */
+        /* ===== GLOBAL (tetap sama) ===== */
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',system-ui,sans-serif !important; }
         :root {
             --xl-blue:#0F3B7A; --xl-blue-light:#1A5BB5; --xl-blue-dark:#0A2A55;
@@ -553,7 +553,6 @@
         // ============================================================
         // KONFIGURASI
         // ============================================================
-        // ⚠️ GANTI URL API INI DENGAN DEPLOYMENT APPS SCRIPT YANG VALID
         const CONFIG = {
             API_URL: 'https://script.google.com/macros/s/AKfycbzOHic0o0BNeRAhV5yZ6uzobKO7k69YBX3qNmccAlUM9vn-C0lb0eb0YtE1AMZU5Cs2nA/exec',
             ADMIN_PIN: '123456',
@@ -562,7 +561,7 @@
         };
 
         // ============================================================
-        // DAFTAR AREA - pastikan semua nama file geojson ada di sini
+        // DAFTAR AREA
         // ============================================================
         const AREA_KEYS = [
             "3273_100_aljabararea", "3273_101_uberarea", "3273_102_uberatasarea", "3273_103_pasirkunci",
@@ -603,7 +602,9 @@
             "3273_9_garuda_cibuntu_wrgmuncang"
         ];
 
-        // Pastikan tidak ada koma terakhir dan array valid
+        // BASE URL untuk GeoJSON (pastikan sesuai dengan struktur repo Anda)
+        const GEOJSON_BASE_URL = 'https://dhikarsh.github.io/maps-data/geojson/';
+
         console.log('Jumlah area:', AREA_KEYS.length);
 
         // ============================================================
@@ -679,7 +680,7 @@
         }
 
         // ============================================================
-        // API (dengan fallback jika gagal)
+        // API (sama)
         // ============================================================
         async function apiCall(action, payload = {}) {
             try {
@@ -703,7 +704,7 @@
         }
 
         // ============================================================
-        // DATA LOADER dengan fallback dummy
+        // DATA LOADER dengan fallback
         // ============================================================
         async function loadAeList() {
             const result = await fetchData('getAeList');
@@ -1115,7 +1116,7 @@
         }
 
         // ============================================================
-        // MONTH / YEAR SELECTOR
+        // MONTH / YEAR SELECTOR (sama)
         // ============================================================
         function initMonthYearSelectors() {
             const mSel = $('monthSelect'),
@@ -1235,7 +1236,7 @@
         }
 
         // ============================================================
-        // LOGOUT
+        // LOGOUT (sama)
         // ============================================================
         function handleLogout() {
             state.currentUser = null;
@@ -1254,7 +1255,7 @@
         }
 
         // ============================================================
-        // DAILY SUBMIT
+        // DAILY SUBMIT (sama)
         // ============================================================
         async function handleDailySubmit(e) {
             e.preventDefault();
@@ -1394,7 +1395,7 @@
         }
 
         // ============================================================
-        // NAVIGASI
+        // NAVIGASI (sama)
         // ============================================================
         function showPage(pageId) {
             $$('.page').forEach(p => {
@@ -1458,7 +1459,7 @@
         }
 
         // ============================================================
-        // POPULATE DROPDOWN AREA - DIPANGGIL SAAT MAP SIAP
+        // POPULATE DROPDOWN AREA
         // ============================================================
         function populateAreaDropdown() {
             const select = $('mapAreaSelect');
@@ -1487,7 +1488,6 @@
             });
 
             console.log(`✅ Dropdown berisi ${sorted.length} area.`);
-            // Tampilkan status di UI
             const statusEl = $('mapFilterStatus');
             if (statusEl) statusEl.textContent = `${sorted.length} area tersedia`;
         }
@@ -1496,7 +1496,9 @@
         // MAPS: LOAD GEOJSON
         // ============================================================
         async function loadArea(key) {
+            // Gunakan GEOJSON_BASE_URL yang sudah didefinisikan di atas
             const url = GEOJSON_BASE_URL + key + '.geojson';
+            console.log(`🔄 Memuat GeoJSON: ${url}`);
             try {
                 const overlay = $('mapLoadingOverlay');
                 overlay.classList.remove('hidden');
