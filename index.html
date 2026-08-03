@@ -39,7 +39,12 @@
         /* ===== MAPS PAGE (FULL SCREEN) ===== */
         #pageMaps { padding:0; position:fixed; top:0; left:0; right:0; bottom:0; z-index:5; background:#f0f0f0; display:none; animation:none; }
         #pageMaps.active { display:block; }
-        #map { width:100%; height:100%; background:#e5e5e5; }
+        /* FIX: position:relative + z-index eksplisit membuat #map
+           membentuk stacking context sendiri, sehingga panel internal
+           Leaflet (tile, kontrol zoom, popup — yang punya z-index
+           bawaan sampai 1000) tidak lagi bocor ke luar dan menimpa
+           filter bar / tombol kembali di atasnya. */
+        #map { width:100%; height:100%; background:#e5e5e5; position:relative; z-index:1; }
         .map-filter-bar { 
             position:absolute; 
             bottom:80px; 
@@ -1573,6 +1578,22 @@
                         opacity: 0.8,
                         fillColor: '#1A5BB5',
                         fillOpacity: 0.35
+                    },
+                    // FIX: `style` di atas HANYA berlaku untuk polygon/garis.
+                    // Fitur bertipe Point tidak akan tampil sama sekali kalau
+                    // tidak ada pointToLayer — defaultnya Leaflet memakai
+                    // ikon marker bawaan yang sering gagal termuat dari CDN
+                    // (gagal diam-diam, tanpa error di console). Di sini kita
+                    // render Point sebagai dot (circleMarker) yang tidak
+                    // butuh gambar eksternal sama sekali, jadi selalu tampil.
+                    pointToLayer: function(feature, latlng) {
+                        return L.circleMarker(latlng, {
+                            radius: 7,
+                            color: '#ffffff',
+                            weight: 2,
+                            fillColor: '#0F3B7A',
+                            fillOpacity: 0.95
+                        });
                     },
                     onEachFeature: function(feature, layer) {
                         if (feature.properties && feature.properties.name) {
