@@ -7,10 +7,6 @@
     <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- JSZip -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <!-- toGeoJSON untuk parsing KML yang robust -->
-    <script src="https://cdn.jsdelivr.net/npm/@mapbox/togeojson@0.16.0/togeojson.min.js"></script>
     <style>
         /* ===== GLOBAL ===== */
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',system-ui,sans-serif !important; }
@@ -44,7 +40,7 @@
         #pageMaps { padding:0; position:fixed; top:0; left:0; right:0; bottom:0; z-index:5; background:#f0f0f0; display:none; animation:none; }
         #pageMaps.active { display:block; }
         #map { width:100%; height:100%; background:#e5e5e5; }
-        /* ===== MAP FILTER BAR - DI BAWAH ===== */
+        /* ===== MAP FILTER BAR ===== */
         .map-filter-bar { 
             position:absolute; 
             bottom:80px; 
@@ -64,7 +60,6 @@
         .map-filter-bar .filter-btn { background:var(--xl-blue-grad); color:#fff; border:none; padding:8px 16px; border-radius:var(--xl-radius-sm); font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap; transition:var(--xl-transition); }
         .map-filter-bar .filter-btn:active { transform:scale(0.95); }
         .map-filter-bar .filter-btn.reset { background:var(--xl-muted); }
-        .map-filter-bar .filter-btn.load-all { background:#0F7B3A; }
         .map-filter-bar .filter-info { font-size:11px; color:var(--xl-muted); margin-top:6px; display:flex; justify-content:space-between; flex-wrap:wrap; }
         .map-filter-bar .filter-info .count { font-weight:700; color:var(--xl-blue); }
         #mapLoadingOverlay { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.85); z-index:10; pointer-events:none; transition:opacity 0.5s ease; }
@@ -528,7 +523,7 @@
             <div id="mapLoadingOverlay" class="hidden">
                 <div class="map-loading-box">
                     <div class="spinner-big"></div>
-                    <p>Memuat Peta &amp; Data KMZ</p>
+                    <p>Memuat Peta &amp; Data</p>
                     <div class="sub" id="mapLoadSub">Menginisialisasi...</div>
                     <div class="progress-bar">
                         <div class="fill" id="mapProgressFill"></div>
@@ -569,111 +564,49 @@
             MAP_ZOOM: 12,
         };
 
-        // --- KONFIGURASI KMZ ---
-        const KMZ_BASE_URL = 'https://dhikarsh.github.io/maps-data/';
-        const kmzUrls = {
-            "3273_100_aljabararea": "3273_100_aljabararea.kmz",
-            "3273_101_uberarea": "3273_101_uberarea.kmz",
-            "3273_102_uberatasarea": "3273_102_uberatasarea.kmz",
-            "3273_103_pasirkunci": "3273_103_pasirkunci.kmz",
-            "3273_104_cipadung_panyileukan": "3273_104_cipadung_panyileukan.kmz",
-            "3273_105_transmartcipadungarea": "3273_105_transmartcipadungarea.kmz",
-            "3273_106_panggrahan_cilengkrang": "3273_106_panggrahan_cilengkrang.kmz",
-            "3273_107_uinarea": "3273_107_uinarea.kmz",
-            "3273_108_cilengkrang_cipadung": "3273_108_cilengkrang_cipadung.kmz",
-            "3273_109_cisupuranarea": "3273_109_cisupuranarea.kmz",
-            "3273_10_sarijadi_sukajadi": "3273_10_sarijadi_sukajadi.kmz",
-            "3273_11_gerlong_sukarasa": "3273_11_gerlong_sukarasa.kmz",
-            "3273_12_caringin_babakanciparay": "3273_12_caringin_babakanciparay.kmz",
-            "3273_13_jatayu_rajawali": "3273_13_jatayu_rajawali.kmz",
-            "3273_14_cibolerang_kopoelok_cibaduyut": "3273_14_cibolerang_kopoelok_cibaduyut.kmz",
-            "3273_15_suryani_sukahaji_sukaasih": "3273_15_suryani_sukahaji_sukaasih.kmz",
-            "3273_16_husen_pajajaran_sukawarna_sukagalih": "3273_16_husen_pajajaran_sukawarna_sukagalih.kmz",
-            "3273_17_ciroyom_pagarsih_jamika": "3273_17_ciroyom_pagarsih_jamika.kmz",
-            "3273_18_gerlong_sukarasa_sukagalih": "3273_18_gerlong_sukarasa_sukagalih.kmz",
-            "3273_19_gatotraya_upi": "3273_19_gatotraya_upi.kmz",
-            "3273_1_gempolsari": "3273_1_gempolsari.kmz",
-            "3273_20_pagarsih_babakantarogong": "3273_20_pagarsih_babakantarogong.kmz",
-            "3273_21_husen_pasteur_pamoyanan": "3273_21_husen_pasteur_pamoyanan.kmz",
-            "3273_22_pasirkoja_sukasih_kopo": "3273_22_pasirkoja_sukasih_kopo.kmz",
-            "3273_23_leuwipanjang_cibaduyut": "3273_23_leuwipanjang_cibaduyut.kmz",
-            "3273_24_pasteur_paskal": "3273_24_pasteur_paskal.kmz",
-            "3273_25_arjuna_kebonjeruk": "3273_25_arjuna_kebonjeruk.kmz",
-            "3273_26_cipedes_sukajadi": "3273_26_cipedes_sukajadi.kmz",
-            "3273_27_kebonjeruk_astanaayar_babakanirigasi": "3273_27_kebonjeruk_astanaayar_babakanirigasi.kmz",
-            "3273_28_astanaanyar_leuwipanjang_babakanasih": "3273_28_astanaanyar_leuwipanjang_babakanasih.kmz",
-            "3273_29_isola_ledeng_setiabudi": "3273_29_isola_ledeng_setiabudi.kmz",
-            "3273_2_cigondewah_holis": "3273_2_cigondewah_holis.kmz",
-            "3273_30_cibaduyut_mekarwangi": "3273_30_cibaduyut_mekarwangi.kmz",
-            "3273_31_setiabudi_ciumbeluit_hegarmanah": "3273_31_setiabudi_ciumbeluit_hegarmanah.kmz",
-            "3273_32_otistaarea": "3273_32_otistaarea.kmz",
-            "3273_33_toha_muarasari_kebonlega": "3273_33_toha_muarasari_kebonlega.kmz",
-            "3273_34_paskal_sumurbdg_cicendo": "3273_34_paskal_sumurbdg_cicendo.kmz",
-            "3273_35_sederhana_cipaganti": "3273_35_sederhana_cipaganti.kmz",
-            "3273_36_lengkong_pungkur_tegallega": "3273_36_lengkong_pungkur_tegallega.kmz",
-            "3273_37_ciumbeluit_dago": "3273_37_ciumbeluit_dago.kmz",
-            "3273_38_regol_astanaanyar_kebonlega": "3273_38_regol_astanaanyar_kebonlega.kmz",
-            "3273_39_cipaganti_tamansari": "3273_39_cipaganti_tamansari.kmz",
-            "3273_3_pasteur_andir": "3273_3_pasteur_andir.kmz",
-            "3273_40_cipaku_ciumbeluit_dagoatas": "3273_40_cipaku_ciumbeluit_dagoatas.kmz",
-            "3273_41_tohaarea": "3273_41_tohaarea.kmz",
-            "3273_42_lengkong_asiaafrika_sumurbdg_kebonlega": "3273_42_lengkong_asiaafrika_sumurbdg_kebonlega.kmz",
-            "3273_43_dago_du_tubagus": "3273_43_dago_du_tubagus.kmz",
-            "3273_44_itb_du_gagak": "3273_44_itb_du_gagak.kmz",
-            "3273_45_ancol_bkr_bubat": "3273_45_ancol_bkr_bubat.kmz",
-            "3273_46_cijagra_pasirluyu_kembar": "3273_46_cijagra_pasirluyu_kembar.kmz",
-            "3273_47_karapitan_burangrang_lingkarsel": "3273_47_karapitan_burangrang_lingkarsel.kmz",
-            "3273_48_dagoatas_cibeunying_cigadung": "3273_48_dagoatas_cibeunying_cigadung.kmz",
-            "3273_49_citarum_cihapit_merdeka": "3273_49_citarum_cihapit_merdeka.kmz",
-            "3273_4_holis_cibolerang": "3273_4_holis_cibolerang.kmz",
-            "3273_50_batununggalindaharea": "3273_50_batununggalindaharea.kmz",
-            "3273_51_cigadungarea": "3273_51_cigadungarea.kmz",
-            "3273_52_bubat_karawitan": "3273_52_bubat_karawitan.kmz",
-            "3273_53_sukaluyu_cihaurgeulis": "3273_53_sukaluyu_cihaurgeulis.kmz",
-            "3273_54_kacapiring_laswi": "3273_54_kacapiring_laswi.kmz",
-            "3273_55_gumuruh_batununggal": "3273_55_gumuruh_batununggal.kmz",
-            "3273_56_kacapiring_cikaso_jl jakart": "3273_56_kacapiring_cikaso_jl%20jakart.kmz",
-            "3273_57_cikutraarea": "3273_57_cikutraarea.kmz",
-            "3273_58_batununggal_bubat": "3273_58_batununggal_bubat.kmz",
-            "3273_59_cikutra_bekamin": "3273_59_cikutra_bekamin.kmz",
-            "3273_5_cijerah": "3273_5_cijerah.kmz",
-            "3273_60_turangga_gumuruh_binong": "3273_60_turangga_gumuruh_binong.kmz",
-            "3273_61_gumuruh_kircon": "3273_61_gumuruh_kircon.kmz",
-            "3273_62_gatsu_kircon": "3273_62_gatsu_kircon.kmz",
-            "3273_63_cicadasarea": "3273_63_cicadasarea.kmz",
-            "3273_64_margacinta_logam": "3273_64_margacinta_logam.kmz",
-            "3273_65_kirconarea": "3273_65_kirconarea.kmz",
-            "3273_66_samsatbdg": "3273_66_samsatbdg.kmz",
-            "3273_67_bojongkoneng_cikutra_cimuncang": "3273_67_bojongkoneng_cikutra_cimuncang.kmz",
-            "3273_68_stasiunkirconarea": "3273_68_stasiunkirconarea.kmz",
-            "3273_69_terusanjkt_cicadas": "3273_69_terusanjkt_cicadas.kmz",
-            "3273_6_sukaraja_andir": "3273_6_sukaraja_andir.kmz",
-            "3273_70_ciwastra_cijawura": "3273_70_ciwastra_cijawura.kmz",
-            "3273_71_metroindaharea": "3273_71_metroindaharea.kmz",
-            "3273_72_kawaluyaanarea": "3273_72_kawaluyaanarea.kmz",
-            "3273_73_padasuka_sucore": "3273_73_padasuka_sucore.kmz",
-            "3273_74_antapaniarea": "3273_74_antapaniarea.kmz",
-            "3273_75_antapani_pratista": "3273_75_antapani_pratista.kmz",
-            "3273_76_rancabolangarea": "3273_76_rancabolangarea.kmz",
-            "3273_77_cikadut_tanjungsari": "3273_77_cikadut_tanjungsari.kmz",
-            "3273_78_rancasawoarea": "3273_78_rancasawoarea.kmz",
-            "3273_79_rancabolang_margahayu": "3273_79_rancabolang_margahayu.kmz",
-            "3273_7_pasirkoja_caringin": "3273_7_pasirkoja_caringin.kmz",
-            "3273_80_pasirlayung_jatihandap": "3273_80_pasirlayung_jatihandap.kmz",
-            "3273_81_puridagoarea": "3273_81_puridagoarea.kmz",
-            "3273_82_parakansaatarea": "3273_82_parakansaatarea.kmz",
-            "3273_83_grandsharonarea": "3273_83_grandsharonarea.kmz",
-            "3273_84_cipamokolon_cisarantenendah": "3273_84_cipamokolon_cisarantenendah.kmz",
-            "3273_85_bir_derwati_bodogol": "3273_85_bir_derwati_bodogol.kmz",
-            "3273_86_pasirimpunarea": "3273_86_pasirimpunarea.kmz",
-            "3273_87_sukamiskinarea": "3273_87_sukamiskinarea.kmz",
-            "3273_88_mandalajati_arcamanik": "3273_88_mandalajati_arcamanik.kmz",
-            "3273_89_ciskularea": "3273_89_ciskularea.kmz",
-            "3273_8_maleber_cijerah": "3273_8_maleber_cijerah.kmz",
-            "3273_99_panghegararea": "3273_99_panghegararea.kmz",
-            "3273_9_garuda_cibuntu_wrgmuncang": "3273_9_garuda_cibuntu_wrgmuncang.kmz"
-        };
-        const KMZ_KEYS = Object.keys(kmzUrls);
+        // ============================================================
+        // DAFTAR AREA (sama seperti sebelumnya, tapi tanpa ekstensi)
+        // ============================================================
+        const AREA_KEYS = [
+            "3273_100_aljabararea", "3273_101_uberarea", "3273_102_uberatasarea", "3273_103_pasirkunci",
+            "3273_104_cipadung_panyileukan", "3273_105_transmartcipadungarea", "3273_106_panggrahan_cilengkrang",
+            "3273_107_uinarea", "3273_108_cilengkrang_cipadung", "3273_109_cisupuranarea",
+            "3273_10_sarijadi_sukajadi", "3273_11_gerlong_sukarasa", "3273_12_caringin_babakanciparay",
+            "3273_13_jatayu_rajawali", "3273_14_cibolerang_kopoelok_cibaduyut",
+            "3273_15_suryani_sukahaji_sukaasih", "3273_16_husen_pajajaran_sukawarna_sukagalih",
+            "3273_17_ciroyom_pagarsih_jamika", "3273_18_gerlong_sukarasa_sukagalih", "3273_19_gatotraya_upi",
+            "3273_1_gempolsari", "3273_20_pagarsih_babakantarogong", "3273_21_husen_pasteur_pamoyanan",
+            "3273_22_pasirkoja_sukasih_kopo", "3273_23_leuwipanjang_cibaduyut", "3273_24_pasteur_paskal",
+            "3273_25_arjuna_kebonjeruk", "3273_26_cipedes_sukajadi", "3273_27_kebonjeruk_astanaayar_babakanirigasi",
+            "3273_28_astanaanyar_leuwipanjang_babakanasih", "3273_29_isola_ledeng_setiabudi",
+            "3273_2_cigondewah_holis", "3273_30_cibaduyut_mekarwangi",
+            "3273_31_setiabudi_ciumbeluit_hegarmanah", "3273_32_otistaarea", "3273_33_toha_muarasari_kebonlega",
+            "3273_34_paskal_sumurbdg_cicendo", "3273_35_sederhana_cipaganti",
+            "3273_36_lengkong_pungkur_tegallega", "3273_37_ciumbeluit_dago",
+            "3273_38_regol_astanaanyar_kebonlega", "3273_39_cipaganti_tamansari", "3273_3_pasteur_andir",
+            "3273_40_cipaku_ciumbeluit_dagoatas", "3273_41_tohaarea", "3273_42_lengkong_asiaafrika_sumurbdg_kebonlega",
+            "3273_43_dago_du_tubagus", "3273_44_itb_du_gagak", "3273_45_ancol_bkr_bubat",
+            "3273_46_cijagra_pasirluyu_kembar", "3273_47_karapitan_burangrang_lingkarsel",
+            "3273_48_dagoatas_cibeunying_cigadung", "3273_49_citarum_cihapit_merdeka", "3273_4_holis_cibolerang",
+            "3273_50_batununggalindaharea", "3273_51_cigadungarea", "3273_52_bubat_karawitan",
+            "3273_53_sukaluyu_cihaurgeulis", "3273_54_kacapiring_laswi", "3273_55_gumuruh_batununggal",
+            "3273_56_kacapiring_cikaso_jl jakart", "3273_57_cikutraarea", "3273_58_batununggal_bubat",
+            "3273_59_cikutra_bekamin", "3273_5_cijerah", "3273_60_turangga_gumuruh_binong",
+            "3273_61_gumuruh_kircon", "3273_62_gatsu_kircon", "3273_63_cicadasarea",
+            "3273_64_margacinta_logam", "3273_65_kirconarea", "3273_66_samsatbdg",
+            "3273_67_bojongkoneng_cikutra_cimuncang", "3273_68_stasiunkirconarea", "3273_69_terusanjkt_cicadas",
+            "3273_6_sukaraja_andir", "3273_70_ciwastra_cijawura", "3273_71_metroindaharea",
+            "3273_72_kawaluyaanarea", "3273_73_padasuka_sucore", "3273_74_antapaniarea",
+            "3273_75_antapani_pratista", "3273_76_rancabolangarea", "3273_77_cikadut_tanjungsari",
+            "3273_78_rancasawoarea", "3273_79_rancabolang_margahayu", "3273_7_pasirkoja_caringin",
+            "3273_80_pasirlayung_jatihandap", "3273_81_puridagoarea", "3273_82_parakansaatarea",
+            "3273_83_grandsharonarea", "3273_84_cipamokolon_cisarantenendah", "3273_85_bir_derwati_bodogol",
+            "3273_86_pasirimpunarea", "3273_87_sukamiskinarea", "3273_88_mandalajati_arcamanik",
+            "3273_89_ciskularea", "3273_8_maleber_cijerah", "3273_99_panghegararea",
+            "3273_9_garuda_cibuntu_wrgmuncang"
+        ];
+
+        const GEOJSON_BASE_URL = 'https://dhikarsh.github.io/maps-data/geojson/';
 
         // ============================================================
         // STATE
@@ -688,7 +621,7 @@
             editedTargets: {},
             targetSearchQuery: '',
             map: null,
-            geoJsonLayers: [],
+            geoJsonLayer: null,
             isLoading: false,
         };
 
@@ -748,7 +681,7 @@
         }
 
         // ============================================================
-        // API
+        // API (Sama seperti sebelumnya)
         // ============================================================
         async function apiCall(action, payload = {}) {
             try {
@@ -784,7 +717,7 @@
         }
 
         // ============================================================
-        // RENDER: DROPDOWN AE
+        // RENDER: DROPDOWN AE (Sama seperti sebelumnya)
         // ============================================================
         function renderAeDropdowns() {
             const sel = $('loginAeSelect');
@@ -825,7 +758,7 @@
         }
 
         // ============================================================
-        // RENDER: ADMIN DAFTAR AE
+        // RENDER: ADMIN DAFTAR AE (Sama)
         // ============================================================
         function renderAdminAeList() {
             const container = $('adminAeList');
@@ -888,7 +821,7 @@
         }
 
         // ============================================================
-        // RENDER: DASHBOARD
+        // RENDER: DASHBOARD (Sama)
         // ============================================================
         function renderDashboard() {
             const user = state.currentUser;
@@ -960,7 +893,7 @@
         }
 
         // ============================================================
-        // RENDER: TRACKER
+        // RENDER: TRACKER (Sama)
         // ============================================================
         function renderTracker(month, year) {
             const user = state.currentUser;
@@ -1077,7 +1010,7 @@
         }
 
         // ============================================================
-        // RENDER: RINGKASAN TARGET TIM
+        // RENDER: RINGKASAN TARGET TIM (Sama)
         // ============================================================
         function targetCellsHtml(name, fieldKey, target, actual) {
             const pct = target > 0 ? Math.round((actual / target) * 100) : 0;
@@ -1179,7 +1112,7 @@
         }
 
         // ============================================================
-        // MONTH / YEAR SELECTOR
+        // MONTH / YEAR SELECTOR (Sama)
         // ============================================================
         function initMonthYearSelectors() {
             const mSel = $('monthSelect'),
@@ -1209,7 +1142,7 @@
         }
 
         // ============================================================
-        // REFRESH SEMUA DATA
+        // REFRESH SEMUA DATA (Sama)
         // ============================================================
         async function refreshAllData() {
             const user = state.currentUser;
@@ -1239,7 +1172,7 @@
         }
 
         // ============================================================
-        // LOGIN HANDLER
+        // LOGIN HANDLER (Sama)
         // ============================================================
         async function handleLogin(e) {
             e.preventDefault();
@@ -1297,7 +1230,7 @@
         }
 
         // ============================================================
-        // LOGOUT
+        // LOGOUT (Sama)
         // ============================================================
         function handleLogout() {
             state.currentUser = null;
@@ -1316,7 +1249,7 @@
         }
 
         // ============================================================
-        // DAILY SUBMIT
+        // DAILY SUBMIT (Sama)
         // ============================================================
         async function handleDailySubmit(e) {
             e.preventDefault();
@@ -1456,7 +1389,7 @@
         }
 
         // ============================================================
-        // NAVIGASI
+        // NAVIGASI (Sama)
         // ============================================================
         function showPage(pageId) {
             $$('.page').forEach(p => {
@@ -1482,7 +1415,7 @@
         }
 
         // ============================================================
-        // MAPS: INISIALISASI PETA (Leaflet)
+        // MAPS: INISIALISASI PETA (LEAFLET + GEOJSON)
         // ============================================================
         let mapInitDone = false;
 
@@ -1511,17 +1444,13 @@
             const overlay = $('mapLoadingOverlay');
             if (overlay) overlay.classList.add('hidden');
             updateMapInfo(0, 'Pilih area dari dropdown');
-            console.log('✅ Leaflet map siap');
+            console.log('✅ Leaflet map siap dengan GeoJSON!');
         }
 
         function populateAreaDropdown() {
             const select = $('mapAreaSelect');
             if (!select) return;
-            const sorted = KMZ_KEYS.slice().sort((a, b) => {
-                const nameA = a.split('_').slice(2).join('_') || a;
-                const nameB = b.split('_').slice(2).join('_') || b;
-                return nameA.localeCompare(nameB);
-            });
+            const sorted = AREA_KEYS.slice().sort();
             select.innerHTML = '<option value="">-- Pilih Area --</option>';
             sorted.forEach(key => {
                 const opt = document.createElement('option');
@@ -1537,54 +1466,32 @@
         }
 
         // ============================================================
-        // MAPS: LOAD KMZ menggunakan toGeoJSON (solusi paling robust)
+        // MAPS: LOAD GEOJSON (CORE!)
         // ============================================================
-        async function loadKmzWithToGeoJSON(key) {
-            const url = KMZ_BASE_URL + kmzUrls[key];
+        async function loadArea(key) {
+            const url = GEOJSON_BASE_URL + key + '.geojson';
             try {
                 const overlay = $('mapLoadingOverlay');
                 overlay.classList.remove('hidden');
                 updateLoadingProgress(0, 1, `Memuat ${key}...`);
                 updateMapInfo(0, `Memuat ${key}...`);
 
-                // 1. Fetch file KMZ
                 const response = await fetch(url);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const arrayBuffer = await response.arrayBuffer();
+                const geojson = await response.json();
 
-                // 2. Ekstrak KML dari KMZ
-                const zip = await JSZip.loadAsync(arrayBuffer);
-                let kmlFile = null;
-                for (let name in zip.files) {
-                    if (name.toLowerCase().endsWith('.kml')) {
-                        kmlFile = zip.files[name];
-                        break;
-                    }
-                }
-                if (!kmlFile) throw new Error('Tidak ditemukan file KML dalam KMZ');
-                const kmlText = await kmlFile.async('text');
-
-                // 3. Parse KML dengan DOMParser
-                const parser = new DOMParser();
-                const kmlDoc = parser.parseFromString(kmlText, 'text/xml');
-                const errorNode = kmlDoc.querySelector('parsererror');
-                if (errorNode) throw new Error('KML parsing error');
-
-                // 4. Konversi ke GeoJSON menggunakan toGeoJSON
-                if (typeof toGeoJSON === 'undefined' || typeof toGeoJSON.kml !== 'function') {
-                    throw new Error('Library toGeoJSON tidak tersedia');
-                }
-                const geojson = toGeoJSON.kml(kmlDoc);
                 if (!geojson.features || geojson.features.length === 0) {
-                    throw new Error('Tidak ada fitur ditemukan di KML');
+                    throw new Error('Tidak ada fitur ditemukan');
                 }
 
-                // 5. Hapus layer sebelumnya
-                state.geoJsonLayers.forEach(layer => state.map.removeLayer(layer));
-                state.geoJsonLayers = [];
+                // Hapus layer sebelumnya
+                if (state.geoJsonLayer) {
+                    state.map.removeLayer(state.geoJsonLayer);
+                    state.geoJsonLayer = null;
+                }
 
-                // 6. Tampilkan di peta
-                const layer = L.geoJSON(geojson, {
+                // Tambahkan layer baru
+                state.geoJsonLayer = L.geoJSON(geojson, {
                     style: {
                         color: '#0F3B7A',
                         weight: 2,
@@ -1598,22 +1505,17 @@
                         }
                     }
                 }).addTo(state.map);
-                state.geoJsonLayers.push(layer);
 
-                // 7. Fit bounds
-                try {
-                    const bounds = layer.getBounds();
-                    if (bounds.isValid()) {
-                        state.map.fitBounds(bounds, { padding: [50, 50] });
-                    }
-                } catch (e) {
-                    console.warn('Tidak bisa fit bounds');
+                // Fit bounds
+                const bounds = state.geoJsonLayer.getBounds();
+                if (bounds.isValid()) {
+                    state.map.fitBounds(bounds, { padding: [50, 50] });
                 }
 
                 updateMapInfo(1, `Menampilkan ${key}`);
                 showSuccess(`Area ${key} dimuat!`);
             } catch (err) {
-                console.error('Error loading KMZ:', err);
+                console.error('Error loading GeoJSON:', err);
                 showError(`Gagal memuat area: ${err.message}`);
                 updateMapInfo(0, `Gagal: ${err.message}`);
                 throw err;
@@ -1639,7 +1541,7 @@
                 return;
             }
             state.isLoading = true;
-            loadKmzWithToGeoJSON(key);
+            loadArea(key);
         }
 
         // ============================================================
@@ -1650,8 +1552,10 @@
                 showError('Sedang memuat, tunggu sebentar');
                 return;
             }
-            state.geoJsonLayers.forEach(layer => state.map.removeLayer(layer));
-            state.geoJsonLayers = [];
+            if (state.geoJsonLayer) {
+                state.map.removeLayer(state.geoJsonLayer);
+                state.geoJsonLayer = null;
+            }
             state.map.setView([CONFIG.MAP_CENTER.lat, CONFIG.MAP_CENTER.lng], CONFIG.MAP_ZOOM);
             $('mapAreaSelect').value = '';
             updateMapInfo(0, 'Pilih area dari dropdown');
@@ -1777,7 +1681,7 @@
             $('dailyDateInput').value = todayStr();
             $('adminDailyDateInput').value = todayStr();
             showPage('pageLogin');
-            console.log('🚀 XL Satu Sales Tracker siap!');
+            console.log('🚀 XL Satu Sales Tracker siap! (GeoJSON)');
         }
 
         document.addEventListener('DOMContentLoaded', init);
