@@ -4,8 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>XL Satu - Sales Tracker</title>
-    <!-- Google Maps API -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB8lQcLiGUDoMxyI1ctIEelCvgBUzAKqdU&libraries=geometry&callback=initMap" async defer></script>
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet KML plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-plugins/3.0.2/layer/vector/KML.js"></script>
     <!-- JSZip untuk ekstrak KMZ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
@@ -37,9 +40,11 @@
         .page { display:none; padding:16px 16px 24px; animation:fadeUp 0.35s ease; }
         .page.active { display:block; }
         @keyframes fadeUp { from { opacity:0; transform:translateY(20px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+        /* ===== MAPS PAGE (FULL SCREEN) ===== */
         #pageMaps { padding:0; position:fixed; top:0; left:0; right:0; bottom:0; z-index:5; background:#f0f0f0; display:none; animation:none; }
         #pageMaps.active { display:block; }
         #map { width:100%; height:100%; background:#e5e5e5; }
+        /* ===== MAP FILTER BAR ===== */
         .map-filter-bar { position:absolute; top:16px; left:16px; z-index:20; background:rgba(255,255,255,0.92); backdrop-filter:blur(12px); border-radius:var(--xl-radius); padding:14px 18px; box-shadow:0 4px 24px rgba(0,0,0,0.12); max-width:380px; width:calc(100% - 32px); border:1px solid rgba(255,255,255,0.3); }
         .map-filter-bar .filter-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
         .map-filter-bar select { flex:1; padding:8px 14px; border:1.5px solid var(--xl-border); border-radius:var(--xl-radius-sm); font-size:13px; font-weight:500; background:#fff; outline:none; color:var(--xl-dark); min-width:120px; appearance:auto; }
@@ -60,12 +65,7 @@
         .map-loading-box .progress-text { font-size:12px; font-weight:600; color:var(--xl-muted); margin-top:6px; }
         .map-back-btn { position:absolute; top:16px; right:16px; z-index:20; background:rgba(255,255,255,0.90); backdrop-filter:blur(8px); border:none; border-radius:40px; padding:8px 16px; font-weight:700; font-size:13px; color:var(--xl-blue); box-shadow:0 4px 16px rgba(0,0,0,0.10); cursor:pointer; display:flex; align-items:center; gap:6px; transition:var(--xl-transition); }
         .map-back-btn:hover { background:#fff; box-shadow:0 6px 24px rgba(0,0,0,0.15); }
-        .map-legend { position:absolute; bottom:30px; right:16px; z-index:20; background:rgba(255,255,255,0.92); backdrop-filter:blur(8px); border-radius:var(--xl-radius-sm); padding:12px 16px; box-shadow:0 4px 20px rgba(0,0,0,0.08); max-width:200px; font-size:11px; border:1px solid rgba(255,255,255,0.3); }
-        .map-legend .legend-title { font-weight:700; color:var(--xl-dark); font-size:11px; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
-        .map-legend .legend-item { display:flex; align-items:center; gap:8px; padding:2px 0; color:var(--xl-muted); }
-        .map-legend .legend-item .dot { width:10px; height:10px; border-radius:50%; background:var(--xl-blue); flex-shrink:0; }
-        .map-legend .legend-item .line { width:20px; height:3px; border-radius:4px; background:var(--xl-blue-light); flex-shrink:0; }
-        .map-legend .legend-item .poly { width:14px; height:14px; border-radius:3px; background:rgba(26,91,181,0.25); border:2px solid var(--xl-blue-light); flex-shrink:0; }
+        /* ===== CARDS (dashboard) ===== */
         .card { background:#fff; border-radius:var(--xl-radius); padding:18px 20px; margin-bottom:16px; box-shadow:var(--xl-shadow); border:1px solid var(--xl-border); transition:var(--xl-transition); }
         .card:hover { box-shadow:0 12px 40px rgba(15,59,122,0.10); }
         .card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
@@ -137,6 +137,7 @@
         .ts-gap-ok { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:7px; background:#E3F6EA; color:#0F7B3A; font-weight:800; font-size:12px; margin:0 auto; }
         .target-table tfoot td { padding:10px 6px; font-weight:800; background:var(--xl-blue-soft); color:var(--xl-blue); border-top:2px solid var(--xl-border); text-align:center; }
         .target-table tfoot .name-cell { text-align:left; background:var(--xl-blue-soft); color:var(--xl-blue); }
+        /* ===== LOGIN ===== */
         .login-page { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:85vh; padding:20px 16px 30px; background:var(--neu-bg); }
         .login-card { width:100%; max-width:380px; background:var(--neu-bg); border-radius:var(--neu-radius); padding:36px 28px 32px; box-shadow:12px 12px 24px var(--neu-shadow-dark), -12px -12px 24px var(--neu-shadow-light); }
         .login-card .login-logo-wrap { display:flex; justify-content:center; margin-bottom:20px; }
@@ -194,7 +195,6 @@
             .map-filter-bar { top:10px; left:10px; padding:12px 14px; max-width:calc(100% - 20px); }
             .map-filter-bar select { min-width:80px; font-size:12px; }
             .map-back-btn { top:10px; right:10px; font-size:11px; padding:6px 12px; }
-            .map-legend { bottom:80px; right:12px; padding:10px 12px; font-size:10px; max-width:160px; }
         }
         @media (max-width:360px) {
             .tracker-table { min-width:320px; font-size:9px; }
@@ -523,16 +523,6 @@
                     <div class="progress-text" id="mapProgressText">0 / 0</div>
                 </div>
             </div>
-            <!-- Legend -->
-            <div class="map-legend" id="mapLegend">
-                <div class="legend-title">📍 Legenda</div>
-                <div class="legend-item"><span class="dot"></span> Titik (Point)</div>
-                <div class="legend-item"><span class="line"></span> Garis (Line)</div>
-                <div class="legend-item"><span class="poly"></span> Area (Polygon)</div>
-                <div style="font-size:9px;color:var(--xl-muted);margin-top:4px;border-top:1px solid var(--xl-gray-light);padding-top:4px;">
-                    <span id="mapLayerCount">0</span> layer ditampilkan
-                </div>
-            </div>
         </div>
         <!-- TOAST -->
         <div class="toast" id="toast"></div>
@@ -559,7 +549,6 @@
         // ============================================================
         // KONFIGURASI
         // ============================================================
-        // PERHATIAN: Ganti URL_API dengan deployment Apps Script Anda yang benar
         const CONFIG = {
             API_URL: 'https://script.google.com/macros/s/AKfycbzOHic0o0BNeRAhV5yZ6uzobKO7k69YBX3qNmccAlUM9vn-C0lb0eb0YtE1AMZU5Cs2nA/exec',
             ADMIN_PIN: '123456',
@@ -686,7 +675,7 @@
             editedTargets: {},
             targetSearchQuery: '',
             map: null,
-            mapDataLoaded: false,
+            mapLayers: [],
             isLoading: false,
         };
 
@@ -1469,7 +1458,7 @@
                 if (target.id === 'pageMaps') {
                     target.style.display = 'block';
                     if (state.map) {
-                        setTimeout(() => google.maps.event.trigger(state.map, 'resize'), 100);
+                        setTimeout(() => state.map.invalidateSize(), 200);
                     }
                 }
             }
@@ -1480,32 +1469,37 @@
         }
 
         // ============================================================
-        // MAPS: INISIALISASI PETA
+        // MAPS: INISIALISASI PETA (Leaflet)
         // ============================================================
         let mapInitDone = false;
 
-        // Fungsi initMap global
-        window.initMap = function() {
+        function initMap() {
             if (mapInitDone) return;
             mapInitDone = true;
-            console.log('🗺️ Inisialisasi Google Maps...');
+            console.log('🗺️ Inisialisasi Leaflet...');
+
             const mapEl = document.getElementById('map');
             if (!mapEl) return;
-            const map = new google.maps.Map(mapEl, {
-                center: CONFIG.MAP_CENTER,
+
+            const map = L.map(mapEl, {
+                center: [CONFIG.MAP_CENTER.lat, CONFIG.MAP_CENTER.lng],
                 zoom: CONFIG.MAP_ZOOM,
-                mapTypeId: 'roadmap',
-                gestureHandling: 'greedy',
                 zoomControl: true,
-                streetViewControl: false,
-                fullscreenControl: true,
             });
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap',
+            }).addTo(map);
+
             state.map = map;
             populateAreaDropdown();
+
             const overlay = $('mapLoadingOverlay');
             if (overlay) overlay.classList.add('hidden');
             updateMapInfo(0, 'Pilih area dari dropdown');
-        };
+            console.log('✅ Leaflet map siap');
+        }
 
         function populateAreaDropdown() {
             const select = $('mapAreaSelect');
@@ -1530,59 +1524,61 @@
         }
 
         // ============================================================
-        // MAPS: LOAD KMZ dengan fetch + google.maps.KmlLayer (fallback)
+        // MAPS: LOAD KMZ dengan fetch + JSZip + Leaflet KML
         // ============================================================
-        async function loadKmz(key) {
+        async function loadKmzWithFetch(key) {
             const url = KMZ_BASE_URL + kmzUrls[key];
             try {
-                // Coba dengan KmlLayer (native, paling mudah)
-                state.map.data.forEach(f => state.map.data.remove(f));
+                const overlay = $('mapLoadingOverlay');
+                overlay.classList.remove('hidden');
+                updateLoadingProgress(0, 1, `Memuat ${key}...`);
+                updateMapInfo(0, `Memuat ${key}...`);
 
-                const layer = new google.maps.KmlLayer({
-                    url: url,
-                    map: state.map,
-                    preserveViewport: false,
-                    suppressInfoWindows: true,
-                });
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const arrayBuffer = await response.arrayBuffer();
 
-                return new Promise((resolve, reject) => {
-                    let resolved = false;
-                    const timeout = setTimeout(() => {
-                        if (!resolved) {
-                            resolved = true;
-                            reject(new Error('Timeout loading KMZ'));
-                        }
-                    }, 15000);
+                const zip = await JSZip.loadAsync(arrayBuffer);
+                let kmlFile = null;
+                for (let name in zip.files) {
+                    if (name.toLowerCase().endsWith('.kml')) {
+                        kmlFile = zip.files[name];
+                        break;
+                    }
+                }
+                if (!kmlFile) throw new Error('Tidak ditemukan file KML dalam KMZ');
+                const kmlText = await kmlFile.async('text');
 
-                    layer.addListener('status_changed', function() {
-                        if (resolved) return;
-                        const status = this.getStatus();
-                        if (status === 'OK') {
-                            resolved = true;
-                            clearTimeout(timeout);
-                            try {
-                                const meta = this.getMetadata();
-                                if (meta && meta.bounds) {
-                                    state.map.fitBounds(meta.bounds);
-                                    state.map.panToBounds(meta.bounds, { top: 60, bottom: 60, left: 60, right: 60 });
-                                }
-                            } catch (e) {}
-                            updateMapInfo(1, `Menampilkan ${key}`);
-                            showSuccess(`Area ${key} dimuat!`);
-                            state.mapDataLoaded = true;
-                            resolve();
-                        } else if (status === 'ERROR') {
-                            resolved = true;
-                            clearTimeout(timeout);
-                            reject(new Error(`KmlLayer error: ${this.getStatus()}`));
-                        }
-                    });
-                });
+                // Hapus layer sebelumnya
+                state.mapLayers.forEach(layer => state.map.removeLayer(layer));
+                state.mapLayers = [];
+
+                // Gunakan leaflet-kml plugin
+                const kmlLayer = L.KML(kmlText);
+                kmlLayer.addTo(state.map);
+                state.mapLayers.push(kmlLayer);
+
+                // Fit bounds
+                try {
+                    const bounds = kmlLayer.getBounds();
+                    if (bounds.isValid()) {
+                        state.map.fitBounds(bounds, { padding: [50, 50] });
+                    }
+                } catch (e) {
+                    console.warn('Tidak bisa fit bounds');
+                }
+
+                updateMapInfo(1, `Menampilkan ${key}`);
+                showSuccess(`Area ${key} dimuat!`);
             } catch (err) {
                 console.error('Error loading KMZ:', err);
                 showError(`Gagal memuat area: ${err.message}`);
                 updateMapInfo(0, `Gagal: ${err.message}`);
                 throw err;
+            } finally {
+                const overlay = $('mapLoadingOverlay');
+                overlay.classList.add('hidden');
+                state.isLoading = false;
             }
         }
 
@@ -1600,20 +1596,8 @@
                 showError('Pilih area terlebih dahulu');
                 return;
             }
-            const overlay = $('mapLoadingOverlay');
-            overlay.classList.remove('hidden');
-            updateLoadingProgress(0, 1, `Memuat ${key}...`);
-            updateMapInfo(0, `Memuat ${key}...`);
             state.isLoading = true;
-
-            // Hapus data sebelumnya
-            state.map.data.forEach(f => state.map.data.remove(f));
-
-            loadKmz(key)
-                .finally(() => {
-                    overlay.classList.add('hidden');
-                    state.isLoading = false;
-                });
+            loadKmzWithFetch(key);
         }
 
         // ============================================================
@@ -1624,13 +1608,12 @@
                 showError('Sedang memuat, tunggu sebentar');
                 return;
             }
-            state.map.data.forEach(f => state.map.data.remove(f));
-            state.map.setCenter(CONFIG.MAP_CENTER);
-            state.map.setZoom(CONFIG.MAP_ZOOM);
+            state.mapLayers.forEach(layer => state.map.removeLayer(layer));
+            state.mapLayers = [];
+            state.map.setView([CONFIG.MAP_CENTER.lat, CONFIG.MAP_CENTER.lng], CONFIG.MAP_ZOOM);
             $('mapAreaSelect').value = '';
             updateMapInfo(0, 'Pilih area dari dropdown');
             showToast('Layer direset');
-            state.mapDataLoaded = false;
         }
 
         // ============================================================
@@ -1688,7 +1671,7 @@
                 if (page === 'pageDashboard' && state.currentUser) renderDashboard();
                 if (page === 'pageAdmin') renderAdminAeList();
                 if (page === 'pageMaps' && state.map) {
-                    setTimeout(() => google.maps.event.trigger(state.map, 'resize'), 200);
+                    setTimeout(() => state.map.invalidateSize(), 200);
                 }
             });
         });
@@ -1755,7 +1738,14 @@
             console.log('🚀 XL Satu Sales Tracker siap!');
         }
 
+        // Jalankan init setelah DOM siap
         document.addEventListener('DOMContentLoaded', init);
+        // Inisialisasi map setelah Leaflet dan JSZip siap
+        window.initMap = initMap;
+        // Jika Leaflet sudah siap, langsung inisialisasi
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            setTimeout(initMap, 500);
+        }
     </script>
 </body>
 </html>
