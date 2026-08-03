@@ -7,8 +7,6 @@
     <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Leaflet KML plugin -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-plugins/3.0.2/layer/vector/KML.js"></script>
     <!-- JSZip -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
@@ -44,10 +42,10 @@
         #pageMaps { padding:0; position:fixed; top:0; left:0; right:0; bottom:0; z-index:5; background:#f0f0f0; display:none; animation:none; }
         #pageMaps.active { display:block; }
         #map { width:100%; height:100%; background:#e5e5e5; }
-        /* ===== MAP FILTER BAR ===== */
+        /* ===== MAP FILTER BAR - DIPOSISIKAN DI BAWAH ===== */
         .map-filter-bar { 
             position:absolute; 
-            top:80px;  /* lebih turun agar tidak tertutup header */
+            bottom:80px;  /* di atas bottom nav */
             left:12px; 
             right:12px; 
             z-index:20; 
@@ -64,6 +62,7 @@
         .map-filter-bar .filter-btn { background:var(--xl-blue-grad); color:#fff; border:none; padding:8px 16px; border-radius:var(--xl-radius-sm); font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap; transition:var(--xl-transition); }
         .map-filter-bar .filter-btn:active { transform:scale(0.95); }
         .map-filter-bar .filter-btn.reset { background:var(--xl-muted); }
+        .map-filter-bar .filter-btn.load-all { background:#0F7B3A; }
         .map-filter-bar .filter-info { font-size:11px; color:var(--xl-muted); margin-top:6px; display:flex; justify-content:space-between; flex-wrap:wrap; }
         .map-filter-bar .filter-info .count { font-weight:700; color:var(--xl-blue); }
         #mapLoadingOverlay { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.85); z-index:10; pointer-events:none; transition:opacity 0.5s ease; }
@@ -204,7 +203,7 @@
             .target-table input.target-input { width:42px; font-size:11px; padding:5px 2px; }
             .ts-actions { width:100%; justify-content:flex-end; }
             .ts-meta { width:100%; }
-            .map-filter-bar { top:75px; left:8px; right:8px; padding:10px 12px; }
+            .map-filter-bar { bottom:70px; left:8px; right:8px; padding:10px 12px; }
             .map-filter-bar select { min-width:70px; font-size:12px; }
             .map-back-btn { top:8px; right:10px; font-size:11px; padding:6px 12px; }
         }
@@ -505,7 +504,7 @@
         <!-- ===== MAPS PAGE (FULL SCREEN) ===== -->
         <div class="page" id="pageMaps">
             <div id="map"></div>
-            <!-- Filter Bar -->
+            <!-- Filter Bar di BOTTOM -->
             <div class="map-filter-bar">
                 <div class="filter-row">
                     <select id="mapAreaSelect">
@@ -687,7 +686,7 @@
             editedTargets: {},
             targetSearchQuery: '',
             map: null,
-            geoJsonLayer: null,
+            geoJsonLayers: [],
             isLoading: false,
         };
 
@@ -1505,8 +1504,6 @@
             }).addTo(map);
 
             state.map = map;
-            // Buat layer kosong untuk menampung data
-            state.geoJsonLayer = L.geoJSON().addTo(map);
             populateAreaDropdown();
 
             const overlay = $('mapLoadingOverlay');
@@ -1538,9 +1535,9 @@
         }
 
         // ============================================================
-        // MAPS: LOAD KMZ menggunakan L.KML (plugin)
+        // MAPS: LOAD KMZ manual parsing KML ke GeoJSON
         // ============================================================
-        async function loadKmzWithKml(key) {
+        async function loadKmzWithFetch(key) {
             const url = KMZ_BASE_URL + kmzUrls[key];
             try {
                 const overlay = $('mapLoadingOverlay');
@@ -1548,12 +1545,10 @@
                 updateLoadingProgress(0, 1, `Memuat ${key}...`);
                 updateMapInfo(0, `Memuat ${key}...`);
 
-                // Fetch file KMZ sebagai binary
                 const response = await fetch(url);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const arrayBuffer = await response.arrayBuffer();
 
-                // Ekstrak KML dari KMZ menggunakan JSZip
                 const zip = await JSZip.loadAsync(arrayBuffer);
                 let kmlFile = null;
                 for (let name in zip.files) {
@@ -1565,20 +1560,31 @@
                 if (!kmlFile) throw new Error('Tidak ditemukan file KML dalam KMZ');
                 const kmlText = await kmlFile.async('text');
 
-                // Hapus layer sebelumnya
-                state.geoJsonLayer.clearLayers();
+                // Parse KML ke GeoJSON
+                const geojson = parseKmlToGeoJson(kmlText);
+                if (!geojson.features || geojson.features.length === 0) {
+                    throw new Error('Tidak ada fitur ditemukan di KML');
+                }
 
-                // Gunakan L.KML dari plugin
-                // Plugin ini menerima string KML dan mengembalikan layer
-                const kmlLayer = L.KML(kmlText);
-                // Karena L.KML kadang tidak otomatis masuk ke peta, kita tambahkan manual
-                kmlLayer.addTo(state.map);
-                // Simpan referensi agar bisa dihapus nanti
-                state.geoJsonLayer = kmlLayer;
+                // Hapus layer sebelumnya
+                state.geoJsonLayers.forEach(layer => state.map.removeLayer(layer));
+                state.geoJsonLayers = [];
+
+                // Buat layer baru
+                const layer = L.geoJSON(geojson, {
+                    style: {
+                        color: '#0F3B7A',
+                        weight: 2,
+                        opacity: 0.8,
+                        fillColor: '#1A5BB5',
+                        fillOpacity: 0.35
+                    }
+                }).addTo(state.map);
+                state.geoJsonLayers.push(layer);
 
                 // Fit bounds
                 try {
-                    const bounds = kmlLayer.getBounds();
+                    const bounds = layer.getBounds();
                     if (bounds.isValid()) {
                         state.map.fitBounds(bounds, { padding: [50, 50] });
                     }
@@ -1601,6 +1607,73 @@
         }
 
         // ============================================================
+        // MAPS: Parse KML ke GeoJSON (manual sederhana)
+        // ============================================================
+        function parseKmlToGeoJson(kmlText) {
+            const parser = new DOMParser();
+            const xml = parser.parseFromString(kmlText, 'text/xml');
+            const errorNode = xml.querySelector('parsererror');
+            if (errorNode) throw new Error('KML parsing error');
+
+            const features = [];
+            const placemarks = xml.getElementsByTagName('Placemark');
+            for (let pm of placemarks) {
+                const name = pm.getElementsByTagName('name')[0]?.textContent || '';
+                const geomEl = pm.getElementsByTagName('Polygon')[0] ||
+                    pm.getElementsByTagName('LineString')[0] ||
+                    pm.getElementsByTagName('Point')[0];
+                if (!geomEl) continue;
+
+                let coordinates = [];
+                let type = '';
+                if (geomEl.tagName === 'Point') {
+                    type = 'Point';
+                    const coordText = geomEl.getElementsByTagName('coordinates')[0]?.textContent.trim();
+                    if (coordText) {
+                        const parts = coordText.split(',').map(Number);
+                        if (parts.length >= 2) coordinates = [parts[0], parts[1]];
+                    }
+                } else if (geomEl.tagName === 'LineString') {
+                    type = 'LineString';
+                    const coordText = geomEl.getElementsByTagName('coordinates')[0]?.textContent.trim();
+                    if (coordText) {
+                        coordinates = coordText.split(/\s+/).map(p => {
+                            const c = p.split(',').map(Number);
+                            return [c[0], c[1]];
+                        });
+                    }
+                } else if (geomEl.tagName === 'Polygon') {
+                    type = 'Polygon';
+                    const outer = geomEl.getElementsByTagName('outerBoundaryIs')[0];
+                    if (outer) {
+                        const ring = outer.getElementsByTagName('LinearRing')[0];
+                        const coordText = ring?.getElementsByTagName('coordinates')[0]?.textContent.trim();
+                        if (coordText) {
+                            const ringCoords = coordText.split(/\s+/).map(p => {
+                                const c = p.split(',').map(Number);
+                                return [c[0], c[1]];
+                            });
+                            coordinates = [ringCoords];
+                        }
+                    }
+                }
+
+                if (coordinates.length === 0) continue;
+
+                const geometry = {
+                    type: type,
+                    coordinates: coordinates
+                };
+                features.push({
+                    type: 'Feature',
+                    geometry: geometry,
+                    properties: { name: name }
+                });
+            }
+            return { type: 'FeatureCollection', features: features };
+        }
+
+        // ============================================================
         // MAPS: APPLY FILTER
         // ============================================================
         function applyMapFilter() {
@@ -1615,7 +1688,7 @@
                 return;
             }
             state.isLoading = true;
-            loadKmzWithKml(key);
+            loadKmzWithFetch(key);
         }
 
         // ============================================================
@@ -1626,12 +1699,8 @@
                 showError('Sedang memuat, tunggu sebentar');
                 return;
             }
-            // Hapus layer
-            if (state.geoJsonLayer) {
-                state.map.removeLayer(state.geoJsonLayer);
-                // Buat layer baru kosong
-                state.geoJsonLayer = L.geoJSON().addTo(state.map);
-            }
+            state.geoJsonLayers.forEach(layer => state.map.removeLayer(layer));
+            state.geoJsonLayers = [];
             state.map.setView([CONFIG.MAP_CENTER.lat, CONFIG.MAP_CENTER.lng], CONFIG.MAP_ZOOM);
             $('mapAreaSelect').value = '';
             updateMapInfo(0, 'Pilih area dari dropdown');
