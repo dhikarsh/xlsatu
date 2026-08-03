@@ -6,6 +6,8 @@
     <title>XL Satu - Sales Tracker</title>
     <!-- Google Maps API -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB8lQcLiGUDoMxyI1ctIEelCvgBUzAKqdU&libraries=geometry&callback=initMap" async defer></script>
+    <!-- JSZip untuk ekstrak KMZ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         /* ===== GLOBAL ===== */
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',system-ui,sans-serif !important; }
@@ -683,8 +685,7 @@
             editedTargets: {},
             targetSearchQuery: '',
             map: null,
-            mapLayers: [],
-            mapLoaded: false,
+            mapDataLoaded: false,
             isLoading: false,
         };
 
@@ -1527,70 +1528,136 @@
         }
 
         // ============================================================
-        // MAPS: LOAD KMZ dengan KmlLayer (native support)
+        // MAPS: LOAD KMZ dengan fetch + JSZip + google.maps.Data
         // ============================================================
-        function loadKmzLayer(key) {
+        async function loadKmzWithFetch(key) {
             const url = KMZ_BASE_URL + kmzUrls[key];
-            // Hapus layer sebelumnya
-            state.mapLayers.forEach(layer => layer.setMap(null));
-            state.mapLayers = [];
+            try {
+                // 1. Fetch file sebagai ArrayBuffer
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const arrayBuffer = await response.arrayBuffer();
 
-            const layer = new google.maps.KmlLayer({
-                url: url,
-                map: state.map,
-                preserveViewport: false,
-                suppressInfoWindows: true,
-            });
-            state.mapLayers.push(layer);
+                // 2. Gunakan JSZip untuk ekstrak
+                const zip = await JSZip.loadAsync(arrayBuffer);
+                // Cari file KML (biasanya doc.kml atau .kml)
+                let kmlFile = null;
+                const files = zip.files;
+                for (let name in files) {
+                    if (name.toLowerCase().endsWith('.kml')) {
+                        kmlFile = files[name];
+                        break;
+                    }
+                }
+                if (!kmlFile) throw new Error('Tidak ditemukan file KML dalam KMZ');
 
-            let resolved = false;
+                const kmlText = await kmlFile.async('text');
+                // 3. Parse KML
+                const parser = new DOMParser();
+                const kmlDoc = parser.parseFromString(kmlText, 'text/xml');
+                const errorNode = kmlDoc.querySelector('parsererror');
+                if (errorNode) throw new Error('KML parsing error');
 
-            layer.addListener('status_changed', function() {
-                if (resolved) return;
-                const status = this.getStatus();
-                if (status === 'OK') {
-                    resolved = true;
-                    console.log(`✅ KMZ dimuat: ${key}`);
-                    updateMapInfo(1, `Menampilkan ${key}`);
-                    showSuccess(`Area ${key} dimuat!`);
-                    // Fit bounds
-                    try {
-                        const meta = this.getMetadata();
-                        if (meta && meta.bounds) {
-                            state.map.fitBounds(meta.bounds);
-                            state.map.panToBounds(meta.bounds, { top: 60, bottom: 60, left: 60, right: 60 });
+                // 4. Konversi ke GeoJSON
+                const geoJson = kmlToGeoJson(kmlDoc);
+                if (!geoJson.features || geoJson.features.length === 0) {
+                    throw new Error('Tidak ada fitur ditemukan di KML');
+                }
+
+                // 5. Tampilkan di peta
+                state.map.data.forEach(f => state.map.data.remove(f));
+                state.map.data.addGeoJson(geoJson);
+                state.map.data.setStyle({
+                    fillColor: '#1A5BB5',
+                    strokeColor: '#0F3B7A',
+                    strokeWeight: 2,
+                    fillOpacity: 0.35,
+                });
+
+                // Fit bounds
+                const bounds = new google.maps.LatLngBounds();
+                state.map.data.forEach(feature => {
+                    const geom = feature.getGeometry();
+                    if (geom) {
+                        geom.forEachLatLng(latLng => bounds.extend(latLng));
+                    }
+                });
+                if (!bounds.isEmpty()) {
+                    state.map.fitBounds(bounds);
+                    state.map.panToBounds(bounds, { top: 60, bottom: 60, left: 60, right: 60 });
+                }
+
+                updateMapInfo(1, `Menampilkan ${key}`);
+                showSuccess(`Area ${key} dimuat!`);
+                state.mapDataLoaded = true;
+            } catch (err) {
+                console.error('Error loading KMZ:', err);
+                showError(`Gagal memuat area: ${err.message}`);
+                updateMapInfo(0, `Gagal: ${err.message}`);
+                throw err;
+            }
+        }
+
+        // ============================================================
+        // MAPS: KML ke GeoJSON converter sederhana
+        // ============================================================
+        function kmlToGeoJson(kmlDoc) {
+            const features = [];
+            const placemarks = kmlDoc.getElementsByTagName('Placemark');
+            for (let pm of placemarks) {
+                const name = pm.getElementsByTagName('name')[0]?.textContent || '';
+                const geom = pm.getElementsByTagName('Polygon')[0] ||
+                    pm.getElementsByTagName('LineString')[0] ||
+                    pm.getElementsByTagName('Point')[0];
+                if (!geom) continue;
+
+                let coords = [];
+                let type = '';
+                if (geom.tagName === 'Point') {
+                    type = 'Point';
+                    const coordText = geom.getElementsByTagName('coordinates')[0]?.textContent.trim();
+                    if (coordText) {
+                        const parts = coordText.split(',').map(Number);
+                        if (parts.length >= 2) coords = [parts[0], parts[1]];
+                    }
+                } else if (geom.tagName === 'LineString') {
+                    type = 'LineString';
+                    const coordText = geom.getElementsByTagName('coordinates')[0]?.textContent.trim();
+                    if (coordText) {
+                        coords = coordText.split(/\s+/).map(p => {
+                            const c = p.split(',').map(Number);
+                            return [c[0], c[1]];
+                        });
+                    }
+                } else if (geom.tagName === 'Polygon') {
+                    type = 'Polygon';
+                    const outerRing = geom.getElementsByTagName('outerBoundaryIs')[0];
+                    if (outerRing) {
+                        const ring = outerRing.getElementsByTagName('LinearRing')[0];
+                        const coordText = ring?.getElementsByTagName('coordinates')[0]?.textContent.trim();
+                        if (coordText) {
+                            const ringCoords = coordText.split(/\s+/).map(p => {
+                                const c = p.split(',').map(Number);
+                                return [c[0], c[1]];
+                            });
+                            coords = [ringCoords];
                         }
-                    } catch (e) {}
-                    const overlay = $('mapLoadingOverlay');
-                    overlay.classList.add('hidden');
-                    state.isLoading = false;
-                } else if (status === 'ERROR') {
-                    resolved = true;
-                    console.error(`❌ Gagal muat KMZ: ${key}`, this.getStatus());
-                    showError(`Gagal memuat area ${key}. Periksa URL atau format file.`);
-                    updateMapInfo(0, `Gagal memuat ${key}`);
-                    const overlay = $('mapLoadingOverlay');
-                    overlay.classList.add('hidden');
-                    state.isLoading = false;
+                    }
                 }
-            });
 
-            // Timeout fallback
-            const timeoutId = setTimeout(() => {
-                if (!resolved) {
-                    resolved = true;
-                    console.warn(`⏱️ Timeout untuk ${key}`);
-                    showError(`Timeout memuat ${key}. Coba lagi.`);
-                    updateMapInfo(0, `Timeout ${key}`);
-                    const overlay = $('mapLoadingOverlay');
-                    overlay.classList.add('hidden');
-                    state.isLoading = false;
-                }
-            }, 15000);
-            layer._timeoutId = timeoutId;
-            layer.addListener('status_changed', function() {
-                clearTimeout(timeoutId);
-            });
+                if (coords.length === 0) continue;
+
+                const geometry = {
+                    type: type,
+                    coordinates: coords
+                };
+                features.push({
+                    type: 'Feature',
+                    geometry: geometry,
+                    properties: { name: name }
+                });
+            }
+            return { type: 'FeatureCollection', features: features };
         }
 
         // ============================================================
@@ -1612,7 +1679,15 @@
             updateLoadingProgress(0, 1, `Memuat ${key}...`);
             updateMapInfo(0, `Memuat ${key}...`);
             state.isLoading = true;
-            loadKmzLayer(key);
+
+            // Hapus data sebelumnya
+            state.map.data.forEach(f => state.map.data.remove(f));
+
+            loadKmzWithFetch(key)
+                .finally(() => {
+                    overlay.classList.add('hidden');
+                    state.isLoading = false;
+                });
         }
 
         // ============================================================
@@ -1623,13 +1698,13 @@
                 showError('Sedang memuat, tunggu sebentar');
                 return;
             }
-            state.mapLayers.forEach(layer => layer.setMap(null));
-            state.mapLayers = [];
+            state.map.data.forEach(f => state.map.data.remove(f));
             state.map.setCenter(CONFIG.MAP_CENTER);
             state.map.setZoom(CONFIG.MAP_ZOOM);
             $('mapAreaSelect').value = '';
             updateMapInfo(0, 'Pilih area dari dropdown');
             showToast('Layer direset');
+            state.mapDataLoaded = false;
         }
 
         // ============================================================
