@@ -613,6 +613,70 @@
         console.log('Jumlah area:', AREA_KEYS.length);
 
         // ============================================================
+        // FIX: BACA WARNA ASLI DARI PROPERTIES GEOJSON (hasil konversi KMZ)
+        // ============================================================
+        // Konverter KML/KMZ -> GeoJSON (mis. togeojson, ogr2ogr, QGIS)
+        // umumnya menyimpan warna asli di properties memakai konvensi
+        // "simplestyle-spec": stroke, stroke-opacity, stroke-width,
+        // fill, fill-opacity. Fungsi di bawah mencoba beberapa variasi
+        // nama key yang umum dipakai, supaya warna pointer/polygon
+        // mengikuti file asli, bukan warna tetap.
+        function getStrokeColor(props) {
+            if (!props) return null;
+            return props.stroke || props['stroke-color'] || props.Stroke ||
+                   props.color || props.Color || props.strokeColor || null;
+        }
+        function getFillColor(props) {
+            if (!props) return null;
+            return props.fill || props['fill-color'] || props.Fill ||
+                   props.fillColor || getStrokeColor(props) || null;
+        }
+        function getStrokeOpacity(props) {
+            const v = props && (props['stroke-opacity'] ?? props.strokeOpacity);
+            return (v === undefined || v === null || isNaN(v)) ? 0.85 : Number(v);
+        }
+        function getFillOpacity(props) {
+            const v = props && (props['fill-opacity'] ?? props.fillOpacity);
+            return (v === undefined || v === null || isNaN(v)) ? 0.4 : Number(v);
+        }
+        function getStrokeWeight(props) {
+            const v = props && (props['stroke-width'] ?? props.strokeWidth);
+            return (v === undefined || v === null || isNaN(v)) ? 2 : Number(v);
+        }
+        function getMarkerColor(props) {
+            if (!props) return null;
+            return props['marker-color'] || props.markerColor || getStrokeColor(props) || null;
+        }
+
+        // Style default (fallback) kalau feature-nya tidak punya info warna sama sekali
+        const DEFAULT_STROKE = '#0F3B7A';
+        const DEFAULT_FILL = '#1A5BB5';
+
+        function geoJsonFeatureStyle(feature) {
+            const props = feature && feature.properties;
+            return {
+                color: getStrokeColor(props) || DEFAULT_STROKE,
+                weight: getStrokeWeight(props),
+                opacity: getStrokeOpacity(props),
+                fillColor: getFillColor(props) || DEFAULT_FILL,
+                fillOpacity: getFillOpacity(props)
+            };
+        }
+
+        function geoJsonPointToLayer(feature, latlng) {
+            const props = feature && feature.properties;
+            const color = getMarkerColor(props) || DEFAULT_STROKE;
+            return L.circleMarker(latlng, {
+                radius: 8,
+                color: '#fff',
+                weight: 2,
+                opacity: 1,
+                fillColor: color,
+                fillOpacity: 0.9
+            });
+        }
+
+        // ============================================================
         // STATE
         // ============================================================
         let state = {
@@ -1558,6 +1622,11 @@
                     throw new Error('Tidak ada fitur ditemukan');
                 }
 
+                // DEBUG: tampilkan properties fitur pertama di console,
+                // supaya gampang dicek nama field warna aslinya kalau
+                // ternyata warna masih belum sesuai (buka DevTools > Console).
+                console.log('🎨 Contoh properties fitur pertama:', geojson.features[0].properties);
+
                 // Cek ulang tepat sebelum dipakai — jaga-jaga kalau map
                 // sempat hilang selama proses fetch di atas (mis. reload dsb).
                 if (!state.map) {
@@ -1570,31 +1639,15 @@
                     state.geoJsonLayer = null;
                 }
 
-                // Tambahkan layer baru
+                // Tambahkan layer baru — FIX: style & pointToLayer sekarang
+                // dinamis mengikuti warna asli tiap fitur dari file KMZ
+                // (lihat geoJsonFeatureStyle / geoJsonPointToLayer di atas).
+                // pointToLayer tetap pakai circleMarker (bukan ikon default
+                // Leaflet) supaya fitur bertipe Point selalu tampil tanpa
+                // bergantung pada gambar marker dari CDN.
                 state.geoJsonLayer = L.geoJSON(geojson, {
-                    style: {
-                        color: '#0F3B7A',
-                        weight: 2,
-                        opacity: 0.8,
-                        fillColor: '#1A5BB5',
-                        fillOpacity: 0.35
-                    },
-                    // FIX: `style` di atas HANYA berlaku untuk polygon/garis.
-                    // Fitur bertipe Point tidak akan tampil sama sekali kalau
-                    // tidak ada pointToLayer — defaultnya Leaflet memakai
-                    // ikon marker bawaan yang sering gagal termuat dari CDN
-                    // (gagal diam-diam, tanpa error di console). Di sini kita
-                    // render Point sebagai dot (circleMarker) yang tidak
-                    // butuh gambar eksternal sama sekali, jadi selalu tampil.
-                    pointToLayer: function(feature, latlng) {
-                        return L.circleMarker(latlng, {
-                            radius: 7,
-                            color: '#ffffff',
-                            weight: 2,
-                            fillColor: '#0F3B7A',
-                            fillOpacity: 0.95
-                        });
-                    },
+                    style: geoJsonFeatureStyle,
+                    pointToLayer: geoJsonPointToLayer,
                     onEachFeature: function(feature, layer) {
                         if (feature.properties && feature.properties.name) {
                             layer.bindPopup(feature.properties.name);
