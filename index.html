@@ -39,11 +39,7 @@
         /* ===== MAPS PAGE (FULL SCREEN) ===== */
         #pageMaps { padding:0; position:fixed; top:0; left:0; right:0; bottom:0; z-index:5; background:#f0f0f0; display:none; animation:none; }
         #pageMaps.active { display:block; }
-        /* FIX: position:relative + z-index eksplisit membuat #map
-           membentuk stacking context sendiri, sehingga panel internal
-           Leaflet (tile, kontrol zoom, popup — yang punya z-index
-           bawaan sampai 1000) tidak lagi bocor ke luar dan menimpa
-           filter bar / tombol kembali di atasnya. */
+        /* FIX: position:relative + z-index eksplisit membuat #map membentuk stacking context sendiri */
         #map { width:100%; height:100%; background:#e5e5e5; position:relative; z-index:1; }
         .map-filter-bar { 
             position:absolute; 
@@ -613,42 +609,79 @@
         console.log('Jumlah area:', AREA_KEYS.length);
 
         // ============================================================
-        // FIX: BACA WARNA ASLI DARI PROPERTIES GEOJSON (hasil konversi KMZ)
+        // FIX: BACA WARNA ASLI DARI PROPERTIES GEOJSON (PENYEMPURNAAN KML)
         // ============================================================
-        // Konverter KML/KMZ -> GeoJSON (mis. togeojson, ogr2ogr, QGIS)
-        // umumnya menyimpan warna asli di properties memakai konvensi
-        // "simplestyle-spec": stroke, stroke-opacity, stroke-width,
-        // fill, fill-opacity. Fungsi di bawah mencoba beberapa variasi
-        // nama key yang umum dipakai, supaya warna pointer/polygon
-        // mengikuti file asli, bukan warna tetap.
-        function getStrokeColor(props) {
+        
+        // Fungsi untuk menerjemahkan warna KML (AABBGGRR) ke Web (#RRGGBB)
+        function parseMapColor(rawColor) {
+            if (!rawColor) return null;
+            let c = String(rawColor).trim().replace('#', '');
+            
+            // Format KML: aabbggrr (8 karakter) -> konversi ke #rrggbb
+            if (c.length === 8) {
+                const b = c.substring(2, 4);
+                const g = c.substring(4, 6);
+                const r = c.substring(6, 8);
+                return `#${r}${g}${b}`;
+            }
+            // Format standar web (6 karakter atau 3 karakter)
+            if (c.length === 6 || c.length === 3) {
+                return `#${c}`;
+            }
+            return null;
+        }
+
+        // Fungsi untuk mengambil Opacity dari kode KML (AA...)
+        function parseOpacityFromColor(rawColor, defaultVal) {
+            if (!rawColor) return defaultVal;
+            let c = String(rawColor).trim().replace('#', '');
+            if (c.length === 8) {
+                const aHex = c.substring(0, 2);
+                return parseInt(aHex, 16) / 255;
+            }
+            return defaultVal;
+        }
+
+        function getRawStroke(props) {
             if (!props) return null;
-            return props.stroke || props['stroke-color'] || props.Stroke ||
+            return props.stroke || props['stroke-color'] || props.Stroke || 
                    props.color || props.Color || props.strokeColor || null;
         }
-        function getFillColor(props) {
+
+        function getRawFill(props) {
             if (!props) return null;
-            return props.fill || props['fill-color'] || props.Fill ||
-                   props.fillColor || getStrokeColor(props) || null;
+            return props.fill || props['fill-color'] || props.Fill || 
+                   props.fillColor || getRawStroke(props) || null;
         }
+
+        // Eksekusi ke properti warna
+        function getStrokeColor(props) { return parseMapColor(getRawStroke(props)); }
+        function getFillColor(props) { return parseMapColor(getRawFill(props)); }
+
         function getStrokeOpacity(props) {
             const v = props && (props['stroke-opacity'] ?? props.strokeOpacity);
-            return (v === undefined || v === null || isNaN(v)) ? 0.85 : Number(v);
+            if (v !== undefined && v !== null && !isNaN(v)) return Number(v);
+            return parseOpacityFromColor(getRawStroke(props), 0.85); // Ambil dari hex jika ada
         }
+
         function getFillOpacity(props) {
             const v = props && (props['fill-opacity'] ?? props.fillOpacity);
-            return (v === undefined || v === null || isNaN(v)) ? 0.4 : Number(v);
+            if (v !== undefined && v !== null && !isNaN(v)) return Number(v);
+            return parseOpacityFromColor(getRawFill(props), 0.4); // Ambil dari hex jika ada
         }
+
         function getStrokeWeight(props) {
             const v = props && (props['stroke-width'] ?? props.strokeWidth);
             return (v === undefined || v === null || isNaN(v)) ? 2 : Number(v);
         }
+
         function getMarkerColor(props) {
             if (!props) return null;
-            return props['marker-color'] || props.markerColor || getStrokeColor(props) || null;
+            const c = props['marker-color'] || props.markerColor || getRawStroke(props);
+            return parseMapColor(c);
         }
 
-        // Style default (fallback) kalau feature-nya tidak punya info warna sama sekali
+        // Style default (fallback)
         const DEFAULT_STROKE = '#0F3B7A';
         const DEFAULT_FILL = '#1A5BB5';
 
@@ -1494,12 +1527,6 @@
         // ============================================================
         // MAPS: INISIALISASI PETA (LEAFLET) - DIPANGGIL SAAT TAB MAPS DIBUKA
         // ============================================================
-        // FIX: initMap() sekarang HANYA dipanggil saat halaman #pageMaps
-        // sudah/segera ditampilkan (bukan lagi lewat setTimeout global saat
-        // load), supaya container #map punya ukuran nyata saat Leaflet
-        // dibuat. Ditambahkan juga guard isMapInitializing untuk mencegah
-        // dua proses inisialisasi berjalan bersamaan (race condition) yang
-        // sebelumnya bisa membuat state.map jadi null saat dipakai.
         function initMap() {
             if (state.map) return; // sudah ada instance yang valid
             if (state.isMapInitializing) return; // sedang proses, jangan dobel
@@ -1546,8 +1573,7 @@
             }
         }
 
-        // FIX: helper baru — tunggu sampai peta benar-benar siap (dipakai
-        // sebelum loadArea memakai state.map), maksimal ~2 detik.
+        // FIX: helper baru — tunggu sampai peta benar-benar siap
         async function ensureMapReady(timeoutMs = 2000) {
             const mapReady = () => state.map && state.map.getContainer && document.body.contains(state.map.getContainer());
             if (mapReady()) return true;
@@ -1596,10 +1622,6 @@
         // MAPS: LOAD GEOJSON
         // ============================================================
         async function loadArea(key) {
-            // FIX: gunakan ensureMapReady() alih-alih cek `if (!state.map)`
-            // saja. Fungsi ini menunggu sampai instance Leaflet benar-benar
-            // terpasang di DOM sebelum lanjut, sehingga .addTo(state.map)
-            // di bawah tidak akan pernah menerima null lagi.
             const ready = await ensureMapReady();
             if (!ready) {
                 showError('Peta tidak siap, coba buka Maps lagi.');
@@ -1622,13 +1644,9 @@
                     throw new Error('Tidak ada fitur ditemukan');
                 }
 
-                // DEBUG: tampilkan properties fitur pertama di console,
-                // supaya gampang dicek nama field warna aslinya kalau
-                // ternyata warna masih belum sesuai (buka DevTools > Console).
+                // DEBUG: tampilkan properties fitur pertama di console
                 console.log('🎨 Contoh properties fitur pertama:', geojson.features[0].properties);
 
-                // Cek ulang tepat sebelum dipakai — jaga-jaga kalau map
-                // sempat hilang selama proses fetch di atas (mis. reload dsb).
                 if (!state.map) {
                     throw new Error('Peta tidak tersedia lagi, silakan ulangi.');
                 }
@@ -1639,12 +1657,7 @@
                     state.geoJsonLayer = null;
                 }
 
-                // Tambahkan layer baru — FIX: style & pointToLayer sekarang
-                // dinamis mengikuti warna asli tiap fitur dari file KMZ
-                // (lihat geoJsonFeatureStyle / geoJsonPointToLayer di atas).
-                // pointToLayer tetap pakai circleMarker (bukan ikon default
-                // Leaflet) supaya fitur bertipe Point selalu tampil tanpa
-                // bergantung pada gambar marker dari CDN.
+                // Tambahkan layer baru
                 state.geoJsonLayer = L.geoJSON(geojson, {
                     style: geoJsonFeatureStyle,
                     pointToLayer: geoJsonPointToLayer,
@@ -1771,9 +1784,6 @@
                 if (page === 'pageDashboard' && state.currentUser) renderDashboard();
                 if (page === 'pageAdmin') renderAdminAeList();
                 if (page === 'pageMaps') {
-                    // FIX: initMap() sekarang dipanggil setelah showPage()
-                    // sehingga container #map sudah dalam kondisi display:block
-                    // saat Leaflet dibuat.
                     if (!state.map) {
                         initMap();
                     }
@@ -1844,16 +1854,7 @@
             $('dailyDateInput').value = todayStr();
             $('adminDailyDateInput').value = todayStr();
 
-            // FIX: initMap() TIDAK lagi dipanggil otomatis di sini
-            // (dulu: setTimeout(initMap, 500)) karena #pageMaps masih
-            // display:none saat init() berjalan — itu penyebab utama
-            // state.map bisa jadi tidak valid saat dipakai di loadArea().
-            // Peta sekarang diinisialisasi tepat saat user membuka tab
-            // Maps (lihat listener bottom-nav di atas) atau otomatis
-            // lewat ensureMapReady() saat loadArea() dipanggil.
-
-            // Populate dropdown area tetap aman dipanggil lebih awal,
-            // karena tidak bergantung pada ukuran container.
+            // Populate dropdown area tetap aman dipanggil lebih awal
             populateAreaDropdown();
 
             showPage('pageLogin');
