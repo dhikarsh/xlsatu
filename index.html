@@ -683,7 +683,8 @@
             editedTargets: {},
             targetSearchQuery: '',
             map: null,
-            mapDataLoaded: false,
+            mapLayers: [],
+            mapLoaded: false,
             isLoading: false,
         };
 
@@ -1497,9 +1498,7 @@
                 fullscreenControl: true,
             });
             state.map = map;
-            // Isi dropdown area
             populateAreaDropdown();
-            // Sembunyikan overlay loading
             const overlay = $('mapLoadingOverlay');
             if (overlay) overlay.classList.add('hidden');
             updateMapInfo(0, 'Pilih area dari dropdown');
@@ -1528,120 +1527,70 @@
         }
 
         // ============================================================
-        // MAPS: LOAD KMZ dengan DATA LAYER (parsing KML)
+        // MAPS: LOAD KMZ dengan KmlLayer (native support)
         // ============================================================
-        async function loadKmzDataLayer(key) {
+        function loadKmzLayer(key) {
             const url = KMZ_BASE_URL + kmzUrls[key];
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const kmlText = await response.text();
+            // Hapus layer sebelumnya
+            state.mapLayers.forEach(layer => layer.setMap(null));
+            state.mapLayers = [];
 
-                // Parse KML
-                const parser = new DOMParser();
-                const kmlDoc = parser.parseFromString(kmlText, 'text/xml');
-                const errorNode = kmlDoc.querySelector('parsererror');
-                if (errorNode) throw new Error('KML parsing error');
+            const layer = new google.maps.KmlLayer({
+                url: url,
+                map: state.map,
+                preserveViewport: false,
+                suppressInfoWindows: true,
+            });
+            state.mapLayers.push(layer);
 
-                // Konversi KML ke GeoJSON sederhana
-                const geoJson = kmlToGeoJson(kmlDoc);
-                if (!geoJson.features || geoJson.features.length === 0) {
-                    throw new Error('Tidak ada fitur ditemukan di KML');
-                }
+            let resolved = false;
 
-                // Hapus layer sebelumnya
-                state.map.data.forEach(f => state.map.data.remove(f));
-                state.map.data.addGeoJson(geoJson);
-                state.map.data.setStyle({
-                    fillColor: '#1A5BB5',
-                    strokeColor: '#0F3B7A',
-                    strokeWeight: 2,
-                    fillOpacity: 0.35,
-                });
-
-                // Fit bounds
-                const bounds = new google.maps.LatLngBounds();
-                state.map.data.forEach(feature => {
-                    const geom = feature.getGeometry();
-                    if (geom) {
-                        geom.forEachLatLng(latLng => bounds.extend(latLng));
-                    }
-                });
-                if (!bounds.isEmpty()) {
-                    state.map.fitBounds(bounds);
-                    state.map.panToBounds(bounds, { top: 60, bottom: 60, left: 60, right: 60 });
-                }
-
-                updateMapInfo(1, `Menampilkan ${key}`);
-                showSuccess(`Area ${key} dimuat!`);
-                state.mapDataLoaded = true;
-            } catch (err) {
-                console.error('Error loading KMZ:', err);
-                showError(`Gagal memuat area: ${err.message}`);
-                updateMapInfo(0, `Gagal: ${err.message}`);
-            }
-        }
-
-        // ============================================================
-        // MAPS: KML ke GeoJSON converter sederhana
-        // ============================================================
-        function kmlToGeoJson(kmlDoc) {
-            const features = [];
-            const placemarks = kmlDoc.getElementsByTagName('Placemark');
-            for (let pm of placemarks) {
-                const name = pm.getElementsByTagName('name')[0]?.textContent || '';
-                const geom = pm.getElementsByTagName('Polygon')[0] ||
-                    pm.getElementsByTagName('LineString')[0] ||
-                    pm.getElementsByTagName('Point')[0];
-                if (!geom) continue;
-
-                let coords = [];
-                let type = '';
-                if (geom.tagName === 'Point') {
-                    type = 'Point';
-                    const coordText = geom.getElementsByTagName('coordinates')[0]?.textContent.trim();
-                    if (coordText) {
-                        const parts = coordText.split(',').map(Number);
-                        if (parts.length >= 2) coords = [parts[0], parts[1]];
-                    }
-                } else if (geom.tagName === 'LineString') {
-                    type = 'LineString';
-                    const coordText = geom.getElementsByTagName('coordinates')[0]?.textContent.trim();
-                    if (coordText) {
-                        coords = coordText.split(/\s+/).map(p => {
-                            const c = p.split(',').map(Number);
-                            return [c[0], c[1]];
-                        });
-                    }
-                } else if (geom.tagName === 'Polygon') {
-                    type = 'Polygon';
-                    const outerRing = geom.getElementsByTagName('outerBoundaryIs')[0];
-                    if (outerRing) {
-                        const ring = outerRing.getElementsByTagName('LinearRing')[0];
-                        const coordText = ring?.getElementsByTagName('coordinates')[0]?.textContent.trim();
-                        if (coordText) {
-                            const ringCoords = coordText.split(/\s+/).map(p => {
-                                const c = p.split(',').map(Number);
-                                return [c[0], c[1]];
-                            });
-                            coords = [ringCoords];
+            layer.addListener('status_changed', function() {
+                if (resolved) return;
+                const status = this.getStatus();
+                if (status === 'OK') {
+                    resolved = true;
+                    console.log(`✅ KMZ dimuat: ${key}`);
+                    updateMapInfo(1, `Menampilkan ${key}`);
+                    showSuccess(`Area ${key} dimuat!`);
+                    // Fit bounds
+                    try {
+                        const meta = this.getMetadata();
+                        if (meta && meta.bounds) {
+                            state.map.fitBounds(meta.bounds);
+                            state.map.panToBounds(meta.bounds, { top: 60, bottom: 60, left: 60, right: 60 });
                         }
-                    }
+                    } catch (e) {}
+                    const overlay = $('mapLoadingOverlay');
+                    overlay.classList.add('hidden');
+                    state.isLoading = false;
+                } else if (status === 'ERROR') {
+                    resolved = true;
+                    console.error(`❌ Gagal muat KMZ: ${key}`, this.getStatus());
+                    showError(`Gagal memuat area ${key}. Periksa URL atau format file.`);
+                    updateMapInfo(0, `Gagal memuat ${key}`);
+                    const overlay = $('mapLoadingOverlay');
+                    overlay.classList.add('hidden');
+                    state.isLoading = false;
                 }
+            });
 
-                if (coords.length === 0) continue;
-
-                const geometry = {
-                    type: type,
-                    coordinates: coords
-                };
-                features.push({
-                    type: 'Feature',
-                    geometry: geometry,
-                    properties: { name: name }
-                });
-            }
-            return { type: 'FeatureCollection', features: features };
+            // Timeout fallback
+            const timeoutId = setTimeout(() => {
+                if (!resolved) {
+                    resolved = true;
+                    console.warn(`⏱️ Timeout untuk ${key}`);
+                    showError(`Timeout memuat ${key}. Coba lagi.`);
+                    updateMapInfo(0, `Timeout ${key}`);
+                    const overlay = $('mapLoadingOverlay');
+                    overlay.classList.add('hidden');
+                    state.isLoading = false;
+                }
+            }, 15000);
+            layer._timeoutId = timeoutId;
+            layer.addListener('status_changed', function() {
+                clearTimeout(timeoutId);
+            });
         }
 
         // ============================================================
@@ -1658,18 +1607,12 @@
                 showError('Pilih area terlebih dahulu');
                 return;
             }
-            // Tampilkan loading
             const overlay = $('mapLoadingOverlay');
             overlay.classList.remove('hidden');
             updateLoadingProgress(0, 1, `Memuat ${key}...`);
             updateMapInfo(0, `Memuat ${key}...`);
             state.isLoading = true;
-
-            loadKmzDataLayer(key)
-                .finally(() => {
-                    overlay.classList.add('hidden');
-                    state.isLoading = false;
-                });
+            loadKmzLayer(key);
         }
 
         // ============================================================
@@ -1680,13 +1623,13 @@
                 showError('Sedang memuat, tunggu sebentar');
                 return;
             }
-            state.map.data.forEach(f => state.map.data.remove(f));
+            state.mapLayers.forEach(layer => layer.setMap(null));
+            state.mapLayers = [];
             state.map.setCenter(CONFIG.MAP_CENTER);
             state.map.setZoom(CONFIG.MAP_ZOOM);
             $('mapAreaSelect').value = '';
             updateMapInfo(0, 'Pilih area dari dropdown');
             showToast('Layer direset');
-            state.mapDataLoaded = false;
         }
 
         // ============================================================
