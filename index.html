@@ -195,7 +195,70 @@
             height: 100%;
             background: #e5e5e5;
         }
-        /* Overlay loading di atas map */
+        /* ===== MAP FILTER BAR ===== */
+        .map-filter-bar {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            border-radius: var(--xl-radius);
+            padding: 14px 18px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+            max-width: 300px;
+            width: calc(100% - 32px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .map-filter-bar .filter-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .map-filter-bar input {
+            flex: 1;
+            padding: 8px 14px;
+            border: 1.5px solid var(--xl-border);
+            border-radius: var(--xl-radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            background: #fff;
+            outline: none;
+            color: var(--xl-dark);
+            min-width: 120px;
+        }
+        .map-filter-bar input:focus {
+            border-color: var(--xl-blue-light);
+            box-shadow: 0 0 0 3px var(--xl-blue-soft);
+        }
+        .map-filter-bar .filter-btn {
+            background: var(--xl-blue-grad);
+            color: #fff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: var(--xl-radius-sm);
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: var(--xl-transition);
+        }
+        .map-filter-bar .filter-btn:active {
+            transform: scale(0.95);
+        }
+        .map-filter-bar .filter-info {
+            font-size: 11px;
+            color: var(--xl-muted);
+            margin-top: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .map-filter-bar .filter-info .count {
+            font-weight: 700;
+            color: var(--xl-blue);
+        }
+        /* Overlay loading */
         #mapLoadingOverlay {
             position: absolute;
             top: 0;
@@ -267,13 +330,13 @@
         .map-back-btn {
             position: absolute;
             top: 16px;
-            left: 16px;
+            right: 16px;
             z-index: 20;
             background: rgba(255, 255, 255, 0.90);
             backdrop-filter: blur(8px);
             border: none;
             border-radius: 40px;
-            padding: 10px 18px;
+            padding: 8px 16px;
             font-weight: 700;
             font-size: 13px;
             color: var(--xl-blue);
@@ -288,7 +351,7 @@
             background: #fff;
             box-shadow: 0 6px 24px rgba(0,0,0,0.15);
         }
-        /* Legend / Info di map */
+        /* Legend di map */
         .map-legend {
             position: absolute;
             bottom: 30px;
@@ -341,7 +404,7 @@
             border: 2px solid var(--xl-blue-light);
             flex-shrink: 0;
         }
-        /* ===== CARDS ===== */
+        /* ===== CARDS (dashboard) ===== */
         .card {
             background: #fff;
             border-radius: var(--xl-radius);
@@ -373,7 +436,6 @@
         .card-title .emoji {
             font-size: 18px;
         }
-        /* ===== MONTH SELECTOR ===== */
         .month-selector {
             display: flex;
             align-items: center;
@@ -407,7 +469,6 @@
             cursor: pointer;
             outline: none;
         }
-        /* ===== PROGRESS ===== */
         .progress-wrap {
             margin-top: 4px;
         }
@@ -469,7 +530,6 @@
             background: var(--xl-blue-soft);
             color: var(--xl-blue);
         }
-        /* ===== DAILY INPUT ===== */
         .daily-input-group {
             display: flex;
             gap: 8px;
@@ -546,7 +606,6 @@
             margin-top: 0;
             border-radius: 40px;
         }
-        /* ===== TRACKER TABLE ===== */
         .tracker-wrap {
             overflow-x: auto;
             margin: 0 -4px;
@@ -608,7 +667,6 @@
         .tracker-table .empty-cell {
             color: #ccc;
         }
-        /* ===== RINGKASAN TARGET TIM (ADMIN) ===== */
         .target-summary-card {
             padding-bottom: 14px !important;
         }
@@ -956,7 +1014,6 @@
         .login-error.show {
             display: block;
         }
-        /* ===== ADMIN ===== */
         .admin-section {
             margin-bottom: 24px;
         }
@@ -1021,7 +1078,6 @@
             background: var(--xl-gray);
             outline: none;
         }
-        /* ===== TOAST ===== */
         .toast {
             position: fixed;
             bottom: 90px;
@@ -1053,7 +1109,6 @@
         .toast.error {
             background: #C0392B;
         }
-        /* ===== SPINNER ===== */
         .spinner {
             display: inline-block;
             width: 20px;
@@ -1068,7 +1123,6 @@
                 transform: rotate(360deg);
             }
         }
-        /* ===== WELCOME CARD ===== */
         .welcome-card {
             background: var(--xl-blue-grad) !important;
             border: none !important;
@@ -1091,107 +1145,37 @@
             opacity: 0.7;
             text-align: right;
         }
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 420px) {
-            .card {
-                padding: 14px 14px;
-            }
-            .daily-input-group .field {
-                min-width: 60px;
-            }
-            .daily-input-group .field input {
-                font-size: 13px;
-                padding: 8px 10px;
-            }
-            .tracker-table {
-                font-size: 10px;
-                min-width: 400px;
-            }
-            .tracker-table td,
-            .tracker-table th {
-                padding: 6px 1px;
-            }
-            .tracker-table .row-label {
-                font-size: 10px;
-                min-width: 60px;
-            }
-            .month-selector select {
-                font-size: 11px;
-            }
-            .app-header .user-badge {
-                font-size: 11px;
-                padding: 4px 10px 4px 14px;
-            }
-            .bottom-nav .nav-item {
-                padding: 4px 8px;
-                min-width: 44px;
-            }
-            .bottom-nav .nav-item .nav-icon {
-                font-size: 16px;
-            }
-            .bottom-nav .nav-item .nav-label {
-                font-size: 8px;
-            }
-            .login-card {
-                padding: 24px 16px 24px;
-            }
-            .target-table {
-                min-width: 560px;
-                font-size: 10px;
-            }
-            .target-table input.target-input {
-                width: 42px;
-                font-size: 11px;
-                padding: 5px 2px;
-            }
-            .ts-actions {
-                width: 100%;
-                justify-content: flex-end;
-            }
-            .ts-meta {
-                width: 100%;
-            }
-            .map-back-btn {
-                font-size: 11px;
-                padding: 8px 14px;
-                top: 12px;
-                left: 12px;
-            }
-            .map-legend {
-                bottom: 80px;
-                right: 12px;
-                padding: 10px 12px;
-                font-size: 10px;
-                max-width: 160px;
-            }
+            .card { padding: 14px 14px; }
+            .daily-input-group .field { min-width: 60px; }
+            .daily-input-group .field input { font-size: 13px; padding: 8px 10px; }
+            .tracker-table { font-size: 10px; min-width: 400px; }
+            .tracker-table td, .tracker-table th { padding: 6px 1px; }
+            .tracker-table .row-label { font-size: 10px; min-width: 60px; }
+            .month-selector select { font-size: 11px; }
+            .app-header .user-badge { font-size: 11px; padding: 4px 10px 4px 14px; }
+            .bottom-nav .nav-item { padding: 4px 8px; min-width: 44px; }
+            .bottom-nav .nav-item .nav-icon { font-size: 16px; }
+            .bottom-nav .nav-item .nav-label { font-size: 8px; }
+            .login-card { padding: 24px 16px 24px; }
+            .target-table { min-width: 560px; font-size: 10px; }
+            .target-table input.target-input { width: 42px; font-size: 11px; padding: 5px 2px; }
+            .ts-actions { width: 100%; justify-content: flex-end; }
+            .ts-meta { width: 100%; }
+            .map-filter-bar { top: 10px; left: 10px; padding: 12px 14px; max-width: calc(100% - 20px); }
+            .map-filter-bar .filter-row { flex-wrap: wrap; }
+            .map-filter-bar input { min-width: 100px; font-size: 12px; }
+            .map-back-btn { top: 10px; right: 10px; font-size: 11px; padding: 6px 12px; }
+            .map-legend { bottom: 80px; right: 12px; padding: 10px 12px; font-size: 10px; max-width: 160px; }
         }
         @media (max-width: 360px) {
-            .tracker-table {
-                min-width: 320px;
-                font-size: 9px;
-            }
-            .tracker-table td,
-            .tracker-table th {
-                padding: 4px 1px;
-            }
-            .tracker-table .row-label {
-                font-size: 9px;
-                min-width: 50px;
-            }
-            .card-title {
-                font-size: 14px;
-            }
-            .month-selector {
-                padding: 2px 6px;
-                gap: 4px;
-            }
-            .month-selector select {
-                font-size: 10px;
-            }
-            .month-selector button {
-                font-size: 10px;
-                padding: 0 4px;
-            }
+            .tracker-table { min-width: 320px; font-size: 9px; }
+            .tracker-table td, .tracker-table th { padding: 4px 1px; }
+            .tracker-table .row-label { font-size: 9px; min-width: 50px; }
+            .card-title { font-size: 14px; }
+            .month-selector { padding: 2px 6px; gap: 4px; }
+            .month-selector select { font-size: 10px; }
+            .month-selector button { font-size: 10px; padding: 0 4px; }
         }
     </style>
 </head>
@@ -1443,7 +1427,7 @@
                 </div>
             </div>
         </div>
-        <!-- ===== ADMIN PAGE (HANYA KELOLA AE & TARGET, TIDAK ADA TRACKER) ===== -->
+        <!-- ===== ADMIN PAGE (HANYA KELOLA AE & TARGET) ===== -->
         <div class="page" id="pageAdmin">
             <div class="card">
                 <div class="card-header">
@@ -1481,6 +1465,21 @@
         <!-- ===== MAPS PAGE (FULL SCREEN) ===== -->
         <div class="page" id="pageMaps">
             <div id="map"></div>
+            <!-- Filter Bar -->
+            <div class="map-filter-bar">
+                <div class="filter-row">
+                    <input type="text" id="mapFilterInput" placeholder="Cari area (misal: pasteur, dago)" />
+                    <button class="filter-btn" id="mapFilterApplyBtn">Tampilkan</button>
+                </div>
+                <div class="filter-info">
+                    <span>Layer ditampilkan: <span class="count" id="mapLayerCountDisplay">0</span></span>
+                    <span id="mapFilterStatus">Ketik kata kunci lalu tekan Tampilkan</span>
+                </div>
+            </div>
+            <!-- Tombol Kembali -->
+            <button class="map-back-btn" id="mapBackBtn">
+                <span>←</span> Dashboard
+            </button>
             <!-- Loading Overlay -->
             <div id="mapLoadingOverlay">
                 <div class="map-loading-box">
@@ -1493,10 +1492,6 @@
                     <div class="progress-text" id="mapProgressText">0 / 0</div>
                 </div>
             </div>
-            <!-- Tombol Kembali -->
-            <button class="map-back-btn" id="mapBackBtn">
-                <span>←</span> Kembali ke Dashboard
-            </button>
             <!-- Legend -->
             <div class="map-legend" id="mapLegend">
                 <div class="legend-title">📍 Legenda</div>
@@ -1504,7 +1499,7 @@
                 <div class="legend-item"><span class="line"></span> Garis (Line)</div>
                 <div class="legend-item"><span class="poly"></span> Area (Polygon)</div>
                 <div style="font-size:9px;color:var(--xl-muted);margin-top:4px;border-top:1px solid var(--xl-gray-light);padding-top:4px;">
-                    <span id="mapLayerCount">0</span> layer KMZ dimuat
+                    <span id="mapLayerCount">0</span> layer ditampilkan
                 </div>
             </div>
         </div>
@@ -1536,8 +1531,9 @@
         const CONFIG = {
             API_URL: 'https://script.google.com/macros/s/AKfycbzOHic0o0BNeRAhV5yZ6uzobKO7k69YBX3qNmccAlUM9vn-C0lb0eb0YtE1AMZU5Cs2nA/exec',
             ADMIN_PIN: '123456',
-            MAP_CENTER: { lat: -6.9175, lng: 107.6191 }, // Bandung
+            MAP_CENTER: { lat: -6.9175, lng: 107.6191 },
             MAP_ZOOM: 12,
+            MAX_LAYERS: 40, // batas aman untuk KmlLayer
         };
 
         // --- KONFIGURASI KMZ ---
@@ -1663,7 +1659,7 @@
             mapLayers: [],
             mapLoaded: false,
             kmzLoaded: 0,
-            kmzTotal: TOTAL_KMZ,
+            kmzTotal: 0,
         };
 
         // ============================================================
@@ -1871,7 +1867,6 @@
             const year = state.selectedDate.getFullYear();
             const month = state.selectedDate.getMonth();
             const days = getDaysInMonth(year, month);
-            // --- Welcome ---
             if (user.isAdmin) {
                 $('welcomeSubLabel').textContent = 'Panel Administrator';
                 $('dashboardAeName').textContent = 'Akumulasi Seluruh AE';
@@ -1886,7 +1881,6 @@
                 $('adminTrackerCard').style.display = 'none';
             }
             $('dashboardDate').textContent = formatDateDisplay(new Date());
-            // --- Target ---
             let targetFtth = 0,
                 targetFwa = 0;
             if (user.isAdmin) {
@@ -1902,7 +1896,6 @@
             }
             $('ftthTarget').textContent = targetFtth;
             $('fwaTarget').textContent = targetFwa;
-            // --- Aktual ---
             let totalFtth = 0,
                 totalFwa = 0;
             if (user.isAdmin) {
@@ -1933,9 +1926,7 @@
             $('fwaProgress').style.width = pctFwa + '%';
             $('ftthPercent').textContent = pctFtth + '%';
             $('fwaPercent').textContent = pctFwa + '%';
-            // --- Tracker ---
             renderTracker(month, year);
-            // --- Ringkasan Target Tim (admin only) ---
             renderTargetSummaryCard();
         }
 
@@ -1955,9 +1946,6 @@
             }
         }
 
-        // ============================================================
-        // RENDER: TRACKER untuk AE (non-admin)
-        // ============================================================
         function renderAeDashboardTracker(month, year) {
             const thead = $('trackerHead'),
                 tbody = $('trackerBody');
@@ -2008,9 +1996,6 @@
             $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year;
         }
 
-        // ============================================================
-        // RENDER: TRACKER untuk ADMIN (Baris = AE, Kolom = Tanggal)
-        // ============================================================
         function renderAdminDashboardTracker(month, year) {
             const thead = $('trackerHead'),
                 tbody = $('trackerBody');
@@ -2063,7 +2048,7 @@
         }
 
         // ============================================================
-        // RENDER: RINGKASAN TARGET TIM (ADMIN) — di Dashboard
+        // RENDER: RINGKASAN TARGET TIM
         // ============================================================
         function targetCellsHtml(name, fieldKey, target, actual) {
             const pct = target > 0 ? Math.round((actual / target) * 100) : 0;
@@ -2329,9 +2314,6 @@
             }
         }
 
-        // ============================================================
-        // ADMIN: INPUT PERFORMA HARIAN AE
-        // ============================================================
         async function handleAdminDailySubmit(e) {
             e.preventDefault();
             if (!state.currentUser || !state.currentUser.isAdmin) {
@@ -2364,9 +2346,6 @@
             }
         }
 
-        // ============================================================
-        // ADMIN: TAMBAH / EDIT AE
-        // ============================================================
         async function handleAddAe() {
             const name = $('adminNewName').value.trim();
             const pin = $('adminNewPin').value.trim();
@@ -2389,9 +2368,6 @@
             }
         }
 
-        // ============================================================
-        // ADMIN: UBAH PIN ADMIN
-        // ============================================================
         async function handleChangeAdminPin() {
             const newPin = $('adminNewAdminPin').value.trim();
             if (!newPin || newPin.length < 4) { showError('PIN minimal 4 karakter'); return; }
@@ -2409,9 +2385,6 @@
             }
         }
 
-        // ============================================================
-        // RINGKASAN TARGET TIM: SIMPAN & MUAT ULANG
-        // ============================================================
         async function handleSaveTargets() {
             const edited = state.editedTargets;
             const names = Object.keys(edited);
@@ -2452,10 +2425,8 @@
         // NAVIGASI
         // ============================================================
         function showPage(pageId) {
-            // Sembunyikan semua page
             $$('.page').forEach(p => {
                 p.classList.remove('active');
-                // Reset style khusus untuk pageMaps
                 if (p.id === 'pageMaps') {
                     p.style.display = 'none';
                 }
@@ -2465,13 +2436,11 @@
                 target.classList.add('active');
                 if (target.id === 'pageMaps') {
                     target.style.display = 'block';
-                    // Resize map saat ditampilkan
                     if (state.map) {
                         setTimeout(() => google.maps.event.trigger(state.map, 'resize'), 100);
                     }
                 }
             }
-            // Update bottom nav
             $$('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
             const navBtn = document.querySelector(`.bottom-nav .nav-item[data-page="${pageId}"]`);
             if (navBtn) navBtn.classList.add('active');
@@ -2499,72 +2468,91 @@
                 fullscreenControl: true,
             });
             state.map = map;
-
-            // Load KMZ setelah map siap
-            loadAllKmz(map);
-
             // Tampilkan overlay loading
             const overlay = $('mapLoadingOverlay');
             if (overlay) overlay.classList.remove('hidden');
+            // Jika ada filter default, langsung tampilkan
+            const filterInput = $('mapFilterInput');
+            if (filterInput && filterInput.value.trim() !== '') {
+                applyMapFilter();
+            } else {
+                // Tampilkan pesan awal
+                updateMapInfo(0, 'Masukkan kata kunci area lalu klik Tampilkan');
+            }
         }
 
         // ============================================================
-        // MAPS: LOAD SEMUA KMZ
+        // MAPS: APPLY FILTER & LOAD KMZ
         // ============================================================
-        function loadAllKmz(map) {
-            const total = KMZ_KEYS.length;
-            state.kmzTotal = total;
-            state.kmzLoaded = 0;
-            updateLoadingProgress(0, total, 'Memuat data KMZ...');
-
-            // Update legend count
-            $('mapLayerCount').textContent = '0';
-
-            if (total === 0) {
-                updateLoadingProgress(1, 1, 'Tidak ada file KMZ');
-                setTimeout(() => {
-                    $('mapLoadingOverlay').classList.add('hidden');
-                }, 500);
+        function applyMapFilter() {
+            const filterInput = $('mapFilterInput');
+            const query = filterInput.value.trim().toLowerCase();
+            if (!query) {
+                showError('Silakan masukkan kata kunci area');
                 return;
             }
+            // Cari KMZ yang sesuai filter
+            const matched = KMZ_KEYS.filter(key => key.toLowerCase().includes(query));
+            if (matched.length === 0) {
+                showError(`Tidak ditemukan area dengan kata "${query}"`);
+                updateMapInfo(0, `Tidak ada hasil untuk "${query}"`);
+                return;
+            }
+            if (matched.length > CONFIG.MAX_LAYERS) {
+                showError(`Terlalu banyak hasil (${matched.length}). Maksimal ${CONFIG.MAX_LAYERS} layer. Perhalus filter.`);
+                updateMapInfo(0, `Terlalu banyak (${matched.length}), perhalus filter`);
+                return;
+            }
+            // Hapus layer sebelumnya
+            clearMapLayers();
+            // Load layer yang sesuai
+            loadFilteredKmz(matched, query);
+        }
+
+        function clearMapLayers() {
+            state.mapLayers.forEach(layer => {
+                layer.setMap(null);
+            });
+            state.mapLayers = [];
+            state.kmzLoaded = 0;
+            state.kmzTotal = 0;
+            updateMapInfo(0, 'Menghapus layer...');
+        }
+
+        function loadFilteredKmz(keys, query) {
+            const total = keys.length;
+            state.kmzTotal = total;
+            state.kmzLoaded = 0;
+            const overlay = $('mapLoadingOverlay');
+            if (overlay) overlay.classList.remove('hidden');
+            updateLoadingProgress(0, total, `Memuat ${total} area untuk "${query}"...`);
+            updateMapInfo(0, `Memuat ${total} area...`);
 
             let loadedCount = 0;
             let errorCount = 0;
             const bounds = new google.maps.LatLngBounds();
             let firstLayer = true;
-
-            // Load KMZ satu per satu dengan delay agar tidak overload
             let index = 0;
 
             function loadNext() {
                 if (index >= total) {
-                    // Selesai semua
-                    finishLoading(loadedCount, errorCount, bounds, firstLayer);
+                    finishMapLoading(loadedCount, errorCount, bounds, firstLayer, query);
                     return;
                 }
-
-                const key = KMZ_KEYS[index];
+                const key = keys[index];
                 const filename = kmzUrls[key];
                 const url = KMZ_BASE_URL + filename;
-                const label = key;
-
-                // Buat KmlLayer
                 const layer = new google.maps.KmlLayer({
                     url: url,
-                    map: map,
+                    map: state.map,
                     preserveViewport: false,
                     suppressInfoWindows: true,
                 });
-
-                // Simpan referensi
                 state.mapLayers.push(layer);
-
-                // Event listener untuk saat layer selesai dimuat
                 layer.addListener('status_changed', function() {
                     const status = this.getStatus();
                     if (status === 'OK') {
                         loadedCount++;
-                        // Coba dapatkan bounds dari layer
                         try {
                             const meta = this.getMetadata();
                             if (meta && meta.bounds) {
@@ -2575,63 +2563,78 @@
                                     bounds.union(meta.bounds);
                                 }
                             }
-                        } catch (e) {
-                            // Abaikan jika tidak bisa dapat bounds
-                        }
-                        console.log(`✅ KMZ dimuat: ${label} (${loadedCount}/${total})`);
+                        } catch (e) {}
+                        console.log(`✅ KMZ dimuat: ${key} (${loadedCount}/${total})`);
                     } else if (status === 'ERROR') {
                         errorCount++;
-                        console.warn(`❌ Gagal muat KMZ: ${label}`, this.getStatus());
+                        console.warn(`❌ Gagal muat KMZ: ${key}`, this.getStatus());
                     }
-
-                    // Update progress setiap kali ada perubahan status
                     const currentTotal = loadedCount + errorCount;
-                    updateLoadingProgress(
-                        currentTotal,
-                        total,
-                        `Memuat ${label}... (${loadedCount} berhasil, ${errorCount} gagal)`
-                    );
+                    updateLoadingProgress(currentTotal, total,
+                        `Memuat ${key}... (${loadedCount} berhasil, ${errorCount} gagal)`);
+                    updateMapInfo(loadedCount, `Menampilkan ${loadedCount} area`);
 
-                    // Lanjut ke berikutnya
                     index++;
-                    // Delay kecil agar tidak overload
                     setTimeout(loadNext, 150);
                 });
-
-                // Fallback: jika tidak ada status_changed dalam 10 detik, lanjutkan
+                // Timeout fallback
                 const timeoutId = setTimeout(() => {
-                    // Cek apakah layer sudah selesai
                     const status = layer.getStatus();
                     if (status !== 'OK' && status !== 'ERROR') {
-                        // Belum selesai, paksa lanjut
-                        console.warn(`⏱️ Timeout untuk ${label}, melanjutkan...`);
-                        // Hapus listener untuk menghindari double
+                        console.warn(`⏱️ Timeout untuk ${key}, melanjutkan...`);
                         google.maps.event.clearListeners(layer, 'status_changed');
                         errorCount++;
                         index++;
-                        updateLoadingProgress(
-                            loadedCount + errorCount,
-                            total,
-                            `Timeout: ${label} (${loadedCount} berhasil, ${errorCount} gagal)`
-                        );
+                        updateLoadingProgress(loadedCount + errorCount, total,
+                            `Timeout: ${key} (${loadedCount} berhasil, ${errorCount} gagal)`);
+                        updateMapInfo(loadedCount, `Menampilkan ${loadedCount} area`);
                         setTimeout(loadNext, 100);
                     }
-                }, 10000);
-
-                // Simpan timeout untuk dibersihkan jika status_changed dipanggil
+                }, 8000);
                 layer._timeoutId = timeoutId;
                 layer.addListener('status_changed', function() {
                     clearTimeout(timeoutId);
                 });
             }
-
-            // Mulai proses loading
             loadNext();
         }
 
+        function finishMapLoading(loaded, errors, bounds, firstLayer, query) {
+            console.log(`✅ Selesai muat KMZ: ${loaded} berhasil, ${errors} gagal`);
+            updateLoadingProgress(state.kmzTotal, state.kmzTotal,
+                `Selesai! ${loaded} layer dimuat, ${errors} gagal`);
+            updateMapInfo(loaded, `Menampilkan ${loaded} area`);
+
+            if (!firstLayer && bounds && bounds.getNorthEast() && bounds.getSouthWest()) {
+                try {
+                    state.map.fitBounds(bounds);
+                    state.map.panToBounds(bounds, { top: 60, bottom: 60, left: 60, right: 60 });
+                } catch (e) {
+                    console.warn('Tidak bisa fit bounds');
+                }
+            } else {
+                state.map.setCenter(CONFIG.MAP_CENTER);
+                state.map.setZoom(CONFIG.MAP_ZOOM);
+            }
+            setTimeout(() => {
+                const overlay = $('mapLoadingOverlay');
+                if (overlay) overlay.classList.add('hidden');
+            }, 600);
+            state.mapLoaded = true;
+        }
+
         // ============================================================
-        // MAPS: UPDATE PROGRESS LOADING
+        // MAPS: UPDATE INFO
         // ============================================================
+        function updateMapInfo(count, statusText) {
+            const countEl = $('mapLayerCount');
+            const displayEl = $('mapLayerCountDisplay');
+            const statusEl = $('mapFilterStatus');
+            if (countEl) countEl.textContent = count;
+            if (displayEl) displayEl.textContent = count;
+            if (statusEl) statusEl.textContent = statusText || '';
+        }
+
         function updateLoadingProgress(current, total, statusText) {
             const pct = total > 0 ? Math.min(100, Math.round((current / total) * 100)) : 0;
             const fill = $('mapProgressFill');
@@ -2640,45 +2643,23 @@
             if (text) text.textContent = `${current} / ${total}`;
             const sub = $('mapLoadSub');
             if (sub && statusText) sub.textContent = statusText;
-            // Update legend
-            if ($('mapLayerCount')) {
-                const loaded = state.mapLayers.filter(l => l.getStatus() === 'OK').length;
-                $('mapLayerCount').textContent = loaded;
-            }
         }
 
         // ============================================================
-        // MAPS: FINISH LOADING
+        // MAPS: FILTER BUTTON & ENTER
         // ============================================================
-        function finishLoading(loaded, errors, bounds, firstLayer) {
-            console.log(`✅ Selesai muat KMZ: ${loaded} berhasil, ${errors} gagal dari ${state.kmzTotal}`);
-            $('mapLayerCount').textContent = loaded;
-            updateLoadingProgress(state.kmzTotal, state.kmzTotal,
-                `Selesai! ${loaded} layer dimuat, ${errors} gagal`);
+        $('mapFilterApplyBtn')?.addEventListener('click', applyMapFilter);
+        $('mapFilterInput')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') applyMapFilter();
+        });
 
-            // Fit bounds jika ada
-            if (!firstLayer && bounds && bounds.getNorthEast() && bounds.getSouthWest()) {
-                try {
-                    state.map.fitBounds(bounds);
-                    // Tambahkan padding
-                    state.map.panToBounds(bounds, { top: 60, bottom: 60, left: 60, right: 60 });
-                } catch (e) {
-                    console.warn('Tidak bisa fit bounds, tetap di center default');
-                }
-            } else {
-                // Fallback ke center default
-                state.map.setCenter(CONFIG.MAP_CENTER);
-                state.map.setZoom(CONFIG.MAP_ZOOM);
-            }
-
-            // Sembunyikan loading overlay setelah delay
-            setTimeout(() => {
-                const overlay = $('mapLoadingOverlay');
-                if (overlay) overlay.classList.add('hidden');
-            }, 800);
-
-            state.mapLoaded = true;
-        }
+        // ============================================================
+        // MAPS: BACK BUTTON
+        // ============================================================
+        $('mapBackBtn')?.addEventListener('click', () => {
+            showPage('pageDashboard');
+            if (state.currentUser) renderDashboard();
+        });
 
         // ============================================================
         // BOTTOM NAV CLICK
@@ -2690,12 +2671,7 @@
                     showError('Akses admin diperlukan');
                     return;
                 }
-                if (page === 'pageDashboard' && !state.currentUser) {
-                    showError('Silakan login terlebih dahulu');
-                    showPage('pageLogin');
-                    return;
-                }
-                if (page === 'pageMaps' && !state.currentUser) {
+                if ((page === 'pageDashboard' || page === 'pageMaps') && !state.currentUser) {
                     showError('Silakan login terlebih dahulu');
                     showPage('pageLogin');
                     return;
@@ -2707,14 +2683,6 @@
                     setTimeout(() => google.maps.event.trigger(state.map, 'resize'), 200);
                 }
             });
-        });
-
-        // ============================================================
-        // MAP BACK BUTTON
-        // ============================================================
-        $('mapBackBtn')?.addEventListener('click', () => {
-            showPage('pageDashboard');
-            if (state.currentUser) renderDashboard();
         });
 
         // ============================================================
@@ -2780,8 +2748,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', init);
-
-        // Expose initMap untuk Google Maps callback
         window.initMap = initMap;
     </script>
 </body>
