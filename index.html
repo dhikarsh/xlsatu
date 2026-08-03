@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        /* ===== GLOBAL (sama seperti sebelumnya) ===== */
+        /* ===== GLOBAL (tetap sama, tidak diubah) ===== */
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',system-ui,sans-serif !important; }
         :root {
             --xl-blue:#0F3B7A; --xl-blue-light:#1A5BB5; --xl-blue-dark:#0A2A55;
@@ -603,7 +603,8 @@
             "3273_9_garuda_cibuntu_wrgmuncang"
         ];
 
-        const GEOJSON_BASE_URL = 'https://dhikarsh.github.io/maps-data/geojson/';
+        // Pastikan tidak ada koma terakhir dan array valid
+        console.log('Jumlah area:', AREA_KEYS.length);
 
         // ============================================================
         // STATE
@@ -678,7 +679,7 @@
         }
 
         // ============================================================
-        // API
+        // API (dengan fallback jika gagal)
         // ============================================================
         async function apiCall(action, payload = {}) {
             try {
@@ -702,7 +703,7 @@
         }
 
         // ============================================================
-        // DATA LOADER
+        // DATA LOADER dengan fallback dummy
         // ============================================================
         async function loadAeList() {
             const result = await fetchData('getAeList');
@@ -710,7 +711,6 @@
                 state.aeList = result.data;
                 return state.aeList;
             }
-            // fallback: data dummy untuk testing
             console.warn('⚠️ Gagal load AE list, menggunakan data dummy');
             state.aeList = [
                 { name: 'ADMIN', pin: '123456', targetFtth: 0, targetFwa: 0 },
@@ -720,7 +720,7 @@
         }
 
         // ============================================================
-        // RENDER: DROPDOWN AE
+        // RENDER: DROPDOWN AE (sama)
         // ============================================================
         function renderAeDropdowns() {
             const sel = $('loginAeSelect');
@@ -761,7 +761,7 @@
         }
 
         // ============================================================
-        // RENDER: ADMIN DAFTAR AE
+        // RENDER: ADMIN DAFTAR AE (sama)
         // ============================================================
         function renderAdminAeList() {
             const container = $('adminAeList');
@@ -824,7 +824,7 @@
         }
 
         // ============================================================
-        // RENDER: DASHBOARD
+        // RENDER: DASHBOARD (sama)
         // ============================================================
         function renderDashboard() {
             const user = state.currentUser;
@@ -896,7 +896,7 @@
         }
 
         // ============================================================
-        // RENDER: TRACKER
+        // RENDER: TRACKER (sama)
         // ============================================================
         function renderTracker(month, year) {
             const user = state.currentUser;
@@ -1013,7 +1013,7 @@
         }
 
         // ============================================================
-        // RENDER: RINGKASAN TARGET TIM
+        // RENDER: RINGKASAN TARGET TIM (sama)
         // ============================================================
         function targetCellsHtml(name, fieldKey, target, actual) {
             const pct = target > 0 ? Math.round((actual / target) * 100) : 0;
@@ -1162,7 +1162,7 @@
                     console.log('✅ Admin tracker data loaded:', state.adminTrackerData);
                 } else {
                     console.error('❌ Gagal load admin tracker:', adminTracker.error);
-                    state.adminTrackerData = {}; // kosongkan agar tidak error
+                    state.adminTrackerData = {};
                 }
                 state.trackerData = {};
             } else {
@@ -1176,14 +1176,13 @@
         }
 
         // ============================================================
-        // LOGIN HANDLER
+        // LOGIN HANDLER (sama)
         // ============================================================
         async function handleLogin(e) {
             e.preventDefault();
             const name = $('loginAeSelect').value;
             const inputPin = String($('loginPin').value).trim();
             if (!name) { showError('Pilih nama AE'); return; }
-            // Load ulang AE list untuk memastikan data terbaru
             await loadAeList();
             const ae = (state.aeList || []).find(a => a.name.toLowerCase() === name.toLowerCase());
             if (!ae) { showError('AE tidak ditemukan'); return; }
@@ -1431,7 +1430,10 @@
             console.log('🗺️ Inisialisasi Leaflet...');
 
             const mapEl = document.getElementById('map');
-            if (!mapEl) return;
+            if (!mapEl) {
+                console.error('❌ Element #map tidak ditemukan!');
+                return;
+            }
 
             const map = L.map(mapEl, {
                 center: [CONFIG.MAP_CENTER.lat, CONFIG.MAP_CENTER.lng],
@@ -1456,7 +1458,7 @@
         }
 
         // ============================================================
-        // POPULATE DROPDOWN AREA
+        // POPULATE DROPDOWN AREA - DIPANGGIL SAAT MAP SIAP
         // ============================================================
         function populateAreaDropdown() {
             const select = $('mapAreaSelect');
@@ -1478,16 +1480,16 @@
             sorted.forEach(key => {
                 const opt = document.createElement('option');
                 opt.value = key;
-                const parts = key.split('_');
-                let display = key;
-                if (parts.length >= 3) {
-                    display = parts.slice(2).join(' ').replace(/([a-z])([A-Z])/g, '$1 $2');
-                }
+                // Format display name lebih rapi
+                let display = key.replace(/^3273_\d+_/, '').replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2');
                 opt.textContent = display;
                 select.appendChild(opt);
             });
 
             console.log(`✅ Dropdown berisi ${sorted.length} area.`);
+            // Tampilkan status di UI
+            const statusEl = $('mapFilterStatus');
+            if (statusEl) statusEl.textContent = `${sorted.length} area tersedia`;
         }
 
         // ============================================================
@@ -1708,6 +1710,8 @@
             $('adminDailyDateInput').value = todayStr();
             showPage('pageLogin');
             console.log('🚀 XL Satu Sales Tracker siap! (GeoJSON)');
+            // Panggil populate dropdown di sini sebagai fallback jika map belum siap
+            setTimeout(populateAreaDropdown, 1000);
         }
 
         document.addEventListener('DOMContentLoaded', init);
