@@ -43,10 +43,10 @@
         #pageMaps.active { display:block; }
         #map { width:100%; height:100%; background:#e5e5e5; }
         /* ===== MAP FILTER BAR ===== */
-        .map-filter-bar { position:absolute; top:16px; left:16px; z-index:20; background:rgba(255,255,255,0.92); backdrop-filter:blur(12px); border-radius:var(--xl-radius); padding:14px 18px; box-shadow:0 4px 24px rgba(0,0,0,0.12); max-width:360px; width:calc(100% - 32px); border:1px solid rgba(255,255,255,0.3); }
+        .map-filter-bar { position:absolute; top:16px; left:16px; z-index:20; background:rgba(255,255,255,0.92); backdrop-filter:blur(12px); border-radius:var(--xl-radius); padding:14px 18px; box-shadow:0 4px 24px rgba(0,0,0,0.12); max-width:380px; width:calc(100% - 32px); border:1px solid rgba(255,255,255,0.3); }
         .map-filter-bar .filter-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-        .map-filter-bar input { flex:1; padding:8px 14px; border:1.5px solid var(--xl-border); border-radius:var(--xl-radius-sm); font-size:13px; font-weight:500; background:#fff; outline:none; color:var(--xl-dark); min-width:100px; }
-        .map-filter-bar input:focus { border-color:var(--xl-blue-light); box-shadow:0 0 0 3px var(--xl-blue-soft); }
+        .map-filter-bar select { flex:1; padding:8px 14px; border:1.5px solid var(--xl-border); border-radius:var(--xl-radius-sm); font-size:13px; font-weight:500; background:#fff; outline:none; color:var(--xl-dark); min-width:120px; appearance:auto; }
+        .map-filter-bar select:focus { border-color:var(--xl-blue-light); box-shadow:0 0 0 3px var(--xl-blue-soft); }
         .map-filter-bar .filter-btn { background:var(--xl-blue-grad); color:#fff; border:none; padding:8px 16px; border-radius:var(--xl-radius-sm); font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap; transition:var(--xl-transition); }
         .map-filter-bar .filter-btn:active { transform:scale(0.95); }
         .map-filter-bar .filter-btn.reset { background:var(--xl-muted); }
@@ -200,8 +200,7 @@
             .ts-actions { width:100%; justify-content:flex-end; }
             .ts-meta { width:100%; }
             .map-filter-bar { top:10px; left:10px; padding:12px 14px; max-width:calc(100% - 20px); }
-            .map-filter-bar .filter-row { flex-wrap:wrap; }
-            .map-filter-bar input { min-width:80px; font-size:12px; }
+            .map-filter-bar select { min-width:80px; font-size:12px; }
             .map-back-btn { top:10px; right:10px; font-size:11px; padding:6px 12px; }
             .map-legend { bottom:80px; right:12px; padding:10px 12px; font-size:10px; max-width:160px; }
         }
@@ -505,13 +504,15 @@
             <!-- Filter Bar -->
             <div class="map-filter-bar">
                 <div class="filter-row">
-                    <input type="text" id="mapFilterInput" placeholder="Cari area (misal: pasteur, dago)" />
+                    <select id="mapAreaSelect">
+                        <option value="">-- Pilih Area --</option>
+                    </select>
                     <button class="filter-btn" id="mapFilterApplyBtn">Tampilkan</button>
                     <button class="filter-btn reset" id="mapFilterResetBtn">Reset</button>
                 </div>
                 <div class="filter-info">
                     <span>Layer ditampilkan: <span class="count" id="mapLayerCountDisplay">0</span></span>
-                    <span id="mapFilterStatus">Ketik kata kunci lalu tekan Tampilkan</span>
+                    <span id="mapFilterStatus">Pilih area dari dropdown</span>
                 </div>
             </div>
             <!-- Tombol Kembali -->
@@ -571,7 +572,6 @@
             ADMIN_PIN: '123456',
             MAP_CENTER: { lat: -6.9175, lng: 107.6191 },
             MAP_ZOOM: 12,
-            MAX_LAYERS: 40, // batas aman untuk KmlLayer
         };
 
         // --- KONFIGURASI KMZ ---
@@ -679,7 +679,6 @@
             "3273_9_garuda_cibuntu_wrgmuncang": "3273_9_garuda_cibuntu_wrgmuncang.kmz"
         };
         const KMZ_KEYS = Object.keys(kmzUrls);
-        const TOTAL_KMZ = KMZ_KEYS.length;
 
         // ============================================================
         // STATE
@@ -696,8 +695,6 @@
             map: null,
             mapLayers: [],
             mapLoaded: false,
-            kmzLoaded: 0,
-            kmzTotal: 0,
             isLoading: false,
         };
 
@@ -1230,7 +1227,12 @@
             renderAdminAeSelect();
             if (user.isAdmin) {
                 const adminTracker = await fetchData('getAdminTracker', { month, year });
-                if (adminTracker.success) state.adminTrackerData = adminTracker.data || {};
+                if (adminTracker.success) {
+                    state.adminTrackerData = adminTracker.data || {};
+                    console.log('✅ Admin tracker data loaded:', state.adminTrackerData);
+                } else {
+                    console.error('❌ Gagal load admin tracker:', adminTracker.error);
+                }
                 state.trackerData = {};
             } else {
                 const tracker = await fetchData('getTracker', { aeName: user.name, month, year });
@@ -1378,6 +1380,7 @@
                 $('adminDailyFtth').value = '';
                 $('adminDailyFwa').value = '';
                 showSuccess(`Performa harian ${aeName} berhasil disimpan!`);
+                // Refresh data untuk menampilkan di tracker
                 await refreshAllData();
             } else {
                 showError('Gagal menyimpan: ' + (result.error || ''));
@@ -1506,16 +1509,39 @@
                 fullscreenControl: true,
             });
             state.map = map;
+            // Isi dropdown area
+            populateAreaDropdown();
             // Tampilkan overlay loading
             const overlay = $('mapLoadingOverlay');
             if (overlay) overlay.classList.remove('hidden');
-            updateMapInfo(0, 'Masukkan kata kunci lalu tekan Tampilkan');
-            // Reset loading overlay setelah beberapa detik jika tidak ada aktivitas
+            updateMapInfo(0, 'Pilih area dari dropdown');
             setTimeout(() => {
-                if (state.mapLayers.length === 0) {
-                    overlay.classList.add('hidden');
+                overlay.classList.add('hidden');
+            }, 2000);
+        }
+
+        function populateAreaDropdown() {
+            const select = $('mapAreaSelect');
+            if (!select) return;
+            // Urutkan berdasarkan nama area (ambil setelah underscore)
+            const sorted = KMZ_KEYS.slice().sort((a, b) => {
+                const nameA = a.split('_').slice(2).join('_') || a;
+                const nameB = b.split('_').slice(2).join('_') || b;
+                return nameA.localeCompare(nameB);
+            });
+            select.innerHTML = '<option value="">-- Pilih Area --</option>';
+            sorted.forEach(key => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                // Tampilkan nama area yang lebih bersih (ambil bagian setelah kode)
+                const parts = key.split('_');
+                let display = key;
+                if (parts.length >= 3) {
+                    display = parts.slice(2).join(' ').replace(/([a-z])([A-Z])/g, '$1 $2');
                 }
-            }, 3000);
+                opt.textContent = display;
+                select.appendChild(opt);
+            });
         }
 
         // ============================================================
@@ -1526,28 +1552,16 @@
                 showError('Sedang memuat data, tunggu sebentar');
                 return;
             }
-            const filterInput = $('mapFilterInput');
-            const query = filterInput.value.trim().toLowerCase();
-            if (!query) {
-                showError('Silakan masukkan kata kunci area');
-                return;
-            }
-            // Cari KMZ yang sesuai filter (case insensitive)
-            const matched = KMZ_KEYS.filter(key => key.toLowerCase().includes(query));
-            if (matched.length === 0) {
-                showError(`Tidak ditemukan area dengan kata "${query}"`);
-                updateMapInfo(0, `Tidak ada hasil untuk "${query}"`);
-                return;
-            }
-            if (matched.length > CONFIG.MAX_LAYERS) {
-                showError(`Terlalu banyak hasil (${matched.length}). Maksimal ${CONFIG.MAX_LAYERS} layer. Perhalus filter.`);
-                updateMapInfo(0, `Terlalu banyak (${matched.length}), perhalus filter`);
+            const select = $('mapAreaSelect');
+            const key = select.value;
+            if (!key) {
+                showError('Pilih area terlebih dahulu');
                 return;
             }
             // Hapus layer sebelumnya
             clearMapLayers();
-            // Load layer yang sesuai
-            loadFilteredKmz(matched, query);
+            // Load hanya satu KMZ
+            loadSingleKmz(key);
         }
 
         function clearMapLayers() {
@@ -1555,115 +1569,95 @@
                 layer.setMap(null);
             });
             state.mapLayers = [];
-            state.kmzLoaded = 0;
-            state.kmzTotal = 0;
             updateMapInfo(0, 'Layer dihapus');
         }
 
-        function loadFilteredKmz(keys, query) {
-            const total = keys.length;
-            state.kmzTotal = total;
-            state.kmzLoaded = 0;
+        function loadSingleKmz(key) {
+            const total = 1;
             state.isLoading = true;
             const overlay = $('mapLoadingOverlay');
             if (overlay) overlay.classList.remove('hidden');
-            updateLoadingProgress(0, total, `Memuat ${total} area untuk "${query}"...`);
-            updateMapInfo(0, `Memuat ${total} area...`);
+            updateLoadingProgress(0, 1, `Memuat ${key}...`);
+            updateMapInfo(0, `Memuat ${key}...`);
 
-            let loadedCount = 0;
-            let errorCount = 0;
-            const bounds = new google.maps.LatLngBounds();
-            let firstLayer = true;
-            let index = 0;
+            const filename = kmzUrls[key];
+            const url = KMZ_BASE_URL + filename;
+            const layer = new google.maps.KmlLayer({
+                url: url,
+                map: state.map,
+                preserveViewport: false,
+                suppressInfoWindows: true,
+            });
+            state.mapLayers.push(layer);
 
-            function loadNext() {
-                if (index >= total) {
-                    finishMapLoading(loadedCount, errorCount, bounds, firstLayer, query);
-                    return;
+            let loaded = false;
+            let errorOccurred = false;
+
+            layer.addListener('status_changed', function() {
+                const status = this.getStatus();
+                if (status === 'OK') {
+                    loaded = true;
+                    console.log(`✅ KMZ dimuat: ${key}`);
+                    updateLoadingProgress(1, 1, `Selesai! ${key} dimuat`);
+                    updateMapInfo(1, `Menampilkan ${key}`);
+                    // Fit bounds
+                    try {
+                        const meta = this.getMetadata();
+                        if (meta && meta.bounds) {
+                            state.map.fitBounds(meta.bounds);
+                            state.map.panToBounds(meta.bounds, { top: 60, bottom: 60, left: 60, right: 60 });
+                        }
+                    } catch (e) {
+                        console.warn('Tidak bisa fit bounds');
+                    }
+                    state.isLoading = false;
+                    setTimeout(() => {
+                        overlay.classList.add('hidden');
+                    }, 500);
+                } else if (status === 'ERROR') {
+                    errorOccurred = true;
+                    console.error(`❌ Gagal muat KMZ: ${key}`, this.getStatus());
+                    showError(`Gagal memuat ${key}. Periksa URL atau format file.`);
+                    updateLoadingProgress(1, 1, `Gagal memuat ${key}`);
+                    updateMapInfo(0, `Gagal memuat ${key}`);
+                    state.isLoading = false;
+                    setTimeout(() => {
+                        overlay.classList.add('hidden');
+                    }, 1000);
                 }
-                const key = keys[index];
-                const filename = kmzUrls[key];
-                const url = KMZ_BASE_URL + filename;
-                const layer = new google.maps.KmlLayer({
-                    url: url,
-                    map: state.map,
-                    preserveViewport: false,
-                    suppressInfoWindows: true,
-                });
-                state.mapLayers.push(layer);
-                layer.addListener('status_changed', function() {
-                    const status = this.getStatus();
-                    if (status === 'OK') {
-                        loadedCount++;
-                        try {
-                            const meta = this.getMetadata();
-                            if (meta && meta.bounds) {
-                                if (firstLayer) {
-                                    bounds.union(meta.bounds);
-                                    firstLayer = false;
-                                } else {
-                                    bounds.union(meta.bounds);
-                                }
-                            }
-                        } catch (e) {}
-                        console.log(`✅ KMZ dimuat: ${key} (${loadedCount}/${total})`);
-                    } else if (status === 'ERROR') {
-                        errorCount++;
-                        console.warn(`❌ Gagal muat KMZ: ${key}`, this.getStatus());
-                    }
-                    const currentTotal = loadedCount + errorCount;
-                    updateLoadingProgress(currentTotal, total,
-                        `Memuat ${key}... (${loadedCount} berhasil, ${errorCount} gagal)`);
-                    updateMapInfo(loadedCount, `Menampilkan ${loadedCount} area`);
+            });
 
-                    index++;
-                    setTimeout(loadNext, 150);
-                });
-                // Timeout fallback
-                const timeoutId = setTimeout(() => {
-                    const status = layer.getStatus();
-                    if (status !== 'OK' && status !== 'ERROR') {
-                        console.warn(`⏱️ Timeout untuk ${key}, melanjutkan...`);
-                        google.maps.event.clearListeners(layer, 'status_changed');
-                        errorCount++;
-                        index++;
-                        updateLoadingProgress(loadedCount + errorCount, total,
-                            `Timeout: ${key} (${loadedCount} berhasil, ${errorCount} gagal)`);
-                        updateMapInfo(loadedCount, `Menampilkan ${loadedCount} area`);
-                        setTimeout(loadNext, 100);
-                    }
-                }, 8000);
-                layer._timeoutId = timeoutId;
-                layer.addListener('status_changed', function() {
-                    clearTimeout(timeoutId);
-                });
-            }
-            loadNext();
+            // Timeout fallback
+            const timeoutId = setTimeout(() => {
+                if (!loaded && !errorOccurred) {
+                    console.warn(`⏱️ Timeout untuk ${key}`);
+                    showError(`Timeout memuat ${key}. Coba lagi.`);
+                    updateLoadingProgress(1, 1, `Timeout ${key}`);
+                    updateMapInfo(0, `Timeout ${key}`);
+                    state.isLoading = false;
+                    overlay.classList.add('hidden');
+                }
+            }, 15000);
+            layer._timeoutId = timeoutId;
+            layer.addListener('status_changed', function() {
+                clearTimeout(timeoutId);
+            });
         }
 
-        function finishMapLoading(loaded, errors, bounds, firstLayer, query) {
-            console.log(`✅ Selesai muat KMZ: ${loaded} berhasil, ${errors} gagal`);
-            updateLoadingProgress(state.kmzTotal, state.kmzTotal,
-                `Selesai! ${loaded} layer dimuat, ${errors} gagal`);
-            updateMapInfo(loaded, `Menampilkan ${loaded} area`);
-
-            if (!firstLayer && bounds && bounds.getNorthEast() && bounds.getSouthWest()) {
-                try {
-                    state.map.fitBounds(bounds);
-                    state.map.panToBounds(bounds, { top: 60, bottom: 60, left: 60, right: 60 });
-                } catch (e) {
-                    console.warn('Tidak bisa fit bounds');
-                }
-            } else {
-                state.map.setCenter(CONFIG.MAP_CENTER);
-                state.map.setZoom(CONFIG.MAP_ZOOM);
+        // ============================================================
+        // MAPS: RESET
+        // ============================================================
+        function resetMap() {
+            if (state.isLoading) {
+                showError('Sedang memuat, tunggu sebentar');
+                return;
             }
-            setTimeout(() => {
-                const overlay = $('mapLoadingOverlay');
-                if (overlay) overlay.classList.add('hidden');
-                state.isLoading = false;
-            }, 600);
-            state.mapLoaded = true;
+            clearMapLayers();
+            state.map.setCenter(CONFIG.MAP_CENTER);
+            state.map.setZoom(CONFIG.MAP_ZOOM);
+            $('mapAreaSelect').value = '';
+            updateMapInfo(0, 'Pilih area dari dropdown');
+            showToast('Layer direset');
         }
 
         // ============================================================
@@ -1689,27 +1683,11 @@
         }
 
         // ============================================================
-        // MAPS: RESET
-        // ============================================================
-        function resetMap() {
-            if (state.isLoading) {
-                showError('Sedang memuat, tunggu sebentar');
-                return;
-            }
-            clearMapLayers();
-            state.map.setCenter(CONFIG.MAP_CENTER);
-            state.map.setZoom(CONFIG.MAP_ZOOM);
-            $('mapFilterInput').value = '';
-            updateMapInfo(0, 'Semua layer dihapus. Ketik kata kunci baru.');
-            showToast('Layer direset');
-        }
-
-        // ============================================================
-        // MAPS: FILTER BUTTON & ENTER
+        // MAPS: FILTER BUTTON
         // ============================================================
         $('mapFilterApplyBtn')?.addEventListener('click', applyMapFilter);
-        $('mapFilterInput')?.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') applyMapFilter();
+        $('mapAreaSelect')?.addEventListener('change', () => {
+            // Optional: auto-load when selection changes? Biarkan manual.
         });
         $('mapFilterResetBtn')?.addEventListener('click', resetMap);
 
