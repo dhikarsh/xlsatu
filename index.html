@@ -605,7 +605,7 @@
         const GEOJSON_BASE_URL = 'https://dhikarsh.github.io/maps-data/geojson/';
 
         // ============================================================
-        // FIX: PARSER WARNA POLIGON & MARKER YANG 100% ROBUST
+        // PARSER WARNA POLIGON
         // ============================================================
         function parseMapColor(rawColor) {
             if (!rawColor) return null;
@@ -674,14 +674,22 @@
             };
         }
 
-        // FUNGSI UTAMA PENGECEKAN WARNA TITIK (MARKER) DENGAN FULL-TEXT SCAN
+        // ============================================================
+        // DEBUGGER & FUNGSI TITIK (MARKER)
+        // ============================================================
         function geoJsonPointToLayer(feature, latlng) {
             const props = feature && feature.properties;
             let finalColor = null;
 
+            // Cetak 3 data pertama ke Console Browser (F12) untuk inspeksi struktur data
+            if (window._debugCount === undefined) window._debugCount = 0;
+            if (window._debugCount < 3) {
+                console.log("🔍 ISI PROPERTIES TITIK:", props);
+                window._debugCount++;
+            }
+
             if (props) {
-                // 1. Cek properti warna secara langsung/greedy
-                let colorStr = props['marker-color'] || props.markerColor || props.fill || props['fill-color'] || props.fillColor || props.color;
+                let colorStr = props['marker-color'] || props.markerColor || props['fill'] || props['fill-color'] || props.fillColor || props.color;
                 if (!colorStr) {
                     for (let key in props) {
                         const k = key.toLowerCase();
@@ -695,25 +703,23 @@
                     finalColor = parseMapColor(colorStr);
                 }
 
-                // 2. Jika warna belum ketemu / masih biru, scan kata kunci pada seluruh isi properties JSON
                 if (!finalColor || finalColor === '#0F3B7A' || finalColor === '#1A5BB5') {
                     const propStr = JSON.stringify(props).toLowerCase();
                     if (propStr.includes('ftth') || propStr.includes('aa00ff') || propStr.includes('ungu')) {
-                        finalColor = '#aa00ff'; // Ungu (PT FTTH)
+                        finalColor = '#aa00ff'; // Ungu
                     } else if (propStr.includes('indoor') || propStr.includes('90ee90') || propStr.includes('hijau')) {
-                        finalColor = '#90ee90'; // Hijau muda (PT FWA IndoorOutdoor)
+                        finalColor = '#90ee90'; // Hijau Muda
                     } else if (propStr.includes('fwa') || propStr.includes('ffa500') || propStr.includes('oranye') || propStr.includes('outdoor')) {
-                        finalColor = '#ffa500'; // Oranye (PT FWA Outdoor)
+                        finalColor = '#ffa500'; // Oranye
                     }
                 }
             }
 
-            // Fallback mutlak jika tidak ada kecocokan
             finalColor = finalColor || '#0F3B7A';
 
             return L.circleMarker(latlng, {
                 radius: 5.5,
-                color: '#ffffff', // Outline putih agar titik jelas saat bertumpuk
+                color: '#ffffff',
                 weight: 1.2,
                 opacity: 1,
                 fillColor: finalColor,
@@ -787,7 +793,7 @@
         }
 
         // ============================================================
-        // API (dengan fallback)
+        // API
         // ============================================================
         async function apiCall(action, payload = {}) {
             try {
