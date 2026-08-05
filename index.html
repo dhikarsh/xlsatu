@@ -4,9 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>XL Satu - Sales Tracker</title>
-    <!-- Leaflet CSS & JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         /* ===== GLOBAL ===== */
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',system-ui,sans-serif !important; }
@@ -36,43 +33,8 @@
         .page { display:none; padding:16px 16px 24px; animation:fadeUp 0.35s ease; }
         .page.active { display:block; }
         @keyframes fadeUp { from { opacity:0; transform:translateY(20px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
-        /* ===== MAPS PAGE (FULL SCREEN) ===== */
-        #pageMaps { padding:0; position:fixed; top:0; left:0; right:0; bottom:0; z-index:5; background:#f0f0f0; display:none; animation:none; }
-        #pageMaps.active { display:block; }
-        #map { width:100%; height:100%; background:#e5e5e5; position:relative; z-index:1; }
-        .map-filter-bar { 
-            position:absolute; 
-            bottom:80px; 
-            left:12px; 
-            right:12px; 
-            z-index:20; 
-            background:rgba(255,255,255,0.95); 
-            backdrop-filter:blur(12px); 
-            border-radius:var(--xl-radius); 
-            padding:12px 16px; 
-            box-shadow:0 4px 24px rgba(0,0,0,0.12); 
-            border:1px solid rgba(255,255,255,0.3);
-        }
-        .map-filter-bar .filter-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-        .map-filter-bar select { flex:1; padding:8px 12px; border:1.5px solid var(--xl-border); border-radius:var(--xl-radius-sm); font-size:13px; font-weight:500; background:#fff; outline:none; color:var(--xl-dark); min-width:100px; appearance:auto; }
-        .map-filter-bar select:focus { border-color:var(--xl-blue-light); box-shadow:0 0 0 3px var(--xl-blue-soft); }
-        .map-filter-bar .filter-btn { background:var(--xl-blue-grad); color:#fff; border:none; padding:8px 16px; border-radius:var(--xl-radius-sm); font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap; transition:var(--xl-transition); }
-        .map-filter-bar .filter-btn:active { transform:scale(0.95); }
-        .map-filter-bar .filter-btn.reset { background:var(--xl-muted); }
-        .map-filter-bar .filter-info { font-size:11px; color:var(--xl-muted); margin-top:6px; display:flex; justify-content:space-between; flex-wrap:wrap; }
-        .map-filter-bar .filter-info .count { font-weight:700; color:var(--xl-blue); }
-        #mapLoadingOverlay { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.85); z-index:10; pointer-events:none; transition:opacity 0.5s ease; }
-        #mapLoadingOverlay.hidden { opacity:0; pointer-events:none; }
-        .map-loading-box { text-align:center; background:#fff; padding:32px 40px; border-radius:var(--xl-radius); box-shadow:var(--xl-shadow); max-width:320px; }
-        .map-loading-box .spinner-big { display:inline-block; width:48px; height:48px; border:4px solid var(--xl-gray-light); border-top-color:var(--xl-blue); border-radius:50%; animation:spin 0.8s linear infinite; }
-        .map-loading-box p { margin-top:14px; font-weight:700; color:var(--xl-dark); }
-        .map-loading-box .sub { font-size:13px; font-weight:500; color:var(--xl-muted); margin-top:4px; }
-        .map-loading-box .progress-bar { width:100%; height:6px; background:var(--xl-gray-light); border-radius:10px; margin-top:14px; overflow:hidden; }
-        .map-loading-box .progress-bar .fill { height:100%; width:0%; background:var(--xl-blue-grad); border-radius:10px; transition:width 0.3s ease; }
-        .map-loading-box .progress-text { font-size:12px; font-weight:600; color:var(--xl-muted); margin-top:6px; }
-        .map-back-btn { position:absolute; top:12px; right:16px; z-index:20; background:rgba(255,255,255,0.90); backdrop-filter:blur(8px); border:none; border-radius:40px; padding:8px 16px; font-weight:700; font-size:13px; color:var(--xl-blue); box-shadow:0 4px 16px rgba(0,0,0,0.10); cursor:pointer; display:flex; align-items:center; gap:6px; transition:var(--xl-transition); }
-        .map-back-btn:hover { background:#fff; box-shadow:0 6px 24px rgba(0,0,0,0.15); }
-        /* ===== CARDS (dashboard) ===== */
+        
+        /* ===== CARDS (dashboard & general) ===== */
         .card { background:#fff; border-radius:var(--xl-radius); padding:18px 20px; margin-bottom:16px; box-shadow:var(--xl-shadow); border:1px solid var(--xl-border); transition:var(--xl-transition); }
         .card:hover { box-shadow:0 12px 40px rgba(15,59,122,0.10); }
         .card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
@@ -198,9 +160,6 @@
             .target-table input.target-input { width:42px; font-size:11px; padding:5px 2px; }
             .ts-actions { width:100%; justify-content:flex-end; }
             .ts-meta { width:100%; }
-            .map-filter-bar { bottom:70px; left:8px; right:8px; padding:10px 12px; }
-            .map-filter-bar select { min-width:70px; font-size:12px; }
-            .map-back-btn { top:8px; right:10px; font-size:11px; padding:6px 12px; }
         }
         @media (max-width:360px) {
             .tracker-table { min-width:320px; font-size:9px; }
@@ -223,6 +182,7 @@
                 <button class="logout-btn" id="logoutBtn" title="Logout">✕</button>
             </div>
         </header>
+
         <!-- LOGIN AE PAGE -->
         <div class="page active" id="pageLogin">
             <div class="login-page">
@@ -252,6 +212,7 @@
                 </div>
             </div>
         </div>
+
         <!-- LOGIN ADMIN PAGE -->
         <div class="page" id="pageAdminLogin">
             <div class="login-page">
@@ -275,6 +236,7 @@
                 </div>
             </div>
         </div>
+
         <!-- ===== DASHBOARD PAGE ===== -->
         <div class="page" id="pageDashboard">
             <!-- Welcome Card -->
@@ -290,6 +252,7 @@
                     </div>
                 </div>
             </div>
+
             <!-- Performa Bulanan -->
             <div class="card">
                 <div class="card-header">
@@ -318,6 +281,7 @@
                     <span class="stat-badge">✅ FWA: <strong id="fwaPercent">0%</strong></span>
                 </div>
             </div>
+
             <!-- Form Performa Harian (AE only) -->
             <div class="card" id="dailyInputCard">
                 <div class="card-header">
@@ -346,6 +310,7 @@
                     </div>
                 </form>
             </div>
+
             <!-- ===== INPUT PERFORMA HARIAN AE (HANYA UNTUK ADMIN) ===== -->
             <div class="card" id="adminDailyInputCard" style="display:none;">
                 <div class="card-header">
@@ -378,10 +343,11 @@
                         </div>
                     </div>
                     <div style="font-size:11px;color:var(--xl-muted);margin-top:6px;">
-                        ⚡ Input akan langsung masuk ke pencapaian harian AE yang dipilih. Bisa pilih tanggal lampau untuk input yang terlewat.
+                        ⚡ Input akan langsung masuk ke pencapaian harian AE yang dipilih.
                     </div>
                 </form>
             </div>
+
             <!-- ===== RINGKASAN TARGET TIM (HANYA UNTUK ADMIN) ===== -->
             <div class="card target-summary-card" id="adminTargetSummaryCard" style="display:none;">
                 <div class="card-header">
@@ -434,11 +400,9 @@
                         </tfoot>
                     </table>
                 </div>
-                <div style="font-size:10px;color:var(--xl-muted);margin-top:8px;">
-                    ✏️ Ubah angka Target langsung di tabel, lalu klik <strong>Simpan</strong> untuk menyimpan ke database.
-                </div>
             </div>
-            <!-- ===== TRACKER HARIAN SEMUA AE (HANYA UNTUK ADMIN) DI DASHBOARD ===== -->
+
+            <!-- ===== TRACKER HARIAN SEMUA AE (HANYA UNTUK ADMIN) ===== -->
             <div class="card" style="padding-bottom:12px;" id="adminTrackerCard">
                 <div class="card-header">
                     <span class="card-title"><span class="emoji">📋</span> Tracker Harian Semua AE</span>
@@ -456,11 +420,9 @@
                         <tbody id="trackerBody"></tbody>
                     </table>
                 </div>
-                <div style="font-size:10px;color:var(--xl-muted);margin-top:8px;display:flex;justify-content:flex-end;align-items:center;gap:8px;">
-                    <span style="display:inline-block;width:14px;height:14px;background:var(--xl-blue-soft);border-radius:4px;border:1px solid var(--xl-blue-light);"></span> kolom biru = hari ini
-                </div>
             </div>
         </div>
+
         <!-- ===== ADMIN PAGE (HANYA KELOLA AE & TARGET) ===== -->
         <div class="page" id="pageAdmin">
             <div class="card">
@@ -491,47 +453,37 @@
                         <button class="btn-primary" id="adminChangePinBtn" style="flex:0 0 auto;padding:10px 20px;">Update</button>
                     </div>
                 </div>
-                <div style="font-size:11px;color:var(--xl-muted);text-align:center;padding:4px 0;">
-                    Perubahan langsung tersimpan di database.
-                </div>
             </div>
         </div>
-        <!-- ===== MAPS PAGE (FULL SCREEN) ===== -->
+
+        <!-- ===== MAPS PAGE (Desain Kartu untuk Google Maps Redirect) ===== -->
         <div class="page" id="pageMaps">
-            <div id="map"></div>
-            <!-- Filter Bar -->
-            <div class="map-filter-bar">
-                <div class="filter-row">
-                    <select id="mapAreaSelect">
-                        <option value="">-- Pilih Area --</option>
-                    </select>
-                    <button class="filter-btn" id="mapFilterApplyBtn">Tampilkan</button>
-                    <button class="filter-btn reset" id="mapFilterResetBtn">Reset</button>
+            <div class="card" style="margin-top: 10px;">
+                <div class="card-header">
+                    <span class="card-title"><span class="emoji">🗺️</span> Peta Plotting Area</span>
                 </div>
-                <div class="filter-info">
-                    <span>Layer ditampilkan: <span class="count" id="mapLayerCountDisplay">0</span></span>
-                    <span id="mapFilterStatus">Pilih area dari dropdown</span>
+                <div style="font-size:13px; color:var(--xl-muted); margin-bottom:20px; line-height: 1.5;">
+                    Pilih nama area di bawah ini. Peta akan otomatis terbuka secara detail melalui aplikasi <strong>Google Maps</strong> menggunakan data jangkauan (KMZ) yang paling akurat.
                 </div>
-            </div>
-            <!-- Tombol Kembali -->
-            <button class="map-back-btn" id="mapBackBtn">
-                <span>←</span> Dashboard
-            </button>
-            <!-- Loading Overlay -->
-            <div id="mapLoadingOverlay" class="hidden">
-                <div class="map-loading-box">
-                    <div class="spinner-big"></div>
-                    <p>Memuat Peta &amp; Data</p>
-                    <div class="sub" id="mapLoadSub">Menginisialisasi...</div>
-                    <div class="progress-bar">
-                        <div class="fill" id="mapProgressFill"></div>
+                
+                <div class="daily-input-group" style="margin-bottom: 20px;">
+                    <div class="field" style="flex:1;">
+                        <label>Pilih Area Sales</label>
+                        <select id="mapAreaSelect">
+                            <option value="">-- Memuat Data Area --</option>
+                        </select>
                     </div>
-                    <div class="progress-text" id="mapProgressText">0 / 0</div>
                 </div>
+
+                <button class="btn-primary" id="mapFilterApplyBtn" style="width: 100%; padding: 14px; font-size: 15px;">
+                    📍 Buka di Google Maps
+                </button>
             </div>
         </div>
+
         <!-- TOAST -->
         <div class="toast" id="toast"></div>
+
         <!-- BOTTOM NAV -->
         <nav class="bottom-nav" id="bottomNav">
             <button class="nav-item active" data-page="pageDashboard">
@@ -548,6 +500,7 @@
             </button>
         </nav>
     </div>
+
     <!-- ============================================================ -->
     <!-- JAVASCRIPT -->
     <!-- ============================================================ -->
@@ -558,9 +511,8 @@
         const CONFIG = {
             API_URL: 'https://script.google.com/macros/s/AKfycbzOHic0o0BNeRAhV5yZ6uzobKO7k69YBX3qNmccAlUM9vn-C0lb0eb0YtE1AMZU5Cs2nA/exec',
             ADMIN_PIN: '123456',
-            MAP_CENTER: { lat: -6.9175, lng: 107.6191 },
-            MAP_ZOOM: 12,
         };
+
         // ============================================================
         // DAFTAR AREA
         // ============================================================
@@ -602,125 +554,7 @@
             "3273_89_ciskularea", "3273_8_maleber_cijerah", "3273_99_panghegararea",
             "3273_9_garuda_cibuntu_wrgmuncang"
         ];
-        const GEOJSON_BASE_URL = 'https://dhikarsh.github.io/maps-data/geojson/';
 
-        // ============================================================
-        // PARSER WARNA POLIGON
-        // ============================================================
-        function parseMapColor(rawColor) {
-            if (!rawColor) return null;
-            let c = String(rawColor).replace(/['"]/g, '').trim(); 
-            if (/^[0-9A-Fa-f]{8}$/.test(c)) {
-                const r = c.substring(6, 8);
-                const g = c.substring(4, 6);
-                const b = c.substring(2, 4);
-                return `#${r}${g}${b}`;
-            }
-            if (c.startsWith('#')) return c;
-            if (/^[0-9A-Fa-f]{3}$/.test(c) || /^[0-9A-Fa-f]{6}$/.test(c)) return `#${c}`;
-            return c;
-        }
-
-        function parseOpacityFromColor(rawColor, defaultVal) {
-            if (!rawColor) return defaultVal;
-            let c = String(rawColor).trim().replace('#', '');
-            if (c.length === 8) {
-                const aHex = c.substring(0, 2);
-                return parseInt(aHex, 16) / 255;
-            }
-            return defaultVal;
-        }
-
-        function getRawStroke(props) {
-            if (!props) return null;
-            return props.stroke || props['stroke-color'] || props.Stroke || 
-                   props.color || props.Color || props.strokeColor || null;
-        }
-
-        function getRawFill(props) {
-            if (!props) return null;
-            return props.fill || props['fill-color'] || props.Fill || 
-                   props.fillColor || getRawStroke(props) || null;
-        }
-
-        function getStrokeColor(props) { return parseMapColor(getRawStroke(props)); }
-        function getFillColor(props) { return parseMapColor(getRawFill(props)); }
-        function getStrokeOpacity(props) {
-            const v = props && (props['stroke-opacity'] ?? props.strokeOpacity);
-            if (v !== undefined && v !== null && !isNaN(v)) return Number(v);
-            return parseOpacityFromColor(getRawStroke(props), 0.85);
-        }
-        function getFillOpacity(props) {
-            const v = props && (props['fill-opacity'] ?? props.fillOpacity);
-            if (v !== undefined && v !== null && !isNaN(v)) return Number(v);
-            return parseOpacityFromColor(getRawFill(props), 0.4);
-        }
-        function getStrokeWeight(props) {
-            const v = props && (props['stroke-width'] ?? props.strokeWidth);
-            return (v === undefined || v === null || isNaN(v)) ? 2 : Number(v);
-        }
-
-        const DEFAULT_STROKE = '#0F3B7A';
-        const DEFAULT_FILL = '#1A5BB5';
-
-        function geoJsonFeatureStyle(feature) {
-            const props = feature && feature.properties;
-            return {
-                color: getStrokeColor(props) || DEFAULT_STROKE,
-                weight: getStrokeWeight(props),
-                opacity: getStrokeOpacity(props),
-                fillColor: getFillColor(props) || DEFAULT_FILL,
-                fillOpacity: getFillOpacity(props)
-            };
-        }
-
-        // ============================================================
-        // FUNGSI TITIK (MARKER) DENGAN RENDER FILL AKTIF
-        // ============================================================
-        function geoJsonPointToLayer(feature, latlng) {
-            const props = feature && feature.properties;
-            let finalColor = null;
-
-            if (props) {
-                let colorStr = props['marker-color'] || props.markerColor || props['fill'] || props['fill-color'] || props.fillColor || props.color;
-                if (!colorStr) {
-                    for (let key in props) {
-                        const k = key.toLowerCase();
-                        if (k.includes('color') || k.includes('fill')) {
-                            colorStr = props[key];
-                            if (colorStr) break;
-                        }
-                    }
-                }
-                if (colorStr) {
-                    finalColor = parseMapColor(colorStr);
-                }
-
-                if (!finalColor || finalColor === '#0F3B7A' || finalColor === '#1A5BB5') {
-                    const propStr = JSON.stringify(props).toLowerCase();
-                    if (propStr.includes('ftth') || propStr.includes('aa00ff') || propStr.includes('ungu')) {
-                        finalColor = '#aa00ff'; // Ungu
-                    } else if (propStr.includes('indoor') || propStr.includes('90ee90') || propStr.includes('hijau')) {
-                        finalColor = '#90ee90'; // Hijau Muda
-                    } else if (propStr.includes('fwa') || propStr.includes('ffa500') || propStr.includes('oranye') || propStr.includes('outdoor')) {
-                        finalColor = '#ffa500'; // Oranye
-                    }
-                }
-            }
-
-            finalColor = finalColor || '#0F3B7A';
-
-            return L.circleMarker(latlng, {
-                radius: 5.5,
-                color: '#ffffff',
-                weight: 1.2,
-                opacity: 1,
-                fill: true,           // Memastikan warna isian aktif dirender oleh Leaflet
-                fillColor: finalColor,
-                fillOpacity: 0.95
-            });
-        }
-        
         // ============================================================
         // STATE
         // ============================================================
@@ -732,11 +566,7 @@
             adminTrackerData: {},
             selectedDate: new Date(),
             editedTargets: {},
-            targetSearchQuery: '',
-            map: null,
-            geoJsonLayer: null,
-            isLoading: false,
-            isMapInitializing: false,
+            targetSearchQuery: ''
         };
 
         // ============================================================
@@ -924,6 +754,7 @@
             const year = state.selectedDate.getFullYear();
             const month = state.selectedDate.getMonth();
             const days = getDaysInMonth(year, month);
+            
             if (user.isAdmin) {
                 $('welcomeSubLabel').textContent = 'Panel Administrator';
                 $('dashboardAeName').textContent = 'Akumulasi Seluruh AE';
@@ -938,6 +769,7 @@
                 $('adminTrackerCard').style.display = 'none';
             }
             $('dashboardDate').textContent = formatDateDisplay(new Date());
+            
             let targetFtth = 0, targetFwa = 0;
             if (user.isAdmin) {
                 (state.aeList || []).forEach(ae => {
@@ -952,6 +784,7 @@
             }
             $('ftthTarget').textContent = targetFtth;
             $('fwaTarget').textContent = targetFwa;
+            
             let totalFtth = 0, totalFwa = 0;
             if (user.isAdmin) {
                 const aeList = (state.aeList || []).filter(ae => String(ae.name).toUpperCase() !== 'ADMIN');
@@ -972,14 +805,17 @@
                     totalFwa += parseInt(entry.fwa) || 0;
                 }
             }
+            
             $('ftthActual').textContent = totalFtth;
             $('fwaActual').textContent = totalFwa;
+            
             const pctFtth = targetFtth > 0 ? Math.min(100, Math.round((totalFtth / targetFtth) * 100)) : 0;
             const pctFwa = targetFwa > 0 ? Math.min(100, Math.round((totalFwa / targetFwa) * 100)) : 0;
             $('ftthProgress').style.width = pctFtth + '%';
             $('fwaProgress').style.width = pctFwa + '%';
             $('ftthPercent').textContent = pctFtth + '%';
             $('fwaPercent').textContent = pctFwa + '%';
+            
             renderTracker(month, year);
             renderTargetSummaryCard();
         }
@@ -1001,6 +837,7 @@
             const thead = $('trackerHead'), tbody = $('trackerBody');
             const days = getDaysInMonth(year, month);
             const today = new Date(), todayDay = today.getDate(), todayMonth = today.getMonth(), todayYear = today.getFullYear();
+            
             let headHtml = '<tr><th style="text-align:left;min-width:48px;">Tanggal</th>';
             for (let d = 1; d <= days; d++) {
                 const isToday = (d === todayDay && month === todayMonth && year === todayYear);
@@ -1008,6 +845,7 @@
             }
             headHtml += '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
             thead.innerHTML = headHtml;
+            
             let totalFtth = 0, totalFwa = 0;
             const ftthVals = [], fwaVals = [];
             for (let d = 1; d <= days; d++) {
@@ -1019,6 +857,7 @@
                 ftthVals.push(f);
                 fwaVals.push(w);
             }
+            
             let ftthHtml = '<tr><td class="row-label">FTTH</td>';
             for (let d = 0; d < days; d++) {
                 const isToday = ((d + 1) === todayDay && month === todayMonth && year === todayYear);
@@ -1027,6 +866,7 @@
             }
             ftthHtml += `<td class="cum-col">${totalFtth}</td></tr>`;
             tbody.innerHTML = ftthHtml;
+            
             let fwaHtml = '<tr><td class="row-label">FWA</td>';
             for (let d = 0; d < days; d++) {
                 const isToday = ((d + 1) === todayDay && month === todayMonth && year === todayYear);
@@ -1035,6 +875,7 @@
             }
             fwaHtml += `<td class="cum-col">${totalFwa}</td></tr>`;
             tbody.innerHTML += fwaHtml;
+            
             $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year;
         }
 
@@ -1043,6 +884,7 @@
             const days = getDaysInMonth(year, month);
             const productFilter = $('dashboardProductFilter')?.value || 'FTTH';
             const today = new Date(), todayDay = today.getDate(), todayMonth = today.getMonth(), todayYear = today.getFullYear();
+            
             let headHtml = '<tr><th style="text-align:left;min-width:100px;">Nama AE</th>';
             for (let d = 1; d <= days; d++) {
                 const isToday = (d === todayDay && month === todayMonth && year === todayYear);
@@ -1050,14 +892,17 @@
             }
             headHtml += '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
             thead.innerHTML = headHtml;
+            
             const aeList = (state.aeList || [])
                 .filter(ae => String(ae.name).toUpperCase() !== 'ADMIN')
                 .sort((a, b) => a.name.localeCompare(b.name));
+                
             if (!aeList.length) {
                 tbody.innerHTML = `<tr><td colspan="${days + 2}" style="text-align:center;padding:16px;color:var(--xl-muted);">Belum ada AE terdaftar</td></tr>`;
                 $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year;
                 return;
             }
+            
             let bodyHtml = '';
             aeList.forEach(ae => {
                 const aeData = state.adminTrackerData[ae.name] || {};
@@ -1111,6 +956,7 @@
                 .sort((a, b) => a.name.localeCompare(b.name));
             const query = (state.targetSearchQuery || '').toLowerCase().trim();
             const filtered = query ? aeList.filter(ae => ae.name.toLowerCase().includes(query)) : aeList;
+            
             $('tsMemberCount').textContent = aeList.length + ' anggota';
             const today = new Date();
             let daysLeftText;
@@ -1122,6 +968,7 @@
                 daysLeftText = '0 hari tersisa';
             }
             $('tsDaysLeft').textContent = daysLeftText;
+            
             let totFtthT = 0, totFtthA = 0, totFwaT = 0, totFwaA = 0;
             if (!filtered.length) {
                 $('targetSummaryBody').innerHTML = `<tr><td colspan="9" style="text-align:center;padding:18px;color:var(--xl-muted);">Tidak ada AE ditemukan</td></tr>`;
@@ -1202,9 +1049,11 @@
             if (!user) return;
             const month = state.selectedDate.getMonth() + 1;
             const year = state.selectedDate.getFullYear();
+            
             await loadAeList();
             renderAeDropdowns();
             renderAdminAeSelect();
+            
             if (user.isAdmin) {
                 const adminTracker = await fetchData('getAdminTracker', { month, year });
                 if (adminTracker.success) {
@@ -1228,10 +1077,12 @@
             const name = $('loginAeSelect').value;
             const inputPin = String($('loginPin').value).trim();
             if (!name) { showError('Pilih nama AE'); return; }
+            
             await loadAeList();
             const ae = (state.aeList || []).find(a => a.name.toLowerCase() === name.toLowerCase());
             if (!ae) { showError('AE tidak ditemukan'); return; }
             const dbPin = String(ae.pin).trim();
+            
             if (dbPin !== inputPin) {
                 $('loginError').textContent = 'PIN salah, coba lagi.';
                 $('loginError').classList.add('show');
@@ -1258,6 +1109,7 @@
             const inputPin = String($('adminPin').value).trim();
             const adminEntry = (state.aeList || []).find(a => String(a.name).toUpperCase() === 'ADMIN');
             const validPin = adminEntry ? String(adminEntry.pin).trim() : CONFIG.ADMIN_PIN;
+            
             if (validPin !== inputPin) {
                 $('adminLoginError').textContent = 'PIN Admin salah.';
                 $('adminLoginError').classList.add('show');
@@ -1431,201 +1283,56 @@
         }
 
         function showPage(pageId) {
-            $$('.page').forEach(p => {
-                p.classList.remove('active');
-                if (p.id === 'pageMaps') {
-                    p.style.display = 'none';
-                }
-            });
+            $$('.page').forEach(p => p.classList.remove('active'));
             const target = $(pageId);
-            if (target) {
-                target.classList.add('active');
-                if (target.id === 'pageMaps') {
-                    target.style.display = 'block';
-                    if (state.map) {
-                        setTimeout(() => state.map.invalidateSize(), 200);
-                    }
-                }
-            }
+            if (target) target.classList.add('active');
             $$('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
             const navBtn = document.querySelector(`.bottom-nav .nav-item[data-page="${pageId}"]`);
             if (navBtn) navBtn.classList.add('active');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function initMap() {
-            if (state.map) return;
-            if (state.isMapInitializing) return;
-            state.isMapInitializing = true;
-            const mapEl = document.getElementById('map');
-            if (!mapEl) {
-                state.isMapInitializing = false;
-                return;
-            }
-            try {
-                const map = L.map(mapEl, {
-                    center: [CONFIG.MAP_CENTER.lat, CONFIG.MAP_CENTER.lng],
-                    zoom: CONFIG.MAP_ZOOM,
-                    zoomControl: true,
-                });
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '© OpenStreetMap',
-                }).addTo(map);
-                state.map = map;
-                populateAreaDropdown();
-                const overlay = $('mapLoadingOverlay');
-                if (overlay) overlay.classList.add('hidden');
-                updateMapInfo(0, 'Pilih area dari dropdown');
-                setTimeout(() => { if (state.map) state.map.invalidateSize(); }, 150);
-            } catch (err) {
-                state.map = null;
-            } finally {
-                state.isMapInitializing = false;
-            }
-        }
-
-        async function ensureMapReady(timeoutMs = 2000) {
-            const mapReady = () => state.map && state.map.getContainer && document.body.contains(state.map.getContainer());
-            if (mapReady()) return true;
-            initMap();
-            const start = Date.now();
-            while (!mapReady() && (Date.now() - start) < timeoutMs) {
-                await new Promise(r => setTimeout(r, 50));
-            }
-            return mapReady();
-        }
-
+        // ============================================================
+        // GOOGLE MAPS REDIRECT LOGIC
+        // ============================================================
         function populateAreaDropdown() {
             const select = $('mapAreaSelect');
             if (!select) return;
-            if (!AREA_KEYS || AREA_KEYS.length === 0) {
-                select.innerHTML = '<option value="">-- Tidak ada data --</option>';
-                return;
-            }
             const sorted = AREA_KEYS.slice().sort();
             select.innerHTML = '<option value="">-- Pilih Area --</option>';
             sorted.forEach(key => {
                 const opt = document.createElement('option');
                 opt.value = key;
                 let display = key.replace(/^3273_\d+_/, '').replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2');
-                opt.textContent = display;
+                opt.textContent = display.toUpperCase();
                 select.appendChild(opt);
             });
-            const statusEl = $('mapFilterStatus');
-            if (statusEl) statusEl.textContent = `${sorted.length} area tersedia`;
-        }
-
-        async function loadArea(key) {
-            const ready = await ensureMapReady();
-            if (!ready) {
-                showError('Peta tidak siap, coba buka Maps lagi.');
-                return;
-            }
-            const url = GEOJSON_BASE_URL + key + '.geojson';
-            try {
-                const overlay = $('mapLoadingOverlay');
-                overlay.classList.remove('hidden');
-                updateLoadingProgress(0, 1, `Memuat ${key}...`);
-                updateMapInfo(0, `Memuat ${key}...`);
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const geojson = await response.json();
-                if (!geojson.features || geojson.features.length === 0) {
-                    throw new Error('Tidak ada fitur ditemukan');
-                }
-                if (!state.map) {
-                    throw new Error('Peta tidak tersedia lagi');
-                }
-                if (state.geoJsonLayer) {
-                    state.map.removeLayer(state.geoJsonLayer);
-                    state.geoJsonLayer = null;
-                }
-                state.geoJsonLayer = L.geoJSON(geojson, {
-                    style: geoJsonFeatureStyle,
-                    pointToLayer: geoJsonPointToLayer,
-                    onEachFeature: function(feature, layer) {
-                        if (feature.properties && feature.properties.name) {
-                            layer.bindPopup(feature.properties.name);
-                        }
-                    }
-                }).addTo(state.map);
-                state.map.invalidateSize();
-                const bounds = state.geoJsonLayer.getBounds();
-                if (bounds.isValid()) {
-                    state.map.fitBounds(bounds, { padding: [50, 50] });
-                }
-                updateMapInfo(1, `Menampilkan ${key}`);
-                showSuccess(`Area ${key} dimuat!`);
-            } catch (err) {
-                showError(`Gagal memuat area: ${err.message}`);
-                updateMapInfo(0, `Gagal: ${err.message}`);
-                throw err;
-            } finally {
-                const overlay = $('mapLoadingOverlay');
-                overlay.classList.add('hidden');
-                state.isLoading = false;
-            }
         }
 
         function applyMapFilter() {
-            if (state.isLoading) {
-                showError('Sedang memuat, tunggu sebentar');
-                return;
-            }
             const select = $('mapAreaSelect');
             const key = select.value;
+            
             if (!key) {
                 showError('Pilih area terlebih dahulu');
                 return;
             }
-            state.isLoading = true;
-            loadArea(key);
+
+            // Membangun Link raw file KMZ di GitHub (asumsi folder bernama "kmz" dan file .kmz)
+            const kmzUrl = `https://dhikarsh.github.io/maps-data/kmz/${key}.kmz`;
+
+            // Membuat Link Pencarian Google Maps
+            const googleMapsLink = `https://www.google.com/maps?q=${encodeURIComponent(kmzUrl)}`;
+
+            // Membuka di Tab Baru (atau memaksa membuka aplikasi Google Maps di HP)
+            window.open(googleMapsLink, '_blank');
+            
+            showSuccess('Membuka Google Maps...');
         }
 
-        function resetMap() {
-            if (state.isLoading) {
-                showError('Sedang memuat, tunggu sebentar');
-                return;
-            }
-            if (state.geoJsonLayer) {
-                state.map.removeLayer(state.geoJsonLayer);
-                state.geoJsonLayer = null;
-            }
-            if (state.map) {
-                state.map.setView([CONFIG.MAP_CENTER.lat, CONFIG.MAP_CENTER.lng], CONFIG.MAP_ZOOM);
-            }
-            $('mapAreaSelect').value = '';
-            updateMapInfo(0, 'Pilih area dari dropdown');
-            showToast('Layer direset');
-        }
-
-        function updateMapInfo(count, statusText) {
-            const countEl = $('mapLayerCount');
-            const displayEl = $('mapLayerCountDisplay');
-            const statusEl = $('mapFilterStatus');
-            if (countEl) countEl.textContent = count;
-            if (displayEl) displayEl.textContent = count;
-            if (statusEl) statusEl.textContent = statusText || '';
-        }
-
-        function updateLoadingProgress(current, total, statusText) {
-            const pct = total > 0 ? Math.min(100, Math.round((current / total) * 100)) : 0;
-            const fill = $('mapProgressFill');
-            if (fill) fill.style.width = pct + '%';
-            const text = $('mapProgressText');
-            if (text) text.textContent = `${current} / ${total}`;
-            const sub = $('mapLoadSub');
-            if (sub && statusText) sub.textContent = statusText;
-        }
-
-        $('mapFilterApplyBtn')?.addEventListener('click', applyMapFilter);
-        $('mapFilterResetBtn')?.addEventListener('click', resetMap);
-        $('mapBackBtn')?.addEventListener('click', () => {
-            showPage('pageDashboard');
-            if (state.currentUser) renderDashboard();
-        });
-
+        // ============================================================
+        // INIT & EVENT LISTENERS
+        // ============================================================
         document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
             btn.addEventListener('click', () => {
                 const page = btn.dataset.page;
@@ -1641,20 +1348,13 @@
                 showPage(page);
                 if (page === 'pageDashboard' && state.currentUser) renderDashboard();
                 if (page === 'pageAdmin') renderAdminAeList();
-                if (page === 'pageMaps') {
-                    if (!state.map) {
-                        initMap();
-                    }
-                    if (state.map) {
-                        setTimeout(() => state.map.invalidateSize(), 200);
-                    }
-                }
             });
         });
 
         async function init() {
             initMonthYearSelectors();
             updateMonthYearUI();
+            
             await loadAeList();
             renderAeDropdowns();
             if (!state.aeList.some(a => String(a.name).toUpperCase() === 'ADMIN')) {
@@ -1662,6 +1362,7 @@
                 await loadAeList();
                 renderAeDropdowns();
             }
+            
             $('monthSelect').addEventListener('change', async () => {
                 state.selectedDate.setMonth(parseInt($('monthSelect').value));
                 await refreshAllData();
@@ -1683,10 +1384,12 @@
             $('dashboardProductFilter')?.addEventListener('change', () => {
                 renderDashboard();
             });
+            
             $('loginForm').addEventListener('submit', handleLogin);
             $('adminLoginForm').addEventListener('submit', handleAdminLogin);
             $('dailyForm').addEventListener('submit', handleDailySubmit);
             $('adminDailyForm').addEventListener('submit', handleAdminDailySubmit);
+            
             $('btnGoToAdminLogin').addEventListener('click', () => {
                 $('adminLoginError').classList.remove('show');
                 showPage('pageAdminLogin');
@@ -1696,22 +1399,29 @@
                 $('loginError').classList.remove('show');
                 showPage('pageLogin');
             });
+            
             $('logoutBtn').addEventListener('click', handleLogout);
             $('adminAddAeBtn').addEventListener('click', handleAddAe);
             $('adminChangePinBtn').addEventListener('click', handleChangeAdminPin);
             $('tsSaveBtn').addEventListener('click', handleSaveTargets);
             $('tsReloadBtn').addEventListener('click', handleReloadTargets);
+            
             $('targetSearchInput').addEventListener('input', (e) => {
                 state.targetSearchQuery = e.target.value;
                 renderTargetSummaryCard();
             });
+            
+            // Event Maps Redirect
+            $('mapFilterApplyBtn')?.addEventListener('click', applyMapFilter);
+
             $('dailyDateInput').value = todayStr();
             $('adminDailyDateInput').value = todayStr();
+            
             populateAreaDropdown();
             showPage('pageLogin');
         }
+
         document.addEventListener('DOMContentLoaded', init);
-        window.initMap = initMap;
     </script>
 </body>
 </html>
