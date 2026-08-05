@@ -7,10 +7,6 @@
     <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
-    <!-- 🚀 PLUGIN SAKTI: Membaca file KMZ berserta semua Warna & Style Aslinya -->
-    <script src="https://unpkg.com/leaflet-kmz@latest/dist/leaflet-kmz.js"></script>
-    
     <style>
         /* ===== GLOBAL ===== */
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',system-ui,sans-serif !important; }
@@ -65,6 +61,7 @@
         .map-filter-bar .filter-btn:active { transform:scale(0.95); }
         .map-filter-bar .filter-btn.reset { background:var(--xl-muted); }
         .map-filter-bar .filter-info { font-size:11px; color:var(--xl-muted); margin-top:6px; display:flex; justify-content:space-between; flex-wrap:wrap; }
+        .map-filter-bar .filter-info .count { font-weight:700; color:var(--xl-blue); }
         #mapLoadingOverlay { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.85); z-index:10; pointer-events:none; transition:opacity 0.5s ease; }
         #mapLoadingOverlay.hidden { opacity:0; pointer-events:none; }
         .map-loading-box { text-align:center; background:#fff; padding:32px 40px; border-radius:var(--xl-radius); box-shadow:var(--xl-shadow); max-width:320px; }
@@ -146,7 +143,6 @@
         .ts-gap-ok { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:7px; background:#E3F6EA; color:#0F7B3A; font-weight:800; font-size:12px; margin:0 auto; }
         .target-table tfoot td { padding:10px 6px; font-weight:800; background:var(--xl-blue-soft); color:var(--xl-blue); border-top:2px solid var(--xl-border); text-align:center; }
         .target-table tfoot .name-cell { text-align:left; background:var(--xl-blue-soft); color:var(--xl-blue); }
-        
         .login-page { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:85vh; padding:20px 16px 30px; background:var(--neu-bg); }
         .login-card { width:100%; max-width:380px; background:var(--neu-bg); border-radius:var(--neu-radius); padding:36px 28px 32px; box-shadow:12px 12px 24px var(--neu-shadow-dark), -12px -12px 24px var(--neu-shadow-light); }
         .login-card .login-logo-wrap { display:flex; justify-content:center; margin-bottom:20px; }
@@ -184,7 +180,6 @@
         .welcome-card .welcome-name { font-size:20px; font-weight:800; letter-spacing:-0.3px; }
         .welcome-card .welcome-sub { font-size:13px; opacity:0.8; font-weight:500; }
         .welcome-card .welcome-date { font-size:12px; opacity:0.7; text-align:right; }
-        
         @media (max-width:420px) {
             .card { padding:14px 14px; }
             .daily-input-group .field { min-width:60px; }
@@ -205,15 +200,6 @@
             .map-filter-bar { bottom:70px; left:8px; right:8px; padding:10px 12px; }
             .map-filter-bar select { min-width:70px; font-size:12px; }
             .map-back-btn { top:8px; right:10px; font-size:11px; padding:6px 12px; }
-        }
-        @media (max-width:360px) {
-            .tracker-table { min-width:320px; font-size:9px; }
-            .tracker-table td, .tracker-table th { padding:4px 1px; }
-            .tracker-table .row-label { font-size:9px; min-width:50px; }
-            .card-title { font-size:14px; }
-            .month-selector { padding:2px 6px; gap:4px; }
-            .month-selector select { font-size:10px; }
-            .month-selector button { font-size:10px; padding:0 4px; }
         }
     </style>
 </head>
@@ -495,7 +481,7 @@
             </div>
         </div>
 
-        <!-- ===== MAPS PAGE (KEMBALI FULL SCREEN, TAPI DENGAN KMZ LOADER) ===== -->
+        <!-- ===== MAPS PAGE (FULL SCREEN GEOJSON DENGAN WARNA DIPERBAIKI) ===== -->
         <div class="page" id="pageMaps">
             <div id="map"></div>
             <!-- Filter Bar -->
@@ -508,7 +494,7 @@
                     <button class="filter-btn reset" id="mapFilterResetBtn">Reset</button>
                 </div>
                 <div class="filter-info">
-                    <span>Status:</span>
+                    <span>Layer ditampilkan: <span class="count" id="mapLayerCountDisplay">0</span></span>
                     <span id="mapFilterStatus">Pilih area dari dropdown</span>
                 </div>
             </div>
@@ -520,8 +506,12 @@
             <div id="mapLoadingOverlay" class="hidden">
                 <div class="map-loading-box">
                     <div class="spinner-big"></div>
-                    <p>Memuat Peta KMZ...</p>
-                    <div class="sub" id="mapLoadSub">Membedah properti warna asli</div>
+                    <p>Memuat Peta &amp; Data</p>
+                    <div class="sub" id="mapLoadSub">Menginisialisasi...</div>
+                    <div class="progress-bar">
+                        <div class="fill" id="mapProgressFill"></div>
+                    </div>
+                    <div class="progress-text" id="mapProgressText">0 / 0</div>
                 </div>
             </div>
         </div>
@@ -601,7 +591,126 @@
             "3273_89_ciskularea", "3273_8_maleber_cijerah", "3273_99_panghegararea",
             "3273_9_garuda_cibuntu_wrgmuncang"
         ];
+        const GEOJSON_BASE_URL = 'https://dhikarsh.github.io/maps-data/geojson/';
 
+        // ============================================================
+        // PARSER WARNA POLIGON & TITIK
+        // ============================================================
+        function parseMapColor(rawColor) {
+            if (!rawColor) return null;
+            let c = String(rawColor).replace(/['"]/g, '').trim(); 
+            if (/^[0-9A-Fa-f]{8}$/.test(c)) {
+                const r = c.substring(6, 8);
+                const g = c.substring(4, 6);
+                const b = c.substring(2, 4);
+                return `#${r}${g}${b}`;
+            }
+            if (c.startsWith('#')) return c;
+            if (/^[0-9A-Fa-f]{3}$/.test(c) || /^[0-9A-Fa-f]{6}$/.test(c)) return `#${c}`;
+            return c;
+        }
+
+        function parseOpacityFromColor(rawColor, defaultVal) {
+            if (!rawColor) return defaultVal;
+            let c = String(rawColor).trim().replace('#', '');
+            if (c.length === 8) {
+                const aHex = c.substring(0, 2);
+                return parseInt(aHex, 16) / 255;
+            }
+            return defaultVal;
+        }
+
+        function getRawStroke(props) {
+            if (!props) return null;
+            return props.stroke || props['stroke-color'] || props.Stroke || 
+                   props.color || props.Color || props.strokeColor || null;
+        }
+
+        function getRawFill(props) {
+            if (!props) return null;
+            return props.fill || props['fill-color'] || props.Fill || 
+                   props.fillColor || getRawStroke(props) || null;
+        }
+
+        function getStrokeColor(props) { return parseMapColor(getRawStroke(props)); }
+        function getFillColor(props) { return parseMapColor(getRawFill(props)); }
+        function getStrokeOpacity(props) {
+            const v = props && (props['stroke-opacity'] ?? props.strokeOpacity);
+            if (v !== undefined && v !== null && !isNaN(v)) return Number(v);
+            return parseOpacityFromColor(getRawStroke(props), 0.85);
+        }
+        function getFillOpacity(props) {
+            const v = props && (props['fill-opacity'] ?? props.fillOpacity);
+            if (v !== undefined && v !== null && !isNaN(v)) return Number(v);
+            return parseOpacityFromColor(getRawFill(props), 0.4);
+        }
+        function getStrokeWeight(props) {
+            const v = props && (props['stroke-width'] ?? props.strokeWidth);
+            return (v === undefined || v === null || isNaN(v)) ? 2 : Number(v);
+        }
+
+        const DEFAULT_STROKE = '#0F3B7A';
+        const DEFAULT_FILL = '#1A5BB5';
+
+        function geoJsonFeatureStyle(feature) {
+            const props = feature && feature.properties;
+            return {
+                color: getStrokeColor(props) || DEFAULT_STROKE,
+                weight: getStrokeWeight(props),
+                opacity: getStrokeOpacity(props),
+                fillColor: getFillColor(props) || DEFAULT_FILL,
+                fillOpacity: getFillOpacity(props)
+            };
+        }
+
+        // ============================================================
+        // FUNGSI TITIK (MARKER) DENGAN WARNA ASLI GEOJSON
+        // ============================================================
+        function geoJsonPointToLayer(feature, latlng) {
+            const props = feature && feature.properties;
+            let finalColor = null;
+
+            if (props) {
+                let colorStr = props['marker-color'] || props.markerColor || props['fill'] || props['fill-color'] || props.fillColor || props.color;
+                if (!colorStr) {
+                    for (let key in props) {
+                        const k = key.toLowerCase();
+                        if (k.includes('color') || k.includes('fill')) {
+                            colorStr = props[key];
+                            if (colorStr) break;
+                        }
+                    }
+                }
+                if (colorStr) {
+                    finalColor = parseMapColor(colorStr);
+                }
+
+                // Fallback pencarian kata kunci jika properti warna tidak langsung ada
+                if (!finalColor || finalColor === '#0F3B7A' || finalColor === '#1A5BB5') {
+                    const propStr = JSON.stringify(props).toLowerCase();
+                    if (propStr.includes('ftth') || propStr.includes('aa00ff') || propStr.includes('ungu')) {
+                        finalColor = '#aa00ff'; // Ungu
+                    } else if (propStr.includes('indoor') || propStr.includes('90ee90') || propStr.includes('hijau')) {
+                        finalColor = '#90ee90'; // Hijau Muda
+                    } else if (propStr.includes('fwa') || propStr.includes('ffa500') || propStr.includes('oranye') || propStr.includes('outdoor')) {
+                        finalColor = '#ffa500'; // Oranye
+                    }
+                }
+            }
+
+            finalColor = finalColor || '#0F3B7A';
+
+            return L.circleMarker(latlng, {
+                radius: 5.5,
+                color: '#ffffff',
+                weight: 1.2,
+                opacity: 1,
+                fill: true,           // Memastikan warna isian aktif dirender oleh Leaflet
+                fillColor: finalColor,
+                fillOpacity: 0.95
+            });
+        }
+        
         // ============================================================
         // STATE
         // ============================================================
@@ -615,7 +724,7 @@
             editedTargets: {},
             targetSearchQuery: '',
             map: null,
-            kmzParser: null, // Menggantikan geoJsonLayer lama
+            geoJsonLayer: null,
             isLoading: false,
             isMapInitializing: false,
         };
@@ -1299,12 +1408,16 @@
         }
 
         function showPage(pageId) {
-            $$('.page').forEach(p => p.classList.remove('active'));
+            $$('.page').forEach(p => {
+                p.classList.remove('active');
+                if (p.id === 'pageMaps') p.style.display = 'none';
+            });
             const target = $(pageId);
             if (target) {
                 target.classList.add('active');
-                if (pageId === 'pageMaps' && state.map) {
-                    setTimeout(() => state.map.invalidateSize(), 200);
+                if (pageId === 'pageMaps') {
+                    target.style.display = 'block';
+                    if (state.map) setTimeout(() => state.map.invalidateSize(), 200);
                 }
             }
             $$('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
@@ -1313,35 +1426,28 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-
         // ============================================================
-        // GOOGLE KMZ MAPS LOGIC (TANPA MANUAL JSON PARSING)
+        // MAPS LOGIC
         // ============================================================
-
         function initMap() {
             if (state.map) return;
             if (state.isMapInitializing) return;
             state.isMapInitializing = true;
-            
             const mapEl = document.getElementById('map');
             if (!mapEl) {
                 state.isMapInitializing = false; return;
             }
-
             try {
                 const map = L.map(mapEl, {
                     center: [CONFIG.MAP_CENTER.lat, CONFIG.MAP_CENTER.lng],
                     zoom: CONFIG.MAP_ZOOM,
                     zoomControl: true,
                 });
-                
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     maxZoom: 19,
                     attribution: '© OpenStreetMap',
                 }).addTo(map);
-                
                 state.map = map;
-                
                 populateAreaDropdown();
                 const overlay = $('mapLoadingOverlay');
                 if (overlay) overlay.classList.add('hidden');
@@ -1379,59 +1485,49 @@
             });
         }
 
-        function updateMapInfo(count, statusText) {
-            const statusEl = $('mapFilterStatus');
-            if (statusEl) statusEl.textContent = statusText || '';
-        }
-
         async function loadArea(key) {
             const ready = await ensureMapReady();
             if (!ready) {
                 showError('Peta tidak siap, coba buka Maps lagi.'); return;
             }
-            
-            // LINK FILE KMZ LANGSUNG
-            const kmzUrl = `https://dhikarsh.github.io/maps-data/${key}.kmz`;
-            
+            const url = GEOJSON_BASE_URL + key + '.geojson';
             try {
                 const overlay = $('mapLoadingOverlay');
                 overlay.classList.remove('hidden');
-                updateMapInfo(0, `Memuat & membedah properti area ${key}...`);
-
-                // Hapus layer yang mungkin terbuka sebelumnya
-                if (state.kmzParser) {
-                    state.map.removeLayer(state.kmzParser);
-                    state.kmzParser = null;
+                updateMapInfo(0, `Memuat ${key}...`);
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const geojson = await response.json();
+                if (!geojson.features || geojson.features.length === 0) {
+                    throw new Error('Tidak ada fitur ditemukan');
                 }
-
-                // Cek ketersediaan file dulu agar tidak error diam-diam
-                const checkFile = await fetch(kmzUrl, { method: 'HEAD' });
-                if (!checkFile.ok) {
-                    throw new Error(`File KMZ tidak ditemukan!`);
+                if (!state.map) throw new Error('Peta tidak tersedia');
+                if (state.geoJsonLayer) {
+                    state.map.removeLayer(state.geoJsonLayer);
+                    state.geoJsonLayer = null;
                 }
-
-                // MENGGUNAKAN PLUGIN SAKTI LEAFLET-KMZ
-                state.kmzParser = L.kmzLayer().addTo(state.map);
-                
-                // Event saat file berhasil diterjemahkan
-                state.kmzParser.on('load', function(e) {
-                    const bounds = e.layer.getBounds();
-                    if (bounds.isValid()) {
-                        state.map.fitBounds(bounds, { padding: [50, 50] });
+                state.geoJsonLayer = L.geoJSON(geojson, {
+                    style: geoJsonFeatureStyle,
+                    pointToLayer: geoJsonPointToLayer,
+                    onEachFeature: function(feature, layer) {
+                        if (feature.properties && feature.properties.name) {
+                            layer.bindPopup(feature.properties.name);
+                        }
                     }
-                    updateMapInfo(1, `Menampilkan ${key}`);
-                    showSuccess(`Area ${key} sukses dimuat!`);
-                    $('mapLoadingOverlay').classList.add('hidden');
-                    state.isLoading = false;
-                });
-
-                // Eksekusi pembacaan (warnanya akan keluar otomatis dari KMZ)
-                state.kmzParser.load(kmzUrl);
-
+                }).addTo(state.map);
+                state.map.invalidateSize();
+                const bounds = state.geoJsonLayer.getBounds();
+                if (bounds.isValid()) {
+                    state.map.fitBounds(bounds, { padding: [50, 50] });
+                }
+                updateMapInfo(1, `Menampilkan ${key}`);
+                showSuccess(`Area ${key} dimuat!`);
             } catch (err) {
-                showError(`Gagal: ${err.message}`);
+                showError(`Gagal memuat area: ${err.message}`);
                 updateMapInfo(0, `Gagal: ${err.message}`);
-                $('mapLoadingOverlay').classList.add('hidden');
+            } finally {
+                const overlay = $('mapLoadingOverlay');
+                overlay.classList.add('hidden');
                 state.isLoading = false;
             }
         }
@@ -1453,16 +1549,23 @@
             if (state.isLoading) {
                 showError('Sedang memuat, tunggu sebentar'); return;
             }
-            if (state.kmzParser) {
-                state.map.removeLayer(state.kmzParser);
-                state.kmzParser = null;
+            if (state.geoJsonLayer) {
+                state.map.removeLayer(state.geoJsonLayer);
+                state.geoJsonLayer = null;
             }
             if (state.map) {
                 state.map.setView([CONFIG.MAP_CENTER.lat, CONFIG.MAP_CENTER.lng], CONFIG.MAP_ZOOM);
             }
             $('mapAreaSelect').value = '';
             updateMapInfo(0, 'Pilih area dari dropdown');
-            showToast('Layer dibersihkan');
+            showToast('Layer direset');
+        }
+
+        function updateMapInfo(count, statusText) {
+            const displayEl = $('mapLayerCountDisplay');
+            const statusEl = $('mapFilterStatus');
+            if (displayEl) displayEl.textContent = count;
+            if (statusEl) statusEl.textContent = statusText || '';
         }
 
         // ============================================================
@@ -1472,18 +1575,19 @@
             btn.addEventListener('click', () => {
                 const page = btn.dataset.page;
                 if (page === 'pageAdmin' && !state.currentUser?.isAdmin) {
-                    showError('Akses admin diperlukan');
-                    return;
+                    showError('Akses admin diperlukan'); return;
                 }
                 if ((page === 'pageDashboard' || page === 'pageMaps') && !state.currentUser) {
                     showError('Silakan login terlebih dahulu');
-                    showPage('pageLogin');
-                    return;
+                    showPage('pageLogin'); return;
                 }
                 showPage(page);
                 if (page === 'pageDashboard' && state.currentUser) renderDashboard();
                 if (page === 'pageAdmin') renderAdminAeList();
-                if (page === 'pageMaps' && !state.map) initMap();
+                if (page === 'pageMaps') {
+                    if (!state.map) initMap();
+                    if (state.map) setTimeout(() => state.map.invalidateSize(), 200);
+                }
             });
         });
 
