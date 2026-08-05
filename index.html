@@ -4,6 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>XL Satu - Sales Tracker</title>
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- 🚀 PLUGIN SAKTI: Membaca file KMZ berserta semua Warna & Style Aslinya -->
+    <script src="https://unpkg.com/leaflet-kmz@latest/dist/leaflet-kmz.js"></script>
+    
     <style>
         /* ===== GLOBAL ===== */
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',system-ui,sans-serif !important; }
@@ -34,7 +41,40 @@
         .page.active { display:block; }
         @keyframes fadeUp { from { opacity:0; transform:translateY(20px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
         
-        /* ===== CARDS (dashboard & general) ===== */
+        /* ===== MAPS PAGE (FULL SCREEN) ===== */
+        #pageMaps { padding:0; position:fixed; top:0; left:0; right:0; bottom:0; z-index:5; background:#f0f0f0; display:none; animation:none; }
+        #pageMaps.active { display:block; }
+        #map { width:100%; height:100%; background:#e5e5e5; position:relative; z-index:1; }
+        .map-filter-bar { 
+            position:absolute; 
+            bottom:80px; 
+            left:12px; 
+            right:12px; 
+            z-index:20; 
+            background:rgba(255,255,255,0.95); 
+            backdrop-filter:blur(12px); 
+            border-radius:var(--xl-radius); 
+            padding:12px 16px; 
+            box-shadow:0 4px 24px rgba(0,0,0,0.12); 
+            border:1px solid rgba(255,255,255,0.3);
+        }
+        .map-filter-bar .filter-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+        .map-filter-bar select { flex:1; padding:8px 12px; border:1.5px solid var(--xl-border); border-radius:var(--xl-radius-sm); font-size:13px; font-weight:500; background:#fff; outline:none; color:var(--xl-dark); min-width:100px; appearance:auto; }
+        .map-filter-bar select:focus { border-color:var(--xl-blue-light); box-shadow:0 0 0 3px var(--xl-blue-soft); }
+        .map-filter-bar .filter-btn { background:var(--xl-blue-grad); color:#fff; border:none; padding:8px 16px; border-radius:var(--xl-radius-sm); font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap; transition:var(--xl-transition); }
+        .map-filter-bar .filter-btn:active { transform:scale(0.95); }
+        .map-filter-bar .filter-btn.reset { background:var(--xl-muted); }
+        .map-filter-bar .filter-info { font-size:11px; color:var(--xl-muted); margin-top:6px; display:flex; justify-content:space-between; flex-wrap:wrap; }
+        #mapLoadingOverlay { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.85); z-index:10; pointer-events:none; transition:opacity 0.5s ease; }
+        #mapLoadingOverlay.hidden { opacity:0; pointer-events:none; }
+        .map-loading-box { text-align:center; background:#fff; padding:32px 40px; border-radius:var(--xl-radius); box-shadow:var(--xl-shadow); max-width:320px; }
+        .map-loading-box .spinner-big { display:inline-block; width:48px; height:48px; border:4px solid var(--xl-gray-light); border-top-color:var(--xl-blue); border-radius:50%; animation:spin 0.8s linear infinite; }
+        .map-loading-box p { margin-top:14px; font-weight:700; color:var(--xl-dark); }
+        .map-loading-box .sub { font-size:13px; font-weight:500; color:var(--xl-muted); margin-top:4px; }
+        .map-back-btn { position:absolute; top:12px; right:16px; z-index:20; background:rgba(255,255,255,0.90); backdrop-filter:blur(8px); border:none; border-radius:40px; padding:8px 16px; font-weight:700; font-size:13px; color:var(--xl-blue); box-shadow:0 4px 16px rgba(0,0,0,0.10); cursor:pointer; display:flex; align-items:center; gap:6px; transition:var(--xl-transition); }
+        .map-back-btn:hover { background:#fff; box-shadow:0 6px 24px rgba(0,0,0,0.15); }
+
+        /* ===== CARDS (dashboard) ===== */
         .card { background:#fff; border-radius:var(--xl-radius); padding:18px 20px; margin-bottom:16px; box-shadow:var(--xl-shadow); border:1px solid var(--xl-border); transition:var(--xl-transition); }
         .card:hover { box-shadow:0 12px 40px rgba(15,59,122,0.10); }
         .card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
@@ -106,6 +146,7 @@
         .ts-gap-ok { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:7px; background:#E3F6EA; color:#0F7B3A; font-weight:800; font-size:12px; margin:0 auto; }
         .target-table tfoot td { padding:10px 6px; font-weight:800; background:var(--xl-blue-soft); color:var(--xl-blue); border-top:2px solid var(--xl-border); text-align:center; }
         .target-table tfoot .name-cell { text-align:left; background:var(--xl-blue-soft); color:var(--xl-blue); }
+        
         .login-page { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:85vh; padding:20px 16px 30px; background:var(--neu-bg); }
         .login-card { width:100%; max-width:380px; background:var(--neu-bg); border-radius:var(--neu-radius); padding:36px 28px 32px; box-shadow:12px 12px 24px var(--neu-shadow-dark), -12px -12px 24px var(--neu-shadow-light); }
         .login-card .login-logo-wrap { display:flex; justify-content:center; margin-bottom:20px; }
@@ -143,6 +184,7 @@
         .welcome-card .welcome-name { font-size:20px; font-weight:800; letter-spacing:-0.3px; }
         .welcome-card .welcome-sub { font-size:13px; opacity:0.8; font-weight:500; }
         .welcome-card .welcome-date { font-size:12px; opacity:0.7; text-align:right; }
+        
         @media (max-width:420px) {
             .card { padding:14px 14px; }
             .daily-input-group .field { min-width:60px; }
@@ -160,6 +202,9 @@
             .target-table input.target-input { width:42px; font-size:11px; padding:5px 2px; }
             .ts-actions { width:100%; justify-content:flex-end; }
             .ts-meta { width:100%; }
+            .map-filter-bar { bottom:70px; left:8px; right:8px; padding:10px 12px; }
+            .map-filter-bar select { min-width:70px; font-size:12px; }
+            .map-back-btn { top:8px; right:10px; font-size:11px; padding:6px 12px; }
         }
         @media (max-width:360px) {
             .tracker-table { min-width:320px; font-size:9px; }
@@ -305,9 +350,6 @@
                             <button type="submit" class="btn-primary small" id="dailySubmitBtn">Simpan</button>
                         </div>
                     </div>
-                    <div style="font-size:11px;color:var(--xl-muted);margin-top:6px;">
-                        ⚡ Bisa pilih tanggal lampau jika ada input terlewat.
-                    </div>
                 </form>
             </div>
 
@@ -341,9 +383,6 @@
                         <div class="field" style="flex:0 0 auto;min-width:55px;display:flex;align-items:flex-end;">
                             <button type="submit" class="btn-primary small" id="adminDailySubmitBtn">Simpan</button>
                         </div>
-                    </div>
-                    <div style="font-size:11px;color:var(--xl-muted);margin-top:6px;">
-                        ⚡ Input akan langsung masuk ke pencapaian harian AE yang dipilih.
                     </div>
                 </form>
             </div>
@@ -456,28 +495,34 @@
             </div>
         </div>
 
-        <!-- ===== MAPS PAGE (Desain Kartu untuk Google Maps Redirect) ===== -->
+        <!-- ===== MAPS PAGE (KEMBALI FULL SCREEN, TAPI DENGAN KMZ LOADER) ===== -->
         <div class="page" id="pageMaps">
-            <div class="card" style="margin-top: 10px;">
-                <div class="card-header">
-                    <span class="card-title"><span class="emoji">🗺️</span> Peta Plotting Area</span>
+            <div id="map"></div>
+            <!-- Filter Bar -->
+            <div class="map-filter-bar">
+                <div class="filter-row">
+                    <select id="mapAreaSelect">
+                        <option value="">-- Pilih Area --</option>
+                    </select>
+                    <button class="filter-btn" id="mapFilterApplyBtn">Tampilkan</button>
+                    <button class="filter-btn reset" id="mapFilterResetBtn">Reset</button>
                 </div>
-                <div style="font-size:13px; color:var(--xl-muted); margin-bottom:20px; line-height: 1.5;">
-                    Pilih nama area di bawah ini. Peta akan otomatis terbuka secara detail melalui aplikasi <strong>Google Maps</strong> menggunakan data jangkauan (KMZ) yang paling akurat.
+                <div class="filter-info">
+                    <span>Status:</span>
+                    <span id="mapFilterStatus">Pilih area dari dropdown</span>
                 </div>
-                
-                <div class="daily-input-group" style="margin-bottom: 20px;">
-                    <div class="field" style="flex:1;">
-                        <label>Pilih Area Sales</label>
-                        <select id="mapAreaSelect">
-                            <option value="">-- Memuat Data Area --</option>
-                        </select>
-                    </div>
+            </div>
+            <!-- Tombol Kembali -->
+            <button class="map-back-btn" id="mapBackBtn">
+                <span>←</span> Dashboard
+            </button>
+            <!-- Loading Overlay -->
+            <div id="mapLoadingOverlay" class="hidden">
+                <div class="map-loading-box">
+                    <div class="spinner-big"></div>
+                    <p>Memuat Peta KMZ...</p>
+                    <div class="sub" id="mapLoadSub">Membedah properti warna asli</div>
                 </div>
-
-                <button class="btn-primary" id="mapFilterApplyBtn" style="width: 100%; padding: 14px; font-size: 15px;">
-                    📍 Buka di Google Maps
-                </button>
             </div>
         </div>
 
@@ -511,6 +556,8 @@
         const CONFIG = {
             API_URL: 'https://script.google.com/macros/s/AKfycbzOHic0o0BNeRAhV5yZ6uzobKO7k69YBX3qNmccAlUM9vn-C0lb0eb0YtE1AMZU5Cs2nA/exec',
             ADMIN_PIN: '123456',
+            MAP_CENTER: { lat: -6.9175, lng: 107.6191 },
+            MAP_ZOOM: 12,
         };
 
         // ============================================================
@@ -566,7 +613,11 @@
             adminTrackerData: {},
             selectedDate: new Date(),
             editedTargets: {},
-            targetSearchQuery: ''
+            targetSearchQuery: '',
+            map: null,
+            kmzParser: null, // Menggantikan geoJsonLayer lama
+            isLoading: false,
+            isMapInitializing: false,
         };
 
         // ============================================================
@@ -644,9 +695,7 @@
                 return state.aeList;
             }
             state.aeList = [
-                { name: 'ADMIN', pin: '123456', targetFtth: 0, targetFwa: 0 },
-                { name: 'AE001', pin: '1234', targetFtth: 100, targetFwa: 50 },
-                { name: 'AE002', pin: '4321', targetFtth: 80, targetFwa: 30 }
+                { name: 'ADMIN', pin: '123456', targetFtth: 0, targetFwa: 0 }
             ];
             return state.aeList;
         }
@@ -1128,7 +1177,7 @@
             showPage('pageDashboard');
             $('headerUserName').textContent = 'Admin';
             await refreshAllData();
-            showSuccess('Login Admin berhasil (Akumulasi Seluruh AE)');
+            showSuccess('Login Admin berhasil');
         }
 
         function handleLogout() {
@@ -1138,10 +1187,6 @@
             state.adminTrackerData = {};
             state.editedTargets = {};
             state.targetSearchQuery = '';
-            const searchInput = $('targetSearchInput');
-            if (searchInput) searchInput.value = '';
-            const adminAeSel = $('adminDailyAeSelect');
-            if (adminAeSel) adminAeSel.value = '';
             showPage('pageLogin');
             $('headerUserName').textContent = 'Guest';
             showToast('Anda telah keluar');
@@ -1150,8 +1195,7 @@
         async function handleDailySubmit(e) {
             e.preventDefault();
             if (!state.currentUser || state.currentUser.isAdmin) {
-                showError('Silakan login sebagai AE');
-                return;
+                showError('Silakan login sebagai AE'); return;
             }
             const ftth = parseInt($('dailyFtth').value) || 0;
             const fwa = parseInt($('dailyFwa').value) || 0;
@@ -1160,28 +1204,19 @@
             if (ftth === 0 && fwa === 0) { showError('Masukkan minimal 1 angka pencapaian'); return; }
             const btn = $('dailySubmitBtn');
             setLoading(btn, true);
-            const result = await apiCall('saveDaily', {
-                aeName: state.currentUser.name,
-                date: inputDate,
-                ftth,
-                fwa
-            });
+            const result = await apiCall('saveDaily', { aeName: state.currentUser.name, date: inputDate, ftth, fwa });
             setLoading(btn, false);
             if (result.success) {
-                $('dailyFtth').value = '';
-                $('dailyFwa').value = '';
+                $('dailyFtth').value = ''; $('dailyFwa').value = '';
                 showSuccess('Performa harian berhasil disimpan!');
                 await refreshAllData();
-            } else {
-                showError('Gagal menyimpan: ' + (result.error || ''));
-            }
+            } else { showError('Gagal menyimpan: ' + (result.error || '')); }
         }
 
         async function handleAdminDailySubmit(e) {
             e.preventDefault();
             if (!state.currentUser || !state.currentUser.isAdmin) {
-                showError('Hanya admin yang bisa input di sini');
-                return;
+                showError('Hanya admin yang bisa input di sini'); return;
             }
             const aeName = $('adminDailyAeSelect').value;
             if (!aeName) { showError('Pilih AE terlebih dahulu'); return; }
@@ -1192,21 +1227,13 @@
             if (ftth === 0 && fwa === 0) { showError('Masukkan minimal 1 angka pencapaian'); return; }
             const btn = $('adminDailySubmitBtn');
             setLoading(btn, true);
-            const result = await apiCall('saveDaily', {
-                aeName,
-                date: inputDate,
-                ftth,
-                fwa
-            });
+            const result = await apiCall('saveDaily', { aeName, date: inputDate, ftth, fwa });
             setLoading(btn, false);
             if (result.success) {
-                $('adminDailyFtth').value = '';
-                $('adminDailyFwa').value = '';
+                $('adminDailyFtth').value = ''; $('adminDailyFwa').value = '';
                 showSuccess(`Performa harian ${aeName} berhasil disimpan!`);
                 await refreshAllData();
-            } else {
-                showError('Gagal menyimpan: ' + (result.error || ''));
-            }
+            } else { showError('Gagal menyimpan: ' + (result.error || '')); }
         }
 
         async function handleAddAe() {
@@ -1221,14 +1248,10 @@
             setLoading(btn, false);
             if (result.success) {
                 showSuccess('AE berhasil disimpan!');
-                $('adminNewName').value = '';
-                $('adminNewPin').value = '';
-                $('adminNewTargetFtth').value = '';
-                $('adminNewTargetFwa').value = '';
+                $('adminNewName').value = ''; $('adminNewPin').value = '';
+                $('adminNewTargetFtth').value = ''; $('adminNewTargetFwa').value = '';
                 await refreshAllData();
-            } else {
-                showError('Gagal menyimpan: ' + (result.error || ''));
-            }
+            } else { showError('Gagal menyimpan: ' + (result.error || '')); }
         }
 
         async function handleChangeAdminPin() {
@@ -1243,18 +1266,13 @@
                 $('adminNewAdminPin').value = '';
                 CONFIG.ADMIN_PIN = newPin;
                 await refreshAllData();
-            } else {
-                showError('Gagal update: ' + (result.error || ''));
-            }
+            } else { showError('Gagal update: ' + (result.error || '')); }
         }
 
         async function handleSaveTargets() {
             const edited = state.editedTargets;
             const names = Object.keys(edited);
-            if (!names.length) {
-                showToast('Tidak ada perubahan untuk disimpan');
-                return;
-            }
+            if (!names.length) { showToast('Tidak ada perubahan untuk disimpan'); return; }
             const btn = $('tsSaveBtn');
             setLoading(btn, true);
             let successCount = 0;
@@ -1269,9 +1287,7 @@
             setLoading(btn, false);
             if (successCount === names.length) {
                 showSuccess(`Target berhasil disimpan untuk ${successCount} AE`);
-            } else {
-                showError(`Tersimpan ${successCount}/${names.length}, sebagian gagal`);
-            }
+            } else { showError(`Tersimpan ${successCount}/${names.length}, sebagian gagal`); }
             state.editedTargets = {};
             await refreshAllData();
         }
@@ -1285,16 +1301,70 @@
         function showPage(pageId) {
             $$('.page').forEach(p => p.classList.remove('active'));
             const target = $(pageId);
-            if (target) target.classList.add('active');
+            if (target) {
+                target.classList.add('active');
+                if (pageId === 'pageMaps' && state.map) {
+                    setTimeout(() => state.map.invalidateSize(), 200);
+                }
+            }
             $$('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
             const navBtn = document.querySelector(`.bottom-nav .nav-item[data-page="${pageId}"]`);
             if (navBtn) navBtn.classList.add('active');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+
         // ============================================================
-        // GOOGLE MAPS REDIRECT LOGIC
+        // GOOGLE KMZ MAPS LOGIC (TANPA MANUAL JSON PARSING)
         // ============================================================
+
+        function initMap() {
+            if (state.map) return;
+            if (state.isMapInitializing) return;
+            state.isMapInitializing = true;
+            
+            const mapEl = document.getElementById('map');
+            if (!mapEl) {
+                state.isMapInitializing = false; return;
+            }
+
+            try {
+                const map = L.map(mapEl, {
+                    center: [CONFIG.MAP_CENTER.lat, CONFIG.MAP_CENTER.lng],
+                    zoom: CONFIG.MAP_ZOOM,
+                    zoomControl: true,
+                });
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap',
+                }).addTo(map);
+                
+                state.map = map;
+                
+                populateAreaDropdown();
+                const overlay = $('mapLoadingOverlay');
+                if (overlay) overlay.classList.add('hidden');
+                updateMapInfo(0, 'Pilih area dari dropdown');
+                setTimeout(() => { if (state.map) state.map.invalidateSize(); }, 150);
+            } catch (err) {
+                state.map = null;
+            } finally {
+                state.isMapInitializing = false;
+            }
+        }
+
+        async function ensureMapReady(timeoutMs = 2000) {
+            const mapReady = () => state.map && state.map.getContainer && document.body.contains(state.map.getContainer());
+            if (mapReady()) return true;
+            initMap();
+            const start = Date.now();
+            while (!mapReady() && (Date.now() - start) < timeoutMs) {
+                await new Promise(r => setTimeout(r, 50));
+            }
+            return mapReady();
+        }
+
         function populateAreaDropdown() {
             const select = $('mapAreaSelect');
             if (!select) return;
@@ -1309,25 +1379,90 @@
             });
         }
 
+        function updateMapInfo(count, statusText) {
+            const statusEl = $('mapFilterStatus');
+            if (statusEl) statusEl.textContent = statusText || '';
+        }
+
+        async function loadArea(key) {
+            const ready = await ensureMapReady();
+            if (!ready) {
+                showError('Peta tidak siap, coba buka Maps lagi.'); return;
+            }
+            
+            // LINK FILE KMZ LANGSUNG
+            const kmzUrl = `https://dhikarsh.github.io/maps-data/kmz/${key}.kmz`;
+            
+            try {
+                const overlay = $('mapLoadingOverlay');
+                overlay.classList.remove('hidden');
+                updateMapInfo(0, `Memuat & membedah properti area ${key}...`);
+
+                // Hapus layer yang mungkin terbuka sebelumnya
+                if (state.kmzParser) {
+                    state.map.removeLayer(state.kmzParser);
+                    state.kmzParser = null;
+                }
+
+                // Cek ketersediaan file dulu agar tidak error diam-diam
+                const checkFile = await fetch(kmzUrl, { method: 'HEAD' });
+                if (!checkFile.ok) {
+                    throw new Error(`File KMZ tidak ditemukan!`);
+                }
+
+                // MENGGUNAKAN PLUGIN SAKTI LEAFLET-KMZ
+                state.kmzParser = L.kmzLayer().addTo(state.map);
+                
+                // Event saat file berhasil diterjemahkan
+                state.kmzParser.on('load', function(e) {
+                    const bounds = e.layer.getBounds();
+                    if (bounds.isValid()) {
+                        state.map.fitBounds(bounds, { padding: [50, 50] });
+                    }
+                    updateMapInfo(1, `Menampilkan ${key}`);
+                    showSuccess(`Area ${key} sukses dimuat!`);
+                    $('mapLoadingOverlay').classList.add('hidden');
+                    state.isLoading = false;
+                });
+
+                // Eksekusi pembacaan (warnanya akan keluar otomatis dari KMZ)
+                state.kmzParser.load(kmzUrl);
+
+            } catch (err) {
+                showError(`Gagal: ${err.message}`);
+                updateMapInfo(0, `Gagal: ${err.message}`);
+                $('mapLoadingOverlay').classList.add('hidden');
+                state.isLoading = false;
+            }
+        }
+
         function applyMapFilter() {
+            if (state.isLoading) {
+                showError('Sedang memuat, tunggu sebentar'); return;
+            }
             const select = $('mapAreaSelect');
             const key = select.value;
-            
             if (!key) {
-                showError('Pilih area terlebih dahulu');
-                return;
+                showError('Pilih area terlebih dahulu'); return;
             }
+            state.isLoading = true;
+            loadArea(key);
+        }
 
-            // Membangun Link raw file KMZ di GitHub (asumsi folder bernama "kmz" dan file .kmz)
-            const kmzUrl = `https://dhikarsh.github.io/maps-data/kmz/${key}.kmz`;
-
-            // Membuat Link Pencarian Google Maps
-            const googleMapsLink = `https://www.google.com/maps?q=${encodeURIComponent(kmzUrl)}`;
-
-            // Membuka di Tab Baru (atau memaksa membuka aplikasi Google Maps di HP)
-            window.open(googleMapsLink, '_blank');
-            
-            showSuccess('Membuka Google Maps...');
+        function resetMap() {
+            if (state.isLoading) {
+                showError('Sedang memuat, tunggu sebentar'); return;
+            }
+            if (state.kmzParser) {
+                state.map.removeLayer(state.kmzParser);
+                state.kmzParser = null;
+            }
+            if (state.map) {
+                state.map.setView([CONFIG.MAP_CENTER.lat, CONFIG.MAP_CENTER.lng], CONFIG.MAP_ZOOM);
+            }
+            $('mapAreaSelect').value = '';
+            updateMapInfo(0, 'Pilih area dari dropdown');
+            showToast('Layer dibersihkan');
         }
 
         // ============================================================
@@ -1348,6 +1483,7 @@
                 showPage(page);
                 if (page === 'pageDashboard' && state.currentUser) renderDashboard();
                 if (page === 'pageAdmin') renderAdminAeList();
+                if (page === 'pageMaps' && !state.map) initMap();
             });
         });
 
@@ -1411,8 +1547,12 @@
                 renderTargetSummaryCard();
             });
             
-            // Event Maps Redirect
+            // Map Buttons
             $('mapFilterApplyBtn')?.addEventListener('click', applyMapFilter);
+            $('mapFilterResetBtn')?.addEventListener('click', resetMap);
+            $('mapBackBtn')?.addEventListener('click', () => {
+                showPage('pageDashboard');
+            });
 
             $('dailyDateInput').value = todayStr();
             $('adminDailyDateInput').value = todayStr();
