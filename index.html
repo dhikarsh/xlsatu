@@ -39,7 +39,6 @@
         /* ===== MAPS PAGE (FULL SCREEN) ===== */
         #pageMaps { padding:0; position:fixed; top:0; left:0; right:0; bottom:0; z-index:5; background:#f0f0f0; display:none; animation:none; }
         #pageMaps.active { display:block; }
-        /* FIX: position:relative + z-index eksplisit membuat #map membentuk stacking context sendiri */
         #map { width:100%; height:100%; background:#e5e5e5; position:relative; z-index:1; }
         .map-filter-bar { 
             position:absolute; 
@@ -604,36 +603,24 @@
             "3273_9_garuda_cibuntu_wrgmuncang"
         ];
         const GEOJSON_BASE_URL = 'https://dhikarsh.github.io/maps-data/geojson/';
-        console.log('Jumlah area:', AREA_KEYS.length);
 
         // ============================================================
-        // FIX: BACA WARNA ASLI DARI PROPERTIES GEOJSON (PENYEMPURNAAN KML)
+        // FIX: PARSER WARNA POLIGON & MARKER YANG 100% ROBUST
         // ============================================================
-        
         function parseMapColor(rawColor) {
             if (!rawColor) return null;
-            // Bersihkan tanda kutip jika tak sengaja terbawa dari JSON
             let c = String(rawColor).replace(/['"]/g, '').trim(); 
-            
-            // 1. KML Format Asli (8 karakter hex TANPA #, misal: ffaa00ff -> AABBGGRR)
             if (/^[0-9A-Fa-f]{8}$/.test(c)) {
                 const r = c.substring(6, 8);
                 const g = c.substring(4, 6);
                 const b = c.substring(2, 4);
                 return `#${r}${g}${b}`;
             }
-            
-            // 2. Web Hex yang sudah benar (mengandung #)
             if (c.startsWith('#')) return c;
-            
-            // 3. Web Hex yang lupa # (misal: aa00ff)
             if (/^[0-9A-Fa-f]{3}$/.test(c) || /^[0-9A-Fa-f]{6}$/.test(c)) return `#${c}`;
-            
-            // 4. Format lain (seperti "orange", "purple", atau format rgb) biarkan apa adanya untuk CSS
             return c;
         }
 
-        // Fungsi untuk mengambil Opacity dari kode KML (AA...)
         function parseOpacityFromColor(rawColor, defaultVal) {
             if (!rawColor) return defaultVal;
             let c = String(rawColor).trim().replace('#', '');
@@ -643,58 +630,39 @@
             }
             return defaultVal;
         }
+
         function getRawStroke(props) {
             if (!props) return null;
             return props.stroke || props['stroke-color'] || props.Stroke || 
                    props.color || props.Color || props.strokeColor || null;
         }
+
         function getRawFill(props) {
             if (!props) return null;
             return props.fill || props['fill-color'] || props.Fill || 
                    props.fillColor || getRawStroke(props) || null;
         }
-        // Eksekusi ke properti warna
+
         function getStrokeColor(props) { return parseMapColor(getRawStroke(props)); }
         function getFillColor(props) { return parseMapColor(getRawFill(props)); }
         function getStrokeOpacity(props) {
             const v = props && (props['stroke-opacity'] ?? props.strokeOpacity);
             if (v !== undefined && v !== null && !isNaN(v)) return Number(v);
-            return parseOpacityFromColor(getRawStroke(props), 0.85); // Ambil dari hex jika ada
+            return parseOpacityFromColor(getRawStroke(props), 0.85);
         }
         function getFillOpacity(props) {
             const v = props && (props['fill-opacity'] ?? props.fillOpacity);
             if (v !== undefined && v !== null && !isNaN(v)) return Number(v);
-            return parseOpacityFromColor(getRawFill(props), 0.4); // Ambil dari hex jika ada
+            return parseOpacityFromColor(getRawFill(props), 0.4);
         }
         function getStrokeWeight(props) {
             const v = props && (props['stroke-width'] ?? props.strokeWidth);
             return (v === undefined || v === null || isNaN(v)) ? 2 : Number(v);
         }
 
-        function getMarkerColor(props) {
-            if (!props) return null;
-            
-            // 1. Cek key standar
-            let colorStr = props['marker-color'] || props.markerColor || 
-                           props['fill'] || props['fill-color'] || props.fillColor;
-            
-            // 2. Pengecekan Greedy: Cari key apa saja yang mengandung kata 'color' atau 'fill'
-            if (!colorStr) {
-                for (let key in props) {
-                    let k = key.toLowerCase();
-                    if (k.includes('color') || k.includes('fill')) {
-                        colorStr = props[key];
-                        if (colorStr) break;
-                    }
-                }
-            }
-            
-            return parseMapColor(colorStr);
-        }
-
-        // Style default (fallback)
         const DEFAULT_STROKE = '#0F3B7A';
         const DEFAULT_FILL = '#1A5BB5';
+
         function geoJsonFeatureStyle(feature) {
             const props = feature && feature.properties;
             return {
@@ -706,27 +674,46 @@
             };
         }
 
+        // FUNGSI UTAMA PENGECEKAN WARNA TITIK (MARKER) DENGAN FULL-TEXT SCAN
         function geoJsonPointToLayer(feature, latlng) {
             const props = feature && feature.properties;
-            
-            // Ambil warna dari properties GeoJSON
-            let finalColor = getMarkerColor(props);
-            
-            // 3. Fallback Ekstra (Keamanan Berlapis): 
-            // Jika warna di properties tetap kosong/gagal dibaca, tebak dari properti 'name'
-            if (!finalColor && props) {
-                const name = (props.name || props.Name || '').toLowerCase();
-                if (name.includes('ftth')) finalColor = '#aa00ff'; // Ungu
-                else if (name.includes('indoor')) finalColor = '#90ee90'; // Hijau muda
-                else if (name.includes('fwa')) finalColor = '#ffa500'; // Oranye
+            let finalColor = null;
+
+            if (props) {
+                // 1. Cek properti warna secara langsung/greedy
+                let colorStr = props['marker-color'] || props.markerColor || props.fill || props['fill-color'] || props.fillColor || props.color;
+                if (!colorStr) {
+                    for (let key in props) {
+                        const k = key.toLowerCase();
+                        if (k.includes('color') || k.includes('fill')) {
+                            colorStr = props[key];
+                            if (colorStr) break;
+                        }
+                    }
+                }
+                if (colorStr) {
+                    finalColor = parseMapColor(colorStr);
+                }
+
+                // 2. Jika warna belum ketemu / masih biru, scan kata kunci pada seluruh isi properties JSON
+                if (!finalColor || finalColor === '#0F3B7A' || finalColor === '#1A5BB5') {
+                    const propStr = JSON.stringify(props).toLowerCase();
+                    if (propStr.includes('ftth') || propStr.includes('aa00ff') || propStr.includes('ungu')) {
+                        finalColor = '#aa00ff'; // Ungu (PT FTTH)
+                    } else if (propStr.includes('indoor') || propStr.includes('90ee90') || propStr.includes('hijau')) {
+                        finalColor = '#90ee90'; // Hijau muda (PT FWA IndoorOutdoor)
+                    } else if (propStr.includes('fwa') || propStr.includes('ffa500') || propStr.includes('oranye') || propStr.includes('outdoor')) {
+                        finalColor = '#ffa500'; // Oranye (PT FWA Outdoor)
+                    }
+                }
             }
 
-            // 4. Fallback terakhir jika semua gagal
-            finalColor = finalColor || '#0F3B7A'; // Default Biru XL
+            // Fallback mutlak jika tidak ada kecocokan
+            finalColor = finalColor || '#0F3B7A';
 
             return L.circleMarker(latlng, {
-                radius: 5.5, // Diperkecil sedikit agar >4000 titik tidak terlalu sempit
-                color: '#ffffff', // Garis tepi putih agar titik mudah dibedakan saat bertumpuk
+                radius: 5.5,
+                color: '#ffffff', // Outline putih agar titik jelas saat bertumpuk
                 weight: 1.2,
                 opacity: 1,
                 fillColor: finalColor,
@@ -749,8 +736,9 @@
             map: null,
             geoJsonLayer: null,
             isLoading: false,
-            isMapInitializing: false, // FIX: cegah double-init map yang bersamaan
+            isMapInitializing: false,
         };
+
         // ============================================================
         // UTILITY
         // ============================================================
@@ -797,6 +785,7 @@
                 el.textContent = el._origText || 'Submit';
             }
         }
+
         // ============================================================
         // API (dengan fallback)
         // ============================================================
@@ -808,27 +797,22 @@
                 });
                 const text = await resp.text();
                 try { return JSON.parse(text); } catch (e) {
-                    console.error('Invalid JSON:', text);
                     return { success: false, error: 'Respon server tidak valid' };
                 }
             } catch (err) {
-                console.error('API error:', err);
                 return { success: false, error: err.message };
             }
         }
         async function fetchData(action, params = {}) {
             return await apiCall(action, params);
         }
-        // ============================================================
-        // DATA LOADER dengan fallback dummy
-        // ============================================================
+
         async function loadAeList() {
             const result = await fetchData('getAeList');
             if (result.success && result.data) {
                 state.aeList = result.data;
                 return state.aeList;
             }
-            console.warn('⚠️ Gagal load AE list, menggunakan data dummy');
             state.aeList = [
                 { name: 'ADMIN', pin: '123456', targetFtth: 0, targetFwa: 0 },
                 { name: 'AE001', pin: '1234', targetFtth: 100, targetFwa: 50 },
@@ -836,9 +820,7 @@
             ];
             return state.aeList;
         }
-        // ============================================================
-        // RENDER: DROPDOWN AE
-        // ============================================================
+
         function renderAeDropdowns() {
             const sel = $('loginAeSelect');
             if (!sel) return;
@@ -857,6 +839,7 @@
                 sel.value = current;
             }
         }
+
         function renderAdminAeSelect() {
             const sel = $('adminDailyAeSelect');
             if (!sel) return;
@@ -875,15 +858,12 @@
                 sel.value = current;
             }
         }
-        // ============================================================
-        // RENDER: ADMIN DAFTAR AE
-        // ============================================================
+
         function renderAdminAeList() {
             const container = $('adminAeList');
             const list = state.aeList || [];
             if (!list.length) {
-                container.innerHTML =
-                    '<div style="text-align:center;padding:20px;color:var(--xl-muted);font-size:13px;">Belum ada AE terdaftar.</div>';
+                container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--xl-muted);font-size:13px;">Belum ada AE terdaftar.</div>';
                 return;
             }
             const sorted = [...list].sort((a, b) => {
@@ -937,9 +917,7 @@
                 });
             });
         }
-        // ============================================================
-        // RENDER: DASHBOARD
-        // ============================================================
+
         function renderDashboard() {
             const user = state.currentUser;
             if (!user) return;
@@ -960,8 +938,7 @@
                 $('adminTrackerCard').style.display = 'none';
             }
             $('dashboardDate').textContent = formatDateDisplay(new Date());
-            let targetFtth = 0,
-                targetFwa = 0;
+            let targetFtth = 0, targetFwa = 0;
             if (user.isAdmin) {
                 (state.aeList || []).forEach(ae => {
                     if (String(ae.name).toUpperCase() !== 'ADMIN') {
@@ -975,15 +952,13 @@
             }
             $('ftthTarget').textContent = targetFtth;
             $('fwaTarget').textContent = targetFwa;
-            let totalFtth = 0,
-                totalFwa = 0;
+            let totalFtth = 0, totalFwa = 0;
             if (user.isAdmin) {
                 const aeList = (state.aeList || []).filter(ae => String(ae.name).toUpperCase() !== 'ADMIN');
                 aeList.forEach(ae => {
                     const aeData = state.adminTrackerData[ae.name] || {};
                     for (let d = 1; d <= days; d++) {
-                        const dateStr =
-                            `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                         const entry = aeData[dateStr] || { ftth: 0, fwa: 0 };
                         totalFtth += parseInt(entry.ftth) || 0;
                         totalFwa += parseInt(entry.fwa) || 0;
@@ -1008,9 +983,7 @@
             renderTracker(month, year);
             renderTargetSummaryCard();
         }
-        // ============================================================
-        // RENDER: TRACKER
-        // ============================================================
+
         function renderTracker(month, year) {
             const user = state.currentUser;
             if (!user) return;
@@ -1023,32 +996,24 @@
                 renderAeDashboardTracker(month, year);
             }
         }
+
         function renderAeDashboardTracker(month, year) {
-            const thead = $('trackerHead'),
-                tbody = $('trackerBody');
+            const thead = $('trackerHead'), tbody = $('trackerBody');
             const days = getDaysInMonth(year, month);
-            const today = new Date(),
-                todayDay = today.getDate(),
-                todayMonth = today.getMonth(),
-                todayYear = today.getFullYear();
+            const today = new Date(), todayDay = today.getDate(), todayMonth = today.getMonth(), todayYear = today.getFullYear();
             let headHtml = '<tr><th style="text-align:left;min-width:48px;">Tanggal</th>';
             for (let d = 1; d <= days; d++) {
                 const isToday = (d === todayDay && month === todayMonth && year === todayYear);
-                headHtml +=
-                    `<th${isToday ? ' style="background:var(--xl-blue-soft);color:var(--xl-blue);"' : ''}>${d}</th>`;
+                headHtml += `<th${isToday ? ' style="background:var(--xl-blue-soft);color:var(--xl-blue);"' : ''}>${d}</th>`;
             }
-            headHtml +=
-                '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
+            headHtml += '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
             thead.innerHTML = headHtml;
-            let totalFtth = 0,
-                totalFwa = 0;
-            const ftthVals = [],
-                fwaVals = [];
+            let totalFtth = 0, totalFwa = 0;
+            const ftthVals = [], fwaVals = [];
             for (let d = 1; d <= days; d++) {
                 const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 const entry = state.trackerData[dateStr] || {};
-                const f = parseInt(entry.ftth) || 0,
-                    w = parseInt(entry.fwa) || 0;
+                const f = parseInt(entry.ftth) || 0, w = parseInt(entry.fwa) || 0;
                 totalFtth += f;
                 totalFwa += w;
                 ftthVals.push(f);
@@ -1072,30 +1037,24 @@
             tbody.innerHTML += fwaHtml;
             $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year;
         }
+
         function renderAdminDashboardTracker(month, year) {
-            const thead = $('trackerHead'),
-                tbody = $('trackerBody');
+            const thead = $('trackerHead'), tbody = $('trackerBody');
             const days = getDaysInMonth(year, month);
             const productFilter = $('dashboardProductFilter')?.value || 'FTTH';
-            const today = new Date(),
-                todayDay = today.getDate(),
-                todayMonth = today.getMonth(),
-                todayYear = today.getFullYear();
+            const today = new Date(), todayDay = today.getDate(), todayMonth = today.getMonth(), todayYear = today.getFullYear();
             let headHtml = '<tr><th style="text-align:left;min-width:100px;">Nama AE</th>';
             for (let d = 1; d <= days; d++) {
                 const isToday = (d === todayDay && month === todayMonth && year === todayYear);
-                headHtml +=
-                    `<th${isToday ? ' style="background:var(--xl-blue-soft);color:var(--xl-blue);"' : ''}>${d}</th>`;
+                headHtml += `<th${isToday ? ' style="background:var(--xl-blue-soft);color:var(--xl-blue);"' : ''}>${d}</th>`;
             }
-            headHtml +=
-                '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
+            headHtml += '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
             thead.innerHTML = headHtml;
             const aeList = (state.aeList || [])
                 .filter(ae => String(ae.name).toUpperCase() !== 'ADMIN')
                 .sort((a, b) => a.name.localeCompare(b.name));
             if (!aeList.length) {
-                tbody.innerHTML =
-                    `<tr><td colspan="${days + 2}" style="text-align:center;padding:16px;color:var(--xl-muted);">Belum ada AE terdaftar</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="${days + 2}" style="text-align:center;padding:16px;color:var(--xl-muted);">Belum ada AE terdaftar</td></tr>`;
                 $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year;
                 return;
             }
@@ -1105,16 +1064,13 @@
                 let rowKum = 0;
                 let rowHtml = `<tr><td class="row-label">${ae.name}</td>`;
                 for (let d = 1; d <= days; d++) {
-                    const dateStr =
-                        `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                     const entry = aeData[dateStr] || { ftth: 0, fwa: 0 };
-                    const val = productFilter === 'FTTH' ? (parseInt(entry.ftth) || 0) : (parseInt(entry.fwa) ||
-                    0);
+                    const val = productFilter === 'FTTH' ? (parseInt(entry.ftth) || 0) : (parseInt(entry.fwa) || 0);
                     rowKum += val;
                     const isToday = (d === todayDay && month === todayMonth && year === todayYear);
                     const cls = isToday ? 'today-col' : '';
-                    rowHtml +=
-                        `<td class="${cls}">${val > 0 ? val : '<span class="empty-cell">—</span>'}</td>`;
+                    rowHtml += `<td class="${cls}">${val > 0 ? val : '<span class="empty-cell">—</span>'}</td>`;
                 }
                 rowHtml += `<td class="cum-col">${rowKum}</td></tr>`;
                 bodyHtml += rowHtml;
@@ -1122,9 +1078,7 @@
             tbody.innerHTML = bodyHtml;
             $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year + ` (${productFilter})`;
         }
-        // ============================================================
-        // RENDER: RINGKASAN TARGET TIM
-        // ============================================================
+
         function targetCellsHtml(name, fieldKey, target, actual) {
             const pct = target > 0 ? Math.round((actual / target) * 100) : 0;
             const pctClass = pct >= 80 ? 'pct-high' : (pct >= 50 ? 'pct-mid' : 'pct-low');
@@ -1139,6 +1093,7 @@
                     <td>${gapHtml}</td>
                 `;
         }
+
         function renderTargetSummaryCard() {
             const user = state.currentUser;
             const card = $('adminTargetSummaryCard');
@@ -1167,24 +1122,17 @@
                 daysLeftText = '0 hari tersisa';
             }
             $('tsDaysLeft').textContent = daysLeftText;
-            let totFtthT = 0,
-                totFtthA = 0,
-                totFwaT = 0,
-                totFwaA = 0;
+            let totFtthT = 0, totFtthA = 0, totFwaT = 0, totFwaA = 0;
             if (!filtered.length) {
-                $('targetSummaryBody').innerHTML =
-                    `<tr><td colspan="9" style="text-align:center;padding:18px;color:var(--xl-muted);">Tidak ada AE ditemukan</td></tr>`;
+                $('targetSummaryBody').innerHTML = `<tr><td colspan="9" style="text-align:center;padding:18px;color:var(--xl-muted);">Tidak ada AE ditemukan</td></tr>`;
             } else {
                 let rowsHtml = '';
                 filtered.forEach(ae => {
                     const edited = state.editedTargets[ae.name] || {};
-                    const targetFtth = edited.targetFtth !== undefined ? edited.targetFtth : (parseInt(ae
-                        .targetFtth) || 0);
-                    const targetFwa = edited.targetFwa !== undefined ? edited.targetFwa : (parseInt(ae
-                        .targetFwa) || 0);
+                    const targetFtth = edited.targetFtth !== undefined ? edited.targetFtth : (parseInt(ae.targetFtth) || 0);
+                    const targetFwa = edited.targetFwa !== undefined ? edited.targetFwa : (parseInt(ae.targetFwa) || 0);
                     const aeData = state.adminTrackerData[ae.name] || {};
-                    let actFtth = 0,
-                        actFwa = 0;
+                    let actFtth = 0, actFwa = 0;
                     for (let d = 1; d <= days; d++) {
                         const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                         const entry = aeData[dateStr] || {};
@@ -1222,12 +1170,9 @@
             $('tsTotalFwaPct').textContent = (totFwaT > 0 ? Math.round((totFwaA / totFwaT) * 100) : 0) + '%';
             $('tsTotalFwaGap').textContent = Math.max(0, totFwaT - totFwaA);
         }
-        // ============================================================
-        // MONTH / YEAR SELECTOR
-        // ============================================================
+
         function initMonthYearSelectors() {
-            const mSel = $('monthSelect'),
-                ySel = $('yearSelect');
+            const mSel = $('monthSelect'), ySel = $('yearSelect');
             mSel.innerHTML = '';
             for (let i = 0; i < 12; i++) {
                 const opt = document.createElement('option');
@@ -1246,13 +1191,12 @@
             mSel.value = state.selectedDate.getMonth();
             ySel.value = state.selectedDate.getFullYear();
         }
+
         function updateMonthYearUI() {
             $('monthSelect').value = state.selectedDate.getMonth();
             $('yearSelect').value = state.selectedDate.getFullYear();
         }
-        // ============================================================
-        // REFRESH SEMUA DATA
-        // ============================================================
+
         async function refreshAllData() {
             const user = state.currentUser;
             if (!user) return;
@@ -1265,9 +1209,7 @@
                 const adminTracker = await fetchData('getAdminTracker', { month, year });
                 if (adminTracker.success) {
                     state.adminTrackerData = adminTracker.data || {};
-                    console.log('✅ Admin tracker data loaded:', state.adminTrackerData);
                 } else {
-                    console.error('❌ Gagal load admin tracker:', adminTracker.error);
                     state.adminTrackerData = {};
                 }
                 state.trackerData = {};
@@ -1280,9 +1222,7 @@
             renderAdminAeList();
             $('navAdmin').style.display = user.isAdmin ? 'flex' : 'none';
         }
-        // ============================================================
-        // LOGIN HANDLER
-        // ============================================================
+
         async function handleLogin(e) {
             e.preventDefault();
             const name = $('loginAeSelect').value;
@@ -1312,6 +1252,7 @@
             await refreshAllData();
             showSuccess('Selamat datang, ' + ae.name + '!');
         }
+
         async function handleAdminLogin(e) {
             e.preventDefault();
             const inputPin = String($('adminPin').value).trim();
@@ -1337,9 +1278,7 @@
             await refreshAllData();
             showSuccess('Login Admin berhasil (Akumulasi Seluruh AE)');
         }
-        // ============================================================
-        // LOGOUT
-        // ============================================================
+
         function handleLogout() {
             state.currentUser = null;
             state.isAdmin = false;
@@ -1355,9 +1294,7 @@
             $('headerUserName').textContent = 'Guest';
             showToast('Anda telah keluar');
         }
-        // ============================================================
-        // DAILY SUBMIT
-        // ============================================================
+
         async function handleDailySubmit(e) {
             e.preventDefault();
             if (!state.currentUser || state.currentUser.isAdmin) {
@@ -1387,6 +1324,7 @@
                 showError('Gagal menyimpan: ' + (result.error || ''));
             }
         }
+
         async function handleAdminDailySubmit(e) {
             e.preventDefault();
             if (!state.currentUser || !state.currentUser.isAdmin) {
@@ -1418,6 +1356,7 @@
                 showError('Gagal menyimpan: ' + (result.error || ''));
             }
         }
+
         async function handleAddAe() {
             const name = $('adminNewName').value.trim();
             const pin = $('adminNewPin').value.trim();
@@ -1439,6 +1378,7 @@
                 showError('Gagal menyimpan: ' + (result.error || ''));
             }
         }
+
         async function handleChangeAdminPin() {
             const newPin = $('adminNewAdminPin').value.trim();
             if (!newPin || newPin.length < 4) { showError('PIN minimal 4 karakter'); return; }
@@ -1455,6 +1395,7 @@
                 showError('Gagal update: ' + (result.error || ''));
             }
         }
+
         async function handleSaveTargets() {
             const edited = state.editedTargets;
             const names = Object.keys(edited);
@@ -1468,10 +1409,8 @@
             for (const name of names) {
                 const ae = state.aeList.find(a => a.name === name);
                 if (!ae) continue;
-                const targetFtth = edited[name].targetFtth !== undefined ? edited[name].targetFtth : (parseInt(ae
-                    .targetFtth) || 0);
-                const targetFwa = edited[name].targetFwa !== undefined ? edited[name].targetFwa : (parseInt(ae
-                    .targetFwa) || 0);
+                const targetFtth = edited[name].targetFtth !== undefined ? edited[name].targetFtth : (parseInt(ae.targetFtth) || 0);
+                const targetFwa = edited[name].targetFwa !== undefined ? edited[name].targetFwa : (parseInt(ae.targetFwa) || 0);
                 const result = await apiCall('saveAe', { name: ae.name, pin: ae.pin, targetFtth, targetFwa });
                 if (result.success) successCount++;
             }
@@ -1484,14 +1423,13 @@
             state.editedTargets = {};
             await refreshAllData();
         }
+
         async function handleReloadTargets() {
             state.editedTargets = {};
             await refreshAllData();
             showToast('Data dimuat ulang dari database');
         }
-        // ============================================================
-        // NAVIGASI
-        // ============================================================
+
         function showPage(pageId) {
             $$('.page').forEach(p => {
                 p.classList.remove('active');
@@ -1514,17 +1452,13 @@
             if (navBtn) navBtn.classList.add('active');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-        // ============================================================
-        // MAPS: INISIALISASI PETA (LEAFLET) - DIPANGGIL SAAT TAB MAPS DIBUKA
-        // ============================================================
+
         function initMap() {
-            if (state.map) return; // sudah ada instance yang valid
-            if (state.isMapInitializing) return; // sedang proses, jangan dobel
+            if (state.map) return;
+            if (state.isMapInitializing) return;
             state.isMapInitializing = true;
-            console.log('🗺️ Inisialisasi Leaflet...');
             const mapEl = document.getElementById('map');
             if (!mapEl) {
-                console.error('❌ Element #map tidak ditemukan!');
                 state.isMapInitializing = false;
                 return;
             }
@@ -1539,22 +1473,18 @@
                     attribution: '© OpenStreetMap',
                 }).addTo(map);
                 state.map = map;
-                // Populate dropdown
                 populateAreaDropdown();
                 const overlay = $('mapLoadingOverlay');
                 if (overlay) overlay.classList.add('hidden');
                 updateMapInfo(0, 'Pilih area dari dropdown');
-                // Pastikan ukuran dihitung ulang setelah container benar-benar terlihat
                 setTimeout(() => { if (state.map) state.map.invalidateSize(); }, 150);
-                console.log('✅ Leaflet map siap dengan GeoJSON!');
             } catch (err) {
-                console.error('❌ Gagal inisialisasi Leaflet:', err);
                 state.map = null;
             } finally {
                 state.isMapInitializing = false;
             }
         }
-        // FIX: helper baru — tunggu sampai peta benar-benar siap
+
         async function ensureMapReady(timeoutMs = 2000) {
             const mapReady = () => state.map && state.map.getContainer && document.body.contains(state.map.getContainer());
             if (mapReady()) return true;
@@ -1565,21 +1495,14 @@
             }
             return mapReady();
         }
-        // ============================================================
-        // POPULATE DROPDOWN AREA
-        // ============================================================
+
         function populateAreaDropdown() {
             const select = $('mapAreaSelect');
-            if (!select) {
-                console.error('❌ Element #mapAreaSelect tidak ditemukan!');
-                return;
-            }
+            if (!select) return;
             if (!AREA_KEYS || AREA_KEYS.length === 0) {
-                console.error('❌ AREA_KEYS kosong atau tidak terdefinisi!');
                 select.innerHTML = '<option value="">-- Tidak ada data --</option>';
                 return;
             }
-            console.log(`📋 Memuat ${AREA_KEYS.length} area ke dropdown...`);
             const sorted = AREA_KEYS.slice().sort();
             select.innerHTML = '<option value="">-- Pilih Area --</option>';
             sorted.forEach(key => {
@@ -1589,13 +1512,10 @@
                 opt.textContent = display;
                 select.appendChild(opt);
             });
-            console.log(`✅ Dropdown berisi ${sorted.length} area.`);
             const statusEl = $('mapFilterStatus');
             if (statusEl) statusEl.textContent = `${sorted.length} area tersedia`;
         }
-        // ============================================================
-        // MAPS: LOAD GEOJSON
-        // ============================================================
+
         async function loadArea(key) {
             const ready = await ensureMapReady();
             if (!ready) {
@@ -1603,7 +1523,6 @@
                 return;
             }
             const url = GEOJSON_BASE_URL + key + '.geojson';
-            console.log(`🔄 Memuat GeoJSON: ${url}`);
             try {
                 const overlay = $('mapLoadingOverlay');
                 overlay.classList.remove('hidden');
@@ -1615,17 +1534,13 @@
                 if (!geojson.features || geojson.features.length === 0) {
                     throw new Error('Tidak ada fitur ditemukan');
                 }
-                // DEBUG: tampilkan properties fitur pertama di console
-                console.log('🎨 Contoh properties fitur pertama:', geojson.features[0].properties);
                 if (!state.map) {
-                    throw new Error('Peta tidak tersedia lagi, silakan ulangi.');
+                    throw new Error('Peta tidak tersedia lagi');
                 }
-                // Hapus layer sebelumnya
                 if (state.geoJsonLayer) {
                     state.map.removeLayer(state.geoJsonLayer);
                     state.geoJsonLayer = null;
                 }
-                // Tambahkan layer baru
                 state.geoJsonLayer = L.geoJSON(geojson, {
                     style: geoJsonFeatureStyle,
                     pointToLayer: geoJsonPointToLayer,
@@ -1635,9 +1550,7 @@
                         }
                     }
                 }).addTo(state.map);
-                // FIX: pastikan ukuran peta sudah benar sebelum fitBounds
                 state.map.invalidateSize();
-                // Fit bounds
                 const bounds = state.geoJsonLayer.getBounds();
                 if (bounds.isValid()) {
                     state.map.fitBounds(bounds, { padding: [50, 50] });
@@ -1645,7 +1558,6 @@
                 updateMapInfo(1, `Menampilkan ${key}`);
                 showSuccess(`Area ${key} dimuat!`);
             } catch (err) {
-                console.error('Error loading GeoJSON:', err);
                 showError(`Gagal memuat area: ${err.message}`);
                 updateMapInfo(0, `Gagal: ${err.message}`);
                 throw err;
@@ -1655,9 +1567,7 @@
                 state.isLoading = false;
             }
         }
-        // ============================================================
-        // MAPS: APPLY FILTER
-        // ============================================================
+
         function applyMapFilter() {
             if (state.isLoading) {
                 showError('Sedang memuat, tunggu sebentar');
@@ -1672,9 +1582,7 @@
             state.isLoading = true;
             loadArea(key);
         }
-        // ============================================================
-        // MAPS: RESET
-        // ============================================================
+
         function resetMap() {
             if (state.isLoading) {
                 showError('Sedang memuat, tunggu sebentar');
@@ -1691,9 +1599,7 @@
             updateMapInfo(0, 'Pilih area dari dropdown');
             showToast('Layer direset');
         }
-        // ============================================================
-        // MAPS: UPDATE INFO
-        // ============================================================
+
         function updateMapInfo(count, statusText) {
             const countEl = $('mapLayerCount');
             const displayEl = $('mapLayerCountDisplay');
@@ -1702,6 +1608,7 @@
             if (displayEl) displayEl.textContent = count;
             if (statusEl) statusEl.textContent = statusText || '';
         }
+
         function updateLoadingProgress(current, total, statusText) {
             const pct = total > 0 ? Math.min(100, Math.round((current / total) * 100)) : 0;
             const fill = $('mapProgressFill');
@@ -1711,21 +1618,14 @@
             const sub = $('mapLoadSub');
             if (sub && statusText) sub.textContent = statusText;
         }
-        // ============================================================
-        // MAPS: FILTER BUTTON
-        // ============================================================
+
         $('mapFilterApplyBtn')?.addEventListener('click', applyMapFilter);
         $('mapFilterResetBtn')?.addEventListener('click', resetMap);
-        // ============================================================
-        // MAPS: BACK BUTTON
-        // ============================================================
         $('mapBackBtn')?.addEventListener('click', () => {
             showPage('pageDashboard');
             if (state.currentUser) renderDashboard();
         });
-        // ============================================================
-        // BOTTOM NAV CLICK
-        // ============================================================
+
         document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
             btn.addEventListener('click', () => {
                 const page = btn.dataset.page;
@@ -1751,15 +1651,12 @@
                 }
             });
         });
-        // ============================================================
-        // INIT
-        // ============================================================
+
         async function init() {
             initMonthYearSelectors();
             updateMonthYearUI();
             await loadAeList();
             renderAeDropdowns();
-            // Pastikan admin ada
             if (!state.aeList.some(a => String(a.name).toUpperCase() === 'ADMIN')) {
                 await apiCall('saveAe', { name: 'ADMIN', pin: CONFIG.ADMIN_PIN, targetFtth: 0, targetFwa: 0 });
                 await loadAeList();
@@ -1810,10 +1707,8 @@
             });
             $('dailyDateInput').value = todayStr();
             $('adminDailyDateInput').value = todayStr();
-            // Populate dropdown area tetap aman dipanggil lebih awal
             populateAreaDropdown();
             showPage('pageLogin');
-            console.log('🚀 XL Satu Sales Tracker siap! (GeoJSON)');
         }
         document.addEventListener('DOMContentLoaded', init);
         window.initMap = initMap;
