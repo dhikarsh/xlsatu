@@ -4,9 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>XL Satu - Sales Tracker</title>
-    <!-- Leaflet CSS & JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         /* ===== GLOBAL ===== */
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',system-ui,sans-serif !important; }
@@ -37,41 +34,7 @@
         .page.active { display:block; }
         @keyframes fadeUp { from { opacity:0; transform:translateY(20px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
         
-        /* ===== MAPS PAGE (FULL SCREEN) ===== */
-        #pageMaps { padding:0; position:fixed; top:0; left:0; right:0; bottom:0; z-index:5; background:#f0f0f0; display:none; animation:none; }
-        #pageMaps.active { display:block; }
-        #map { width:100%; height:100%; background:#e5e5e5; position:relative; z-index:1; }
-        .map-filter-bar { 
-            position:absolute; 
-            bottom:80px; 
-            left:12px; 
-            right:12px; 
-            z-index:20; 
-            background:rgba(255,255,255,0.95); 
-            backdrop-filter:blur(12px); 
-            border-radius:var(--xl-radius); 
-            padding:12px 16px; 
-            box-shadow:0 4px 24px rgba(0,0,0,0.12); 
-            border:1px solid rgba(255,255,255,0.3);
-        }
-        .map-filter-bar .filter-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-        .map-filter-bar select { flex:1; padding:8px 12px; border:1.5px solid var(--xl-border); border-radius:var(--xl-radius-sm); font-size:13px; font-weight:500; background:#fff; outline:none; color:var(--xl-dark); min-width:100px; appearance:auto; }
-        .map-filter-bar select:focus { border-color:var(--xl-blue-light); box-shadow:0 0 0 3px var(--xl-blue-soft); }
-        .map-filter-bar .filter-btn { background:var(--xl-blue-grad); color:#fff; border:none; padding:8px 16px; border-radius:var(--xl-radius-sm); font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap; transition:var(--xl-transition); }
-        .map-filter-bar .filter-btn:active { transform:scale(0.95); }
-        .map-filter-bar .filter-btn.reset { background:var(--xl-muted); }
-        .map-filter-bar .filter-info { font-size:11px; color:var(--xl-muted); margin-top:6px; display:flex; justify-content:space-between; flex-wrap:wrap; }
-        .map-filter-bar .filter-info .count { font-weight:700; color:var(--xl-blue); }
-        #mapLoadingOverlay { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.85); z-index:10; pointer-events:none; transition:opacity 0.5s ease; }
-        #mapLoadingOverlay.hidden { opacity:0; pointer-events:none; }
-        .map-loading-box { text-align:center; background:#fff; padding:32px 40px; border-radius:var(--xl-radius); box-shadow:var(--xl-shadow); max-width:320px; }
-        .map-loading-box .spinner-big { display:inline-block; width:48px; height:48px; border:4px solid var(--xl-gray-light); border-top-color:var(--xl-blue); border-radius:50%; animation:spin 0.8s linear infinite; }
-        .map-loading-box p { margin-top:14px; font-weight:700; color:var(--xl-dark); }
-        .map-loading-box .sub { font-size:13px; font-weight:500; color:var(--xl-muted); margin-top:4px; }
-        .map-back-btn { position:absolute; top:12px; right:16px; z-index:20; background:rgba(255,255,255,0.90); backdrop-filter:blur(8px); border:none; border-radius:40px; padding:8px 16px; font-weight:700; font-size:13px; color:var(--xl-blue); box-shadow:0 4px 16px rgba(0,0,0,0.10); cursor:pointer; display:flex; align-items:center; gap:6px; transition:var(--xl-transition); }
-        .map-back-btn:hover { background:#fff; box-shadow:0 6px 24px rgba(0,0,0,0.15); }
-
-        /* ===== CARDS (dashboard) ===== */
+        /* ===== CARDS & GENERAL ===== */
         .card { background:#fff; border-radius:var(--xl-radius); padding:18px 20px; margin-bottom:16px; box-shadow:var(--xl-shadow); border:1px solid var(--xl-border); transition:var(--xl-transition); }
         .card:hover { box-shadow:0 12px 40px rgba(15,59,122,0.10); }
         .card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
@@ -197,9 +160,6 @@
             .target-table input.target-input { width:42px; font-size:11px; padding:5px 2px; }
             .ts-actions { width:100%; justify-content:flex-end; }
             .ts-meta { width:100%; }
-            .map-filter-bar { bottom:70px; left:8px; right:8px; padding:10px 12px; }
-            .map-filter-bar select { min-width:70px; font-size:12px; }
-            .map-back-btn { top:8px; right:10px; font-size:11px; padding:6px 12px; }
         }
     </style>
 </head>
@@ -481,38 +441,28 @@
             </div>
         </div>
 
-        <!-- ===== MAPS PAGE (FULL SCREEN GEOJSON DENGAN WARNA DIPERBAIKI) ===== -->
+        <!-- ===== MAPS PAGE (GOOGLE MAPS REDIRECT) ===== -->
         <div class="page" id="pageMaps">
-            <div id="map"></div>
-            <!-- Filter Bar -->
-            <div class="map-filter-bar">
-                <div class="filter-row">
-                    <select id="mapAreaSelect">
-                        <option value="">-- Pilih Area --</option>
-                    </select>
-                    <button class="filter-btn" id="mapFilterApplyBtn">Tampilkan</button>
-                    <button class="filter-btn reset" id="mapFilterResetBtn">Reset</button>
+            <div class="card" style="margin-top: 10px;">
+                <div class="card-header">
+                    <span class="card-title"><span class="emoji">🗺️</span> Peta Plotting Area</span>
                 </div>
-                <div class="filter-info">
-                    <span>Layer ditampilkan: <span class="count" id="mapLayerCountDisplay">0</span></span>
-                    <span id="mapFilterStatus">Pilih area dari dropdown</span>
+                <div style="font-size:13px; color:var(--xl-muted); margin-bottom:20px; line-height: 1.5;">
+                    Pilih nama area di bawah ini. Peta akan otomatis terbuka secara detail melalui aplikasi <strong>Google Maps</strong> berdasarkan wilayah area kerja.
                 </div>
-            </div>
-            <!-- Tombol Kembali -->
-            <button class="map-back-btn" id="mapBackBtn">
-                <span>←</span> Dashboard
-            </button>
-            <!-- Loading Overlay -->
-            <div id="mapLoadingOverlay" class="hidden">
-                <div class="map-loading-box">
-                    <div class="spinner-big"></div>
-                    <p>Memuat Peta &amp; Data</p>
-                    <div class="sub" id="mapLoadSub">Menginisialisasi...</div>
-                    <div class="progress-bar">
-                        <div class="fill" id="mapProgressFill"></div>
+                
+                <div class="daily-input-group" style="margin-bottom: 20px;">
+                    <div class="field" style="flex:1;">
+                        <label>Pilih Area Sales</label>
+                        <select id="mapAreaSelect" style="padding: 12px; font-size: 14px;">
+                            <option value="">-- Pilih Area --</option>
+                        </select>
                     </div>
-                    <div class="progress-text" id="mapProgressText">0 / 0</div>
                 </div>
+
+                <button class="btn-primary" id="mapFilterApplyBtn" style="width: 100%; padding: 14px; font-size: 15px;">
+                    📍 Buka di Google Maps
+                </button>
             </div>
         </div>
 
@@ -546,8 +496,6 @@
         const CONFIG = {
             API_URL: 'https://script.google.com/macros/s/AKfycbzOHic0o0BNeRAhV5yZ6uzobKO7k69YBX3qNmccAlUM9vn-C0lb0eb0YtE1AMZU5Cs2nA/exec',
             ADMIN_PIN: '123456',
-            MAP_CENTER: { lat: -6.9175, lng: 107.6191 },
-            MAP_ZOOM: 12,
         };
 
         // ============================================================
@@ -591,126 +539,7 @@
             "3273_89_ciskularea", "3273_8_maleber_cijerah", "3273_99_panghegararea",
             "3273_9_garuda_cibuntu_wrgmuncang"
         ];
-        const GEOJSON_BASE_URL = 'https://dhikarsh.github.io/maps-data/geojson/';
 
-        // ============================================================
-        // PARSER WARNA POLIGON & TITIK
-        // ============================================================
-        function parseMapColor(rawColor) {
-            if (!rawColor) return null;
-            let c = String(rawColor).replace(/['"]/g, '').trim(); 
-            if (/^[0-9A-Fa-f]{8}$/.test(c)) {
-                const r = c.substring(6, 8);
-                const g = c.substring(4, 6);
-                const b = c.substring(2, 4);
-                return `#${r}${g}${b}`;
-            }
-            if (c.startsWith('#')) return c;
-            if (/^[0-9A-Fa-f]{3}$/.test(c) || /^[0-9A-Fa-f]{6}$/.test(c)) return `#${c}`;
-            return c;
-        }
-
-        function parseOpacityFromColor(rawColor, defaultVal) {
-            if (!rawColor) return defaultVal;
-            let c = String(rawColor).trim().replace('#', '');
-            if (c.length === 8) {
-                const aHex = c.substring(0, 2);
-                return parseInt(aHex, 16) / 255;
-            }
-            return defaultVal;
-        }
-
-        function getRawStroke(props) {
-            if (!props) return null;
-            return props.stroke || props['stroke-color'] || props.Stroke || 
-                   props.color || props.Color || props.strokeColor || null;
-        }
-
-        function getRawFill(props) {
-            if (!props) return null;
-            return props.fill || props['fill-color'] || props.Fill || 
-                   props.fillColor || getRawStroke(props) || null;
-        }
-
-        function getStrokeColor(props) { return parseMapColor(getRawStroke(props)); }
-        function getFillColor(props) { return parseMapColor(getRawFill(props)); }
-        function getStrokeOpacity(props) {
-            const v = props && (props['stroke-opacity'] ?? props.strokeOpacity);
-            if (v !== undefined && v !== null && !isNaN(v)) return Number(v);
-            return parseOpacityFromColor(getRawStroke(props), 0.85);
-        }
-        function getFillOpacity(props) {
-            const v = props && (props['fill-opacity'] ?? props.fillOpacity);
-            if (v !== undefined && v !== null && !isNaN(v)) return Number(v);
-            return parseOpacityFromColor(getRawFill(props), 0.4);
-        }
-        function getStrokeWeight(props) {
-            const v = props && (props['stroke-width'] ?? props.strokeWidth);
-            return (v === undefined || v === null || isNaN(v)) ? 2 : Number(v);
-        }
-
-        const DEFAULT_STROKE = '#0F3B7A';
-        const DEFAULT_FILL = '#1A5BB5';
-
-        function geoJsonFeatureStyle(feature) {
-            const props = feature && feature.properties;
-            return {
-                color: getStrokeColor(props) || DEFAULT_STROKE,
-                weight: getStrokeWeight(props),
-                opacity: getStrokeOpacity(props),
-                fillColor: getFillColor(props) || DEFAULT_FILL,
-                fillOpacity: getFillOpacity(props)
-            };
-        }
-
-        // ============================================================
-        // FUNGSI TITIK (MARKER) DENGAN WARNA ASLI GEOJSON
-        // ============================================================
-        function geoJsonPointToLayer(feature, latlng) {
-            const props = feature && feature.properties;
-            let finalColor = null;
-
-            if (props) {
-                let colorStr = props['marker-color'] || props.markerColor || props['fill'] || props['fill-color'] || props.fillColor || props.color;
-                if (!colorStr) {
-                    for (let key in props) {
-                        const k = key.toLowerCase();
-                        if (k.includes('color') || k.includes('fill')) {
-                            colorStr = props[key];
-                            if (colorStr) break;
-                        }
-                    }
-                }
-                if (colorStr) {
-                    finalColor = parseMapColor(colorStr);
-                }
-
-                // Fallback pencarian kata kunci jika properti warna tidak langsung ada
-                if (!finalColor || finalColor === '#0F3B7A' || finalColor === '#1A5BB5') {
-                    const propStr = JSON.stringify(props).toLowerCase();
-                    if (propStr.includes('ftth') || propStr.includes('aa00ff') || propStr.includes('ungu')) {
-                        finalColor = '#aa00ff'; // Ungu
-                    } else if (propStr.includes('indoor') || propStr.includes('90ee90') || propStr.includes('hijau')) {
-                        finalColor = '#90ee90'; // Hijau Muda
-                    } else if (propStr.includes('fwa') || propStr.includes('ffa500') || propStr.includes('oranye') || propStr.includes('outdoor')) {
-                        finalColor = '#ffa500'; // Oranye
-                    }
-                }
-            }
-
-            finalColor = finalColor || '#0F3B7A';
-
-            return L.circleMarker(latlng, {
-                radius: 5.5,
-                color: '#ffffff',
-                weight: 1.2,
-                opacity: 1,
-                fill: true,           // Memastikan warna isian aktif dirender oleh Leaflet
-                fillColor: finalColor,
-                fillOpacity: 0.95
-            });
-        }
-        
         // ============================================================
         // STATE
         // ============================================================
@@ -722,11 +551,7 @@
             adminTrackerData: {},
             selectedDate: new Date(),
             editedTargets: {},
-            targetSearchQuery: '',
-            map: null,
-            geoJsonLayer: null,
-            isLoading: false,
-            isMapInitializing: false,
+            targetSearchQuery: ''
         };
 
         // ============================================================
@@ -1408,18 +1233,9 @@
         }
 
         function showPage(pageId) {
-            $$('.page').forEach(p => {
-                p.classList.remove('active');
-                if (p.id === 'pageMaps') p.style.display = 'none';
-            });
+            $$('.page').forEach(p => p.classList.remove('active'));
             const target = $(pageId);
-            if (target) {
-                target.classList.add('active');
-                if (pageId === 'pageMaps') {
-                    target.style.display = 'block';
-                    if (state.map) setTimeout(() => state.map.invalidateSize(), 200);
-                }
-            }
+            if (target) target.classList.add('active');
             $$('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
             const navBtn = document.querySelector(`.bottom-nav .nav-item[data-page="${pageId}"]`);
             if (navBtn) navBtn.classList.add('active');
@@ -1427,50 +1243,8 @@
         }
 
         // ============================================================
-        // MAPS LOGIC
+        // GOOGLE MAPS REDIRECT LOGIC
         // ============================================================
-        function initMap() {
-            if (state.map) return;
-            if (state.isMapInitializing) return;
-            state.isMapInitializing = true;
-            const mapEl = document.getElementById('map');
-            if (!mapEl) {
-                state.isMapInitializing = false; return;
-            }
-            try {
-                const map = L.map(mapEl, {
-                    center: [CONFIG.MAP_CENTER.lat, CONFIG.MAP_CENTER.lng],
-                    zoom: CONFIG.MAP_ZOOM,
-                    zoomControl: true,
-                });
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '© OpenStreetMap',
-                }).addTo(map);
-                state.map = map;
-                populateAreaDropdown();
-                const overlay = $('mapLoadingOverlay');
-                if (overlay) overlay.classList.add('hidden');
-                updateMapInfo(0, 'Pilih area dari dropdown');
-                setTimeout(() => { if (state.map) state.map.invalidateSize(); }, 150);
-            } catch (err) {
-                state.map = null;
-            } finally {
-                state.isMapInitializing = false;
-            }
-        }
-
-        async function ensureMapReady(timeoutMs = 2000) {
-            const mapReady = () => state.map && state.map.getContainer && document.body.contains(state.map.getContainer());
-            if (mapReady()) return true;
-            initMap();
-            const start = Date.now();
-            while (!mapReady() && (Date.now() - start) < timeoutMs) {
-                await new Promise(r => setTimeout(r, 50));
-            }
-            return mapReady();
-        }
-
         function populateAreaDropdown() {
             const select = $('mapAreaSelect');
             if (!select) return;
@@ -1485,87 +1259,21 @@
             });
         }
 
-        async function loadArea(key) {
-            const ready = await ensureMapReady();
-            if (!ready) {
-                showError('Peta tidak siap, coba buka Maps lagi.'); return;
-            }
-            const url = GEOJSON_BASE_URL + key + '.geojson';
-            try {
-                const overlay = $('mapLoadingOverlay');
-                overlay.classList.remove('hidden');
-                updateMapInfo(0, `Memuat ${key}...`);
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const geojson = await response.json();
-                if (!geojson.features || geojson.features.length === 0) {
-                    throw new Error('Tidak ada fitur ditemukan');
-                }
-                if (!state.map) throw new Error('Peta tidak tersedia');
-                if (state.geoJsonLayer) {
-                    state.map.removeLayer(state.geoJsonLayer);
-                    state.geoJsonLayer = null;
-                }
-                state.geoJsonLayer = L.geoJSON(geojson, {
-                    style: geoJsonFeatureStyle,
-                    pointToLayer: geoJsonPointToLayer,
-                    onEachFeature: function(feature, layer) {
-                        if (feature.properties && feature.properties.name) {
-                            layer.bindPopup(feature.properties.name);
-                        }
-                    }
-                }).addTo(state.map);
-                state.map.invalidateSize();
-                const bounds = state.geoJsonLayer.getBounds();
-                if (bounds.isValid()) {
-                    state.map.fitBounds(bounds, { padding: [50, 50] });
-                }
-                updateMapInfo(1, `Menampilkan ${key}`);
-                showSuccess(`Area ${key} dimuat!`);
-            } catch (err) {
-                showError(`Gagal memuat area: ${err.message}`);
-                updateMapInfo(0, `Gagal: ${err.message}`);
-            } finally {
-                const overlay = $('mapLoadingOverlay');
-                overlay.classList.add('hidden');
-                state.isLoading = false;
-            }
-        }
-
         function applyMapFilter() {
-            if (state.isLoading) {
-                showError('Sedang memuat, tunggu sebentar'); return;
-            }
             const select = $('mapAreaSelect');
             const key = select.value;
+            
             if (!key) {
-                showError('Pilih area terlebih dahulu'); return;
+                showError('Pilih area terlebih dahulu');
+                return;
             }
-            state.isLoading = true;
-            loadArea(key);
-        }
 
-        function resetMap() {
-            if (state.isLoading) {
-                showError('Sedang memuat, tunggu sebentar'); return;
-            }
-            if (state.geoJsonLayer) {
-                state.map.removeLayer(state.geoJsonLayer);
-                state.geoJsonLayer = null;
-            }
-            if (state.map) {
-                state.map.setView([CONFIG.MAP_CENTER.lat, CONFIG.MAP_CENTER.lng], CONFIG.MAP_ZOOM);
-            }
-            $('mapAreaSelect').value = '';
-            updateMapInfo(0, 'Pilih area dari dropdown');
-            showToast('Layer direset');
-        }
+            let areaName = key.replace(/^3273_\d+_/, '').replace(/_/g, ' ');
+            let searchQuery = `${areaName} Bandung, Jawa Barat`;
+            const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(searchQuery)}`;
 
-        function updateMapInfo(count, statusText) {
-            const displayEl = $('mapLayerCountDisplay');
-            const statusEl = $('mapFilterStatus');
-            if (displayEl) displayEl.textContent = count;
-            if (statusEl) statusEl.textContent = statusText || '';
+            window.open(gmapsUrl, '_blank');
+            showSuccess(`Membuka area ${areaName.toUpperCase()} di Google Maps...`);
         }
 
         // ============================================================
@@ -1575,19 +1283,17 @@
             btn.addEventListener('click', () => {
                 const page = btn.dataset.page;
                 if (page === 'pageAdmin' && !state.currentUser?.isAdmin) {
-                    showError('Akses admin diperlukan'); return;
+                    showError('Akses admin diperlukan');
+                    return;
                 }
                 if ((page === 'pageDashboard' || page === 'pageMaps') && !state.currentUser) {
                     showError('Silakan login terlebih dahulu');
-                    showPage('pageLogin'); return;
+                    showPage('pageLogin');
+                    return;
                 }
                 showPage(page);
                 if (page === 'pageDashboard' && state.currentUser) renderDashboard();
                 if (page === 'pageAdmin') renderAdminAeList();
-                if (page === 'pageMaps') {
-                    if (!state.map) initMap();
-                    if (state.map) setTimeout(() => state.map.invalidateSize(), 200);
-                }
             });
         });
 
@@ -1651,12 +1357,8 @@
                 renderTargetSummaryCard();
             });
             
-            // Map Buttons
+            // Google Maps Redirect Event
             $('mapFilterApplyBtn')?.addEventListener('click', applyMapFilter);
-            $('mapFilterResetBtn')?.addEventListener('click', resetMap);
-            $('mapBackBtn')?.addEventListener('click', () => {
-                showPage('pageDashboard');
-            });
 
             $('dailyDateInput').value = todayStr();
             $('adminDailyDateInput').value = todayStr();
