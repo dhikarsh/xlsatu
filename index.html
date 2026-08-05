@@ -675,18 +675,11 @@
         }
 
         // ============================================================
-        // DEBUGGER & FUNGSI TITIK (MARKER)
+        // FUNGSI TITIK (MARKER) DENGAN RENDER FILL AKTIF
         // ============================================================
         function geoJsonPointToLayer(feature, latlng) {
             const props = feature && feature.properties;
             let finalColor = null;
-
-            // Cetak 3 data pertama ke Console Browser (F12) untuk inspeksi struktur data
-            if (window._debugCount === undefined) window._debugCount = 0;
-            if (window._debugCount < 3) {
-                console.log("🔍 ISI PROPERTIES TITIK:", props);
-                window._debugCount++;
-            }
 
             if (props) {
                 let colorStr = props['marker-color'] || props.markerColor || props['fill'] || props['fill-color'] || props.fillColor || props.color;
@@ -722,6 +715,7 @@
                 color: '#ffffff',
                 weight: 1.2,
                 opacity: 1,
+                fill: true,           // Memastikan warna isian aktif dirender oleh Leaflet
                 fillColor: finalColor,
                 fillOpacity: 0.95
             });
