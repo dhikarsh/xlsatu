@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>XL Satu - Sales Tracker</title>
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         /* ===== GLOBAL ===== */
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',system-ui,sans-serif !important; }
@@ -33,8 +36,48 @@
         .page { display:none; padding:16px 16px 24px; animation:fadeUp 0.35s ease; }
         .page.active { display:block; }
         @keyframes fadeUp { from { opacity:0; transform:translateY(20px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
-        
-        /* ===== CARDS & GENERAL ===== */
+        /* ===== MAPS PAGE (FULL SCREEN) ===== */
+        #pageMaps { padding:0; position:fixed; top:0; left:0; right:0; bottom:0; z-index:5; background:#f0f0f0; display:none; animation:none; }
+        #pageMaps.active { display:block; }
+        /* FIX: position:relative + z-index eksplisit membuat #map
+           membentuk stacking context sendiri, sehingga panel internal
+           Leaflet (tile, kontrol zoom, popup — yang punya z-index
+           bawaan sampai 1000) tidak lagi bocor ke luar dan menimpa
+           filter bar / tombol kembali di atasnya. */
+        #map { width:100%; height:100%; background:#e5e5e5; position:relative; z-index:1; }
+        .map-filter-bar { 
+            position:absolute; 
+            bottom:80px; 
+            left:12px; 
+            right:12px; 
+            z-index:20; 
+            background:rgba(255,255,255,0.95); 
+            backdrop-filter:blur(12px); 
+            border-radius:var(--xl-radius); 
+            padding:12px 16px; 
+            box-shadow:0 4px 24px rgba(0,0,0,0.12); 
+            border:1px solid rgba(255,255,255,0.3);
+        }
+        .map-filter-bar .filter-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+        .map-filter-bar select { flex:1; padding:8px 12px; border:1.5px solid var(--xl-border); border-radius:var(--xl-radius-sm); font-size:13px; font-weight:500; background:#fff; outline:none; color:var(--xl-dark); min-width:100px; appearance:auto; }
+        .map-filter-bar select:focus { border-color:var(--xl-blue-light); box-shadow:0 0 0 3px var(--xl-blue-soft); }
+        .map-filter-bar .filter-btn { background:var(--xl-blue-grad); color:#fff; border:none; padding:8px 16px; border-radius:var(--xl-radius-sm); font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap; transition:var(--xl-transition); }
+        .map-filter-bar .filter-btn:active { transform:scale(0.95); }
+        .map-filter-bar .filter-btn.reset { background:var(--xl-muted); }
+        .map-filter-bar .filter-info { font-size:11px; color:var(--xl-muted); margin-top:6px; display:flex; justify-content:space-between; flex-wrap:wrap; }
+        .map-filter-bar .filter-info .count { font-weight:700; color:var(--xl-blue); }
+        #mapLoadingOverlay { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.85); z-index:10; pointer-events:none; transition:opacity 0.5s ease; }
+        #mapLoadingOverlay.hidden { opacity:0; pointer-events:none; }
+        .map-loading-box { text-align:center; background:#fff; padding:32px 40px; border-radius:var(--xl-radius); box-shadow:var(--xl-shadow); max-width:320px; }
+        .map-loading-box .spinner-big { display:inline-block; width:48px; height:48px; border:4px solid var(--xl-gray-light); border-top-color:var(--xl-blue); border-radius:50%; animation:spin 0.8s linear infinite; }
+        .map-loading-box p { margin-top:14px; font-weight:700; color:var(--xl-dark); }
+        .map-loading-box .sub { font-size:13px; font-weight:500; color:var(--xl-muted); margin-top:4px; }
+        .map-loading-box .progress-bar { width:100%; height:6px; background:var(--xl-gray-light); border-radius:10px; margin-top:14px; overflow:hidden; }
+        .map-loading-box .progress-bar .fill { height:100%; width:0%; background:var(--xl-blue-grad); border-radius:10px; transition:width 0.3s ease; }
+        .map-loading-box .progress-text { font-size:12px; font-weight:600; color:var(--xl-muted); margin-top:6px; }
+        .map-back-btn { position:absolute; top:12px; right:16px; z-index:20; background:rgba(255,255,255,0.90); backdrop-filter:blur(8px); border:none; border-radius:40px; padding:8px 16px; font-weight:700; font-size:13px; color:var(--xl-blue); box-shadow:0 4px 16px rgba(0,0,0,0.10); cursor:pointer; display:flex; align-items:center; gap:6px; transition:var(--xl-transition); }
+        .map-back-btn:hover { background:#fff; box-shadow:0 6px 24px rgba(0,0,0,0.15); }
+        /* ===== CARDS (dashboard) ===== */
         .card { background:#fff; border-radius:var(--xl-radius); padding:18px 20px; margin-bottom:16px; box-shadow:var(--xl-shadow); border:1px solid var(--xl-border); transition:var(--xl-transition); }
         .card:hover { box-shadow:0 12px 40px rgba(15,59,122,0.10); }
         .card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
@@ -160,6 +203,18 @@
             .target-table input.target-input { width:42px; font-size:11px; padding:5px 2px; }
             .ts-actions { width:100%; justify-content:flex-end; }
             .ts-meta { width:100%; }
+            .map-filter-bar { bottom:70px; left:8px; right:8px; padding:10px 12px; }
+            .map-filter-bar select { min-width:70px; font-size:12px; }
+            .map-back-btn { top:8px; right:10px; font-size:11px; padding:6px 12px; }
+        }
+        @media (max-width:360px) {
+            .tracker-table { min-width:320px; font-size:9px; }
+            .tracker-table td, .tracker-table th { padding:4px 1px; }
+            .tracker-table .row-label { font-size:9px; min-width:50px; }
+            .card-title { font-size:14px; }
+            .month-selector { padding:2px 6px; gap:4px; }
+            .month-selector select { font-size:10px; }
+            .month-selector button { font-size:10px; padding:0 4px; }
         }
     </style>
 </head>
@@ -173,7 +228,6 @@
                 <button class="logout-btn" id="logoutBtn" title="Logout">✕</button>
             </div>
         </header>
-
         <!-- LOGIN AE PAGE -->
         <div class="page active" id="pageLogin">
             <div class="login-page">
@@ -203,7 +257,6 @@
                 </div>
             </div>
         </div>
-
         <!-- LOGIN ADMIN PAGE -->
         <div class="page" id="pageAdminLogin">
             <div class="login-page">
@@ -227,7 +280,6 @@
                 </div>
             </div>
         </div>
-
         <!-- ===== DASHBOARD PAGE ===== -->
         <div class="page" id="pageDashboard">
             <!-- Welcome Card -->
@@ -243,7 +295,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Performa Bulanan -->
             <div class="card">
                 <div class="card-header">
@@ -272,7 +323,6 @@
                     <span class="stat-badge">✅ FWA: <strong id="fwaPercent">0%</strong></span>
                 </div>
             </div>
-
             <!-- Form Performa Harian (AE only) -->
             <div class="card" id="dailyInputCard">
                 <div class="card-header">
@@ -296,9 +346,11 @@
                             <button type="submit" class="btn-primary small" id="dailySubmitBtn">Simpan</button>
                         </div>
                     </div>
+                    <div style="font-size:11px;color:var(--xl-muted);margin-top:6px;">
+                        ⚡ Bisa pilih tanggal lampau jika ada input terlewat.
+                    </div>
                 </form>
             </div>
-
             <!-- ===== INPUT PERFORMA HARIAN AE (HANYA UNTUK ADMIN) ===== -->
             <div class="card" id="adminDailyInputCard" style="display:none;">
                 <div class="card-header">
@@ -330,9 +382,11 @@
                             <button type="submit" class="btn-primary small" id="adminDailySubmitBtn">Simpan</button>
                         </div>
                     </div>
+                    <div style="font-size:11px;color:var(--xl-muted);margin-top:6px;">
+                        ⚡ Input akan langsung masuk ke pencapaian harian AE yang dipilih. Bisa pilih tanggal lampau untuk input yang terlewat.
+                    </div>
                 </form>
             </div>
-
             <!-- ===== RINGKASAN TARGET TIM (HANYA UNTUK ADMIN) ===== -->
             <div class="card target-summary-card" id="adminTargetSummaryCard" style="display:none;">
                 <div class="card-header">
@@ -385,9 +439,11 @@
                         </tfoot>
                     </table>
                 </div>
+                <div style="font-size:10px;color:var(--xl-muted);margin-top:8px;">
+                    ✏️ Ubah angka Target langsung di tabel, lalu klik <strong>Simpan</strong> untuk menyimpan ke database.
+                </div>
             </div>
-
-            <!-- ===== TRACKER HARIAN SEMUA AE (HANYA UNTUK ADMIN) ===== -->
+            <!-- ===== TRACKER HARIAN SEMUA AE (HANYA UNTUK ADMIN) DI DASHBOARD ===== -->
             <div class="card" style="padding-bottom:12px;" id="adminTrackerCard">
                 <div class="card-header">
                     <span class="card-title"><span class="emoji">📋</span> Tracker Harian Semua AE</span>
@@ -405,9 +461,11 @@
                         <tbody id="trackerBody"></tbody>
                     </table>
                 </div>
+                <div style="font-size:10px;color:var(--xl-muted);margin-top:8px;display:flex;justify-content:flex-end;align-items:center;gap:8px;">
+                    <span style="display:inline-block;width:14px;height:14px;background:var(--xl-blue-soft);border-radius:4px;border:1px solid var(--xl-blue-light);"></span> kolom biru = hari ini
+                </div>
             </div>
         </div>
-
         <!-- ===== ADMIN PAGE (HANYA KELOLA AE & TARGET) ===== -->
         <div class="page" id="pageAdmin">
             <div class="card">
@@ -438,37 +496,47 @@
                         <button class="btn-primary" id="adminChangePinBtn" style="flex:0 0 auto;padding:10px 20px;">Update</button>
                     </div>
                 </div>
+                <div style="font-size:11px;color:var(--xl-muted);text-align:center;padding:4px 0;">
+                    Perubahan langsung tersimpan di database.
+                </div>
             </div>
         </div>
-
-        <!-- ===== MAPS PAGE (GOOGLE MAPS REDIRECT) ===== -->
+        <!-- ===== MAPS PAGE (FULL SCREEN) ===== -->
         <div class="page" id="pageMaps">
-            <div class="card" style="margin-top: 10px;">
-                <div class="card-header">
-                    <span class="card-title"><span class="emoji">🗺️</span> Peta Plotting Area</span>
+            <div id="map"></div>
+            <!-- Filter Bar -->
+            <div class="map-filter-bar">
+                <div class="filter-row">
+                    <select id="mapAreaSelect">
+                        <option value="">-- Pilih Area --</option>
+                    </select>
+                    <button class="filter-btn" id="mapFilterApplyBtn">Tampilkan</button>
+                    <button class="filter-btn reset" id="mapFilterResetBtn">Reset</button>
                 </div>
-                <div style="font-size:13px; color:var(--xl-muted); margin-bottom:20px; line-height: 1.5;">
-                    Pilih nama area di bawah ini. Peta akan otomatis terbuka secara detail melalui aplikasi <strong>Google Maps</strong> berdasarkan wilayah area kerja.
+                <div class="filter-info">
+                    <span>Layer ditampilkan: <span class="count" id="mapLayerCountDisplay">0</span></span>
+                    <span id="mapFilterStatus">Pilih area dari dropdown</span>
                 </div>
-                
-                <div class="daily-input-group" style="margin-bottom: 20px;">
-                    <div class="field" style="flex:1;">
-                        <label>Pilih Area Sales</label>
-                        <select id="mapAreaSelect" style="padding: 12px; font-size: 14px;">
-                            <option value="">-- Pilih Area --</option>
-                        </select>
+            </div>
+            <!-- Tombol Kembali -->
+            <button class="map-back-btn" id="mapBackBtn">
+                <span>←</span> Dashboard
+            </button>
+            <!-- Loading Overlay -->
+            <div id="mapLoadingOverlay" class="hidden">
+                <div class="map-loading-box">
+                    <div class="spinner-big"></div>
+                    <p>Memuat Peta &amp; Data</p>
+                    <div class="sub" id="mapLoadSub">Menginisialisasi...</div>
+                    <div class="progress-bar">
+                        <div class="fill" id="mapProgressFill"></div>
                     </div>
+                    <div class="progress-text" id="mapProgressText">0 / 0</div>
                 </div>
-
-                <button class="btn-primary" id="mapFilterApplyBtn" style="width: 100%; padding: 14px; font-size: 15px;">
-                    📍 Buka di Google Maps
-                </button>
             </div>
         </div>
-
         <!-- TOAST -->
         <div class="toast" id="toast"></div>
-
         <!-- BOTTOM NAV -->
         <nav class="bottom-nav" id="bottomNav">
             <button class="nav-item active" data-page="pageDashboard">
@@ -485,7 +553,6 @@
             </button>
         </nav>
     </div>
-
     <!-- ============================================================ -->
     <!-- JAVASCRIPT -->
     <!-- ============================================================ -->
@@ -496,6 +563,8 @@
         const CONFIG = {
             API_URL: 'https://script.google.com/macros/s/AKfycbzOHic0o0BNeRAhV5yZ6uzobKO7k69YBX3qNmccAlUM9vn-C0lb0eb0YtE1AMZU5Cs2nA/exec',
             ADMIN_PIN: '123456',
+            MAP_CENTER: { lat: -6.9175, lng: 107.6191 },
+            MAP_ZOOM: 12,
         };
 
         // ============================================================
@@ -540,6 +609,73 @@
             "3273_9_garuda_cibuntu_wrgmuncang"
         ];
 
+        const GEOJSON_BASE_URL = 'https://dhikarsh.github.io/maps-data/geojson/';
+        console.log('Jumlah area:', AREA_KEYS.length);
+
+        // ============================================================
+        // FIX: BACA WARNA ASLI DARI PROPERTIES GEOJSON (hasil konversi KMZ)
+        // ============================================================
+        // Konverter KML/KMZ -> GeoJSON (mis. togeojson, ogr2ogr, QGIS)
+        // umumnya menyimpan warna asli di properties memakai konvensi
+        // "simplestyle-spec": stroke, stroke-opacity, stroke-width,
+        // fill, fill-opacity. Fungsi di bawah mencoba beberapa variasi
+        // nama key yang umum dipakai, supaya warna pointer/polygon
+        // mengikuti file asli, bukan warna tetap.
+        function getStrokeColor(props) {
+            if (!props) return null;
+            return props.stroke || props['stroke-color'] || props.Stroke ||
+                   props.color || props.Color || props.strokeColor || null;
+        }
+        function getFillColor(props) {
+            if (!props) return null;
+            return props.fill || props['fill-color'] || props.Fill ||
+                   props.fillColor || getStrokeColor(props) || null;
+        }
+        function getStrokeOpacity(props) {
+            const v = props && (props['stroke-opacity'] ?? props.strokeOpacity);
+            return (v === undefined || v === null || isNaN(v)) ? 0.85 : Number(v);
+        }
+        function getFillOpacity(props) {
+            const v = props && (props['fill-opacity'] ?? props.fillOpacity);
+            return (v === undefined || v === null || isNaN(v)) ? 0.4 : Number(v);
+        }
+        function getStrokeWeight(props) {
+            const v = props && (props['stroke-width'] ?? props.strokeWidth);
+            return (v === undefined || v === null || isNaN(v)) ? 2 : Number(v);
+        }
+        function getMarkerColor(props) {
+            if (!props) return null;
+            return props['marker-color'] || props.markerColor || getStrokeColor(props) || null;
+        }
+
+        // Style default (fallback) kalau feature-nya tidak punya info warna sama sekali
+        const DEFAULT_STROKE = '#0F3B7A';
+        const DEFAULT_FILL = '#1A5BB5';
+
+        function geoJsonFeatureStyle(feature) {
+            const props = feature && feature.properties;
+            return {
+                color: getStrokeColor(props) || DEFAULT_STROKE,
+                weight: getStrokeWeight(props),
+                opacity: getStrokeOpacity(props),
+                fillColor: getFillColor(props) || DEFAULT_FILL,
+                fillOpacity: getFillOpacity(props)
+            };
+        }
+
+        function geoJsonPointToLayer(feature, latlng) {
+            const props = feature && feature.properties;
+            const color = getMarkerColor(props) || DEFAULT_STROKE;
+            return L.circleMarker(latlng, {
+                radius: 8,
+                color: '#fff',
+                weight: 2,
+                opacity: 1,
+                fillColor: color,
+                fillOpacity: 0.9
+            });
+        }
+
         // ============================================================
         // STATE
         // ============================================================
@@ -551,7 +687,11 @@
             adminTrackerData: {},
             selectedDate: new Date(),
             editedTargets: {},
-            targetSearchQuery: ''
+            targetSearchQuery: '',
+            map: null,
+            geoJsonLayer: null,
+            isLoading: false,
+            isMapInitializing: false, // FIX: cegah double-init map yang bersamaan
         };
 
         // ============================================================
@@ -559,26 +699,32 @@
         // ============================================================
         const $ = id => document.getElementById(id);
         const $$ = sel => document.querySelectorAll(sel);
+
         function formatDate(d) {
             const y = d.getFullYear(),
                 m = String(d.getMonth() + 1).padStart(2, '0'),
                 day = String(d.getDate()).padStart(2, '0');
             return `${y}-${m}-${day}`;
         }
+
         function formatDateDisplay(d) {
             return d.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
         }
+
         function getMonthName(m) {
             return ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober',
                 'November', 'Desember'
             ][m] || '';
         }
+
         function getDaysInMonth(year, month) {
             return new Date(year, month + 1, 0).getDate();
         }
+
         function todayStr() {
             return formatDate(new Date());
         }
+
         function showToast(msg, type = '') {
             const t = $('toast');
             t.textContent = msg;
@@ -587,8 +733,10 @@
             clearTimeout(t._timer);
             t._timer = setTimeout(() => t.classList.remove('show'), 3200);
         }
+
         function showError(msg) { showToast(msg, 'error'); }
         function showSuccess(msg) { showToast(msg, 'success'); }
+
         function setLoading(el, loading) {
             if (!el) return;
             if (loading) {
@@ -602,7 +750,7 @@
         }
 
         // ============================================================
-        // API
+        // API (dengan fallback)
         // ============================================================
         async function apiCall(action, payload = {}) {
             try {
@@ -612,28 +760,40 @@
                 });
                 const text = await resp.text();
                 try { return JSON.parse(text); } catch (e) {
+                    console.error('Invalid JSON:', text);
                     return { success: false, error: 'Respon server tidak valid' };
                 }
             } catch (err) {
+                console.error('API error:', err);
                 return { success: false, error: err.message };
             }
         }
+
         async function fetchData(action, params = {}) {
             return await apiCall(action, params);
         }
 
+        // ============================================================
+        // DATA LOADER dengan fallback dummy
+        // ============================================================
         async function loadAeList() {
             const result = await fetchData('getAeList');
             if (result.success && result.data) {
                 state.aeList = result.data;
                 return state.aeList;
             }
+            console.warn('⚠️ Gagal load AE list, menggunakan data dummy');
             state.aeList = [
-                { name: 'ADMIN', pin: '123456', targetFtth: 0, targetFwa: 0 }
+                { name: 'ADMIN', pin: '123456', targetFtth: 0, targetFwa: 0 },
+                { name: 'AE001', pin: '1234', targetFtth: 100, targetFwa: 50 },
+                { name: 'AE002', pin: '4321', targetFtth: 80, targetFwa: 30 }
             ];
             return state.aeList;
         }
 
+        // ============================================================
+        // RENDER: DROPDOWN AE
+        // ============================================================
         function renderAeDropdowns() {
             const sel = $('loginAeSelect');
             if (!sel) return;
@@ -672,11 +832,15 @@
             }
         }
 
+        // ============================================================
+        // RENDER: ADMIN DAFTAR AE
+        // ============================================================
         function renderAdminAeList() {
             const container = $('adminAeList');
             const list = state.aeList || [];
             if (!list.length) {
-                container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--xl-muted);font-size:13px;">Belum ada AE terdaftar.</div>';
+                container.innerHTML =
+                    '<div style="text-align:center;padding:20px;color:var(--xl-muted);font-size:13px;">Belum ada AE terdaftar.</div>';
                 return;
             }
             const sorted = [...list].sort((a, b) => {
@@ -731,13 +895,15 @@
             });
         }
 
+        // ============================================================
+        // RENDER: DASHBOARD
+        // ============================================================
         function renderDashboard() {
             const user = state.currentUser;
             if (!user) return;
             const year = state.selectedDate.getFullYear();
             const month = state.selectedDate.getMonth();
             const days = getDaysInMonth(year, month);
-            
             if (user.isAdmin) {
                 $('welcomeSubLabel').textContent = 'Panel Administrator';
                 $('dashboardAeName').textContent = 'Akumulasi Seluruh AE';
@@ -752,8 +918,8 @@
                 $('adminTrackerCard').style.display = 'none';
             }
             $('dashboardDate').textContent = formatDateDisplay(new Date());
-            
-            let targetFtth = 0, targetFwa = 0;
+            let targetFtth = 0,
+                targetFwa = 0;
             if (user.isAdmin) {
                 (state.aeList || []).forEach(ae => {
                     if (String(ae.name).toUpperCase() !== 'ADMIN') {
@@ -767,14 +933,15 @@
             }
             $('ftthTarget').textContent = targetFtth;
             $('fwaTarget').textContent = targetFwa;
-            
-            let totalFtth = 0, totalFwa = 0;
+            let totalFtth = 0,
+                totalFwa = 0;
             if (user.isAdmin) {
                 const aeList = (state.aeList || []).filter(ae => String(ae.name).toUpperCase() !== 'ADMIN');
                 aeList.forEach(ae => {
                     const aeData = state.adminTrackerData[ae.name] || {};
                     for (let d = 1; d <= days; d++) {
-                        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                        const dateStr =
+                            `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                         const entry = aeData[dateStr] || { ftth: 0, fwa: 0 };
                         totalFtth += parseInt(entry.ftth) || 0;
                         totalFwa += parseInt(entry.fwa) || 0;
@@ -788,21 +955,21 @@
                     totalFwa += parseInt(entry.fwa) || 0;
                 }
             }
-            
             $('ftthActual').textContent = totalFtth;
             $('fwaActual').textContent = totalFwa;
-            
             const pctFtth = targetFtth > 0 ? Math.min(100, Math.round((totalFtth / targetFtth) * 100)) : 0;
             const pctFwa = targetFwa > 0 ? Math.min(100, Math.round((totalFwa / targetFwa) * 100)) : 0;
             $('ftthProgress').style.width = pctFtth + '%';
             $('fwaProgress').style.width = pctFwa + '%';
             $('ftthPercent').textContent = pctFtth + '%';
             $('fwaPercent').textContent = pctFwa + '%';
-            
             renderTracker(month, year);
             renderTargetSummaryCard();
         }
 
+        // ============================================================
+        // RENDER: TRACKER
+        // ============================================================
         function renderTracker(month, year) {
             const user = state.currentUser;
             if (!user) return;
@@ -817,30 +984,36 @@
         }
 
         function renderAeDashboardTracker(month, year) {
-            const thead = $('trackerHead'), tbody = $('trackerBody');
+            const thead = $('trackerHead'),
+                tbody = $('trackerBody');
             const days = getDaysInMonth(year, month);
-            const today = new Date(), todayDay = today.getDate(), todayMonth = today.getMonth(), todayYear = today.getFullYear();
-            
+            const today = new Date(),
+                todayDay = today.getDate(),
+                todayMonth = today.getMonth(),
+                todayYear = today.getFullYear();
             let headHtml = '<tr><th style="text-align:left;min-width:48px;">Tanggal</th>';
             for (let d = 1; d <= days; d++) {
                 const isToday = (d === todayDay && month === todayMonth && year === todayYear);
-                headHtml += `<th${isToday ? ' style="background:var(--xl-blue-soft);color:var(--xl-blue);"' : ''}>${d}</th>`;
+                headHtml +=
+                    `<th${isToday ? ' style="background:var(--xl-blue-soft);color:var(--xl-blue);"' : ''}>${d}</th>`;
             }
-            headHtml += '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
+            headHtml +=
+                '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
             thead.innerHTML = headHtml;
-            
-            let totalFtth = 0, totalFwa = 0;
-            const ftthVals = [], fwaVals = [];
+            let totalFtth = 0,
+                totalFwa = 0;
+            const ftthVals = [],
+                fwaVals = [];
             for (let d = 1; d <= days; d++) {
                 const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 const entry = state.trackerData[dateStr] || {};
-                const f = parseInt(entry.ftth) || 0, w = parseInt(entry.fwa) || 0;
+                const f = parseInt(entry.ftth) || 0,
+                    w = parseInt(entry.fwa) || 0;
                 totalFtth += f;
                 totalFwa += w;
                 ftthVals.push(f);
                 fwaVals.push(w);
             }
-            
             let ftthHtml = '<tr><td class="row-label">FTTH</td>';
             for (let d = 0; d < days; d++) {
                 const isToday = ((d + 1) === todayDay && month === todayMonth && year === todayYear);
@@ -849,7 +1022,6 @@
             }
             ftthHtml += `<td class="cum-col">${totalFtth}</td></tr>`;
             tbody.innerHTML = ftthHtml;
-            
             let fwaHtml = '<tr><td class="row-label">FWA</td>';
             for (let d = 0; d < days; d++) {
                 const isToday = ((d + 1) === todayDay && month === todayMonth && year === todayYear);
@@ -858,47 +1030,52 @@
             }
             fwaHtml += `<td class="cum-col">${totalFwa}</td></tr>`;
             tbody.innerHTML += fwaHtml;
-            
             $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year;
         }
 
         function renderAdminDashboardTracker(month, year) {
-            const thead = $('trackerHead'), tbody = $('trackerBody');
+            const thead = $('trackerHead'),
+                tbody = $('trackerBody');
             const days = getDaysInMonth(year, month);
             const productFilter = $('dashboardProductFilter')?.value || 'FTTH';
-            const today = new Date(), todayDay = today.getDate(), todayMonth = today.getMonth(), todayYear = today.getFullYear();
-            
+            const today = new Date(),
+                todayDay = today.getDate(),
+                todayMonth = today.getMonth(),
+                todayYear = today.getFullYear();
             let headHtml = '<tr><th style="text-align:left;min-width:100px;">Nama AE</th>';
             for (let d = 1; d <= days; d++) {
                 const isToday = (d === todayDay && month === todayMonth && year === todayYear);
-                headHtml += `<th${isToday ? ' style="background:var(--xl-blue-soft);color:var(--xl-blue);"' : ''}>${d}</th>`;
+                headHtml +=
+                    `<th${isToday ? ' style="background:var(--xl-blue-soft);color:var(--xl-blue);"' : ''}>${d}</th>`;
             }
-            headHtml += '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
+            headHtml +=
+                '<th style="text-align:center;min-width:44px;background:var(--xl-blue-soft);color:var(--xl-blue);">Kum.</th></tr>';
             thead.innerHTML = headHtml;
-            
             const aeList = (state.aeList || [])
                 .filter(ae => String(ae.name).toUpperCase() !== 'ADMIN')
                 .sort((a, b) => a.name.localeCompare(b.name));
-                
             if (!aeList.length) {
-                tbody.innerHTML = `<tr><td colspan="${days + 2}" style="text-align:center;padding:16px;color:var(--xl-muted);">Belum ada AE terdaftar</td></tr>`;
+                tbody.innerHTML =
+                    `<tr><td colspan="${days + 2}" style="text-align:center;padding:16px;color:var(--xl-muted);">Belum ada AE terdaftar</td></tr>`;
                 $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year;
                 return;
             }
-            
             let bodyHtml = '';
             aeList.forEach(ae => {
                 const aeData = state.adminTrackerData[ae.name] || {};
                 let rowKum = 0;
                 let rowHtml = `<tr><td class="row-label">${ae.name}</td>`;
                 for (let d = 1; d <= days; d++) {
-                    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                    const dateStr =
+                        `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                     const entry = aeData[dateStr] || { ftth: 0, fwa: 0 };
-                    const val = productFilter === 'FTTH' ? (parseInt(entry.ftth) || 0) : (parseInt(entry.fwa) || 0);
+                    const val = productFilter === 'FTTH' ? (parseInt(entry.ftth) || 0) : (parseInt(entry.fwa) ||
+                    0);
                     rowKum += val;
                     const isToday = (d === todayDay && month === todayMonth && year === todayYear);
                     const cls = isToday ? 'today-col' : '';
-                    rowHtml += `<td class="${cls}">${val > 0 ? val : '<span class="empty-cell">—</span>'}</td>`;
+                    rowHtml +=
+                        `<td class="${cls}">${val > 0 ? val : '<span class="empty-cell">—</span>'}</td>`;
                 }
                 rowHtml += `<td class="cum-col">${rowKum}</td></tr>`;
                 bodyHtml += rowHtml;
@@ -907,6 +1084,9 @@
             $('trackerMonthLabel').textContent = getMonthName(month) + ' ' + year + ` (${productFilter})`;
         }
 
+        // ============================================================
+        // RENDER: RINGKASAN TARGET TIM
+        // ============================================================
         function targetCellsHtml(name, fieldKey, target, actual) {
             const pct = target > 0 ? Math.round((actual / target) * 100) : 0;
             const pctClass = pct >= 80 ? 'pct-high' : (pct >= 50 ? 'pct-mid' : 'pct-low');
@@ -939,7 +1119,6 @@
                 .sort((a, b) => a.name.localeCompare(b.name));
             const query = (state.targetSearchQuery || '').toLowerCase().trim();
             const filtered = query ? aeList.filter(ae => ae.name.toLowerCase().includes(query)) : aeList;
-            
             $('tsMemberCount').textContent = aeList.length + ' anggota';
             const today = new Date();
             let daysLeftText;
@@ -951,18 +1130,24 @@
                 daysLeftText = '0 hari tersisa';
             }
             $('tsDaysLeft').textContent = daysLeftText;
-            
-            let totFtthT = 0, totFtthA = 0, totFwaT = 0, totFwaA = 0;
+            let totFtthT = 0,
+                totFtthA = 0,
+                totFwaT = 0,
+                totFwaA = 0;
             if (!filtered.length) {
-                $('targetSummaryBody').innerHTML = `<tr><td colspan="9" style="text-align:center;padding:18px;color:var(--xl-muted);">Tidak ada AE ditemukan</td></tr>`;
+                $('targetSummaryBody').innerHTML =
+                    `<tr><td colspan="9" style="text-align:center;padding:18px;color:var(--xl-muted);">Tidak ada AE ditemukan</td></tr>`;
             } else {
                 let rowsHtml = '';
                 filtered.forEach(ae => {
                     const edited = state.editedTargets[ae.name] || {};
-                    const targetFtth = edited.targetFtth !== undefined ? edited.targetFtth : (parseInt(ae.targetFtth) || 0);
-                    const targetFwa = edited.targetFwa !== undefined ? edited.targetFwa : (parseInt(ae.targetFwa) || 0);
+                    const targetFtth = edited.targetFtth !== undefined ? edited.targetFtth : (parseInt(ae
+                        .targetFtth) || 0);
+                    const targetFwa = edited.targetFwa !== undefined ? edited.targetFwa : (parseInt(ae
+                        .targetFwa) || 0);
                     const aeData = state.adminTrackerData[ae.name] || {};
-                    let actFtth = 0, actFwa = 0;
+                    let actFtth = 0,
+                        actFwa = 0;
                     for (let d = 1; d <= days; d++) {
                         const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                         const entry = aeData[dateStr] || {};
@@ -1001,8 +1186,12 @@
             $('tsTotalFwaGap').textContent = Math.max(0, totFwaT - totFwaA);
         }
 
+        // ============================================================
+        // MONTH / YEAR SELECTOR
+        // ============================================================
         function initMonthYearSelectors() {
-            const mSel = $('monthSelect'), ySel = $('yearSelect');
+            const mSel = $('monthSelect'),
+                ySel = $('yearSelect');
             mSel.innerHTML = '';
             for (let i = 0; i < 12; i++) {
                 const opt = document.createElement('option');
@@ -1027,21 +1216,24 @@
             $('yearSelect').value = state.selectedDate.getFullYear();
         }
 
+        // ============================================================
+        // REFRESH SEMUA DATA
+        // ============================================================
         async function refreshAllData() {
             const user = state.currentUser;
             if (!user) return;
             const month = state.selectedDate.getMonth() + 1;
             const year = state.selectedDate.getFullYear();
-            
             await loadAeList();
             renderAeDropdowns();
             renderAdminAeSelect();
-            
             if (user.isAdmin) {
                 const adminTracker = await fetchData('getAdminTracker', { month, year });
                 if (adminTracker.success) {
                     state.adminTrackerData = adminTracker.data || {};
+                    console.log('✅ Admin tracker data loaded:', state.adminTrackerData);
                 } else {
+                    console.error('❌ Gagal load admin tracker:', adminTracker.error);
                     state.adminTrackerData = {};
                 }
                 state.trackerData = {};
@@ -1055,17 +1247,18 @@
             $('navAdmin').style.display = user.isAdmin ? 'flex' : 'none';
         }
 
+        // ============================================================
+        // LOGIN HANDLER
+        // ============================================================
         async function handleLogin(e) {
             e.preventDefault();
             const name = $('loginAeSelect').value;
             const inputPin = String($('loginPin').value).trim();
             if (!name) { showError('Pilih nama AE'); return; }
-            
             await loadAeList();
             const ae = (state.aeList || []).find(a => a.name.toLowerCase() === name.toLowerCase());
             if (!ae) { showError('AE tidak ditemukan'); return; }
             const dbPin = String(ae.pin).trim();
-            
             if (dbPin !== inputPin) {
                 $('loginError').textContent = 'PIN salah, coba lagi.';
                 $('loginError').classList.add('show');
@@ -1092,7 +1285,6 @@
             const inputPin = String($('adminPin').value).trim();
             const adminEntry = (state.aeList || []).find(a => String(a.name).toUpperCase() === 'ADMIN');
             const validPin = adminEntry ? String(adminEntry.pin).trim() : CONFIG.ADMIN_PIN;
-            
             if (validPin !== inputPin) {
                 $('adminLoginError').textContent = 'PIN Admin salah.';
                 $('adminLoginError').classList.add('show');
@@ -1111,9 +1303,12 @@
             showPage('pageDashboard');
             $('headerUserName').textContent = 'Admin';
             await refreshAllData();
-            showSuccess('Login Admin berhasil');
+            showSuccess('Login Admin berhasil (Akumulasi Seluruh AE)');
         }
 
+        // ============================================================
+        // LOGOUT
+        // ============================================================
         function handleLogout() {
             state.currentUser = null;
             state.isAdmin = false;
@@ -1121,15 +1316,23 @@
             state.adminTrackerData = {};
             state.editedTargets = {};
             state.targetSearchQuery = '';
+            const searchInput = $('targetSearchInput');
+            if (searchInput) searchInput.value = '';
+            const adminAeSel = $('adminDailyAeSelect');
+            if (adminAeSel) adminAeSel.value = '';
             showPage('pageLogin');
             $('headerUserName').textContent = 'Guest';
             showToast('Anda telah keluar');
         }
 
+        // ============================================================
+        // DAILY SUBMIT
+        // ============================================================
         async function handleDailySubmit(e) {
             e.preventDefault();
             if (!state.currentUser || state.currentUser.isAdmin) {
-                showError('Silakan login sebagai AE'); return;
+                showError('Silakan login sebagai AE');
+                return;
             }
             const ftth = parseInt($('dailyFtth').value) || 0;
             const fwa = parseInt($('dailyFwa').value) || 0;
@@ -1138,19 +1341,28 @@
             if (ftth === 0 && fwa === 0) { showError('Masukkan minimal 1 angka pencapaian'); return; }
             const btn = $('dailySubmitBtn');
             setLoading(btn, true);
-            const result = await apiCall('saveDaily', { aeName: state.currentUser.name, date: inputDate, ftth, fwa });
+            const result = await apiCall('saveDaily', {
+                aeName: state.currentUser.name,
+                date: inputDate,
+                ftth,
+                fwa
+            });
             setLoading(btn, false);
             if (result.success) {
-                $('dailyFtth').value = ''; $('dailyFwa').value = '';
+                $('dailyFtth').value = '';
+                $('dailyFwa').value = '';
                 showSuccess('Performa harian berhasil disimpan!');
                 await refreshAllData();
-            } else { showError('Gagal menyimpan: ' + (result.error || '')); }
+            } else {
+                showError('Gagal menyimpan: ' + (result.error || ''));
+            }
         }
 
         async function handleAdminDailySubmit(e) {
             e.preventDefault();
             if (!state.currentUser || !state.currentUser.isAdmin) {
-                showError('Hanya admin yang bisa input di sini'); return;
+                showError('Hanya admin yang bisa input di sini');
+                return;
             }
             const aeName = $('adminDailyAeSelect').value;
             if (!aeName) { showError('Pilih AE terlebih dahulu'); return; }
@@ -1161,13 +1373,21 @@
             if (ftth === 0 && fwa === 0) { showError('Masukkan minimal 1 angka pencapaian'); return; }
             const btn = $('adminDailySubmitBtn');
             setLoading(btn, true);
-            const result = await apiCall('saveDaily', { aeName, date: inputDate, ftth, fwa });
+            const result = await apiCall('saveDaily', {
+                aeName,
+                date: inputDate,
+                ftth,
+                fwa
+            });
             setLoading(btn, false);
             if (result.success) {
-                $('adminDailyFtth').value = ''; $('adminDailyFwa').value = '';
+                $('adminDailyFtth').value = '';
+                $('adminDailyFwa').value = '';
                 showSuccess(`Performa harian ${aeName} berhasil disimpan!`);
                 await refreshAllData();
-            } else { showError('Gagal menyimpan: ' + (result.error || '')); }
+            } else {
+                showError('Gagal menyimpan: ' + (result.error || ''));
+            }
         }
 
         async function handleAddAe() {
@@ -1182,10 +1402,14 @@
             setLoading(btn, false);
             if (result.success) {
                 showSuccess('AE berhasil disimpan!');
-                $('adminNewName').value = ''; $('adminNewPin').value = '';
-                $('adminNewTargetFtth').value = ''; $('adminNewTargetFwa').value = '';
+                $('adminNewName').value = '';
+                $('adminNewPin').value = '';
+                $('adminNewTargetFtth').value = '';
+                $('adminNewTargetFwa').value = '';
                 await refreshAllData();
-            } else { showError('Gagal menyimpan: ' + (result.error || '')); }
+            } else {
+                showError('Gagal menyimpan: ' + (result.error || ''));
+            }
         }
 
         async function handleChangeAdminPin() {
@@ -1200,28 +1424,37 @@
                 $('adminNewAdminPin').value = '';
                 CONFIG.ADMIN_PIN = newPin;
                 await refreshAllData();
-            } else { showError('Gagal update: ' + (result.error || '')); }
+            } else {
+                showError('Gagal update: ' + (result.error || ''));
+            }
         }
 
         async function handleSaveTargets() {
             const edited = state.editedTargets;
             const names = Object.keys(edited);
-            if (!names.length) { showToast('Tidak ada perubahan untuk disimpan'); return; }
+            if (!names.length) {
+                showToast('Tidak ada perubahan untuk disimpan');
+                return;
+            }
             const btn = $('tsSaveBtn');
             setLoading(btn, true);
             let successCount = 0;
             for (const name of names) {
                 const ae = state.aeList.find(a => a.name === name);
                 if (!ae) continue;
-                const targetFtth = edited[name].targetFtth !== undefined ? edited[name].targetFtth : (parseInt(ae.targetFtth) || 0);
-                const targetFwa = edited[name].targetFwa !== undefined ? edited[name].targetFwa : (parseInt(ae.targetFwa) || 0);
+                const targetFtth = edited[name].targetFtth !== undefined ? edited[name].targetFtth : (parseInt(ae
+                    .targetFtth) || 0);
+                const targetFwa = edited[name].targetFwa !== undefined ? edited[name].targetFwa : (parseInt(ae
+                    .targetFwa) || 0);
                 const result = await apiCall('saveAe', { name: ae.name, pin: ae.pin, targetFtth, targetFwa });
                 if (result.success) successCount++;
             }
             setLoading(btn, false);
             if (successCount === names.length) {
                 showSuccess(`Target berhasil disimpan untuk ${successCount} AE`);
-            } else { showError(`Tersimpan ${successCount}/${names.length}, sebagian gagal`); }
+            } else {
+                showError(`Tersimpan ${successCount}/${names.length}, sebagian gagal`);
+            }
             state.editedTargets = {};
             await refreshAllData();
         }
@@ -1232,10 +1465,26 @@
             showToast('Data dimuat ulang dari database');
         }
 
+        // ============================================================
+        // NAVIGASI
+        // ============================================================
         function showPage(pageId) {
-            $$('.page').forEach(p => p.classList.remove('active'));
+            $$('.page').forEach(p => {
+                p.classList.remove('active');
+                if (p.id === 'pageMaps') {
+                    p.style.display = 'none';
+                }
+            });
             const target = $(pageId);
-            if (target) target.classList.add('active');
+            if (target) {
+                target.classList.add('active');
+                if (target.id === 'pageMaps') {
+                    target.style.display = 'block';
+                    if (state.map) {
+                        setTimeout(() => state.map.invalidateSize(), 200);
+                    }
+                }
+            }
             $$('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
             const navBtn = document.querySelector(`.bottom-nav .nav-item[data-page="${pageId}"]`);
             if (navBtn) navBtn.classList.add('active');
@@ -1243,41 +1492,268 @@
         }
 
         // ============================================================
-        // GOOGLE MAPS REDIRECT LOGIC
+        // MAPS: INISIALISASI PETA (LEAFLET) - DIPANGGIL SAAT TAB MAPS DIBUKA
+        // ============================================================
+        // FIX: initMap() sekarang HANYA dipanggil saat halaman #pageMaps
+        // sudah/segera ditampilkan (bukan lagi lewat setTimeout global saat
+        // load), supaya container #map punya ukuran nyata saat Leaflet
+        // dibuat. Ditambahkan juga guard isMapInitializing untuk mencegah
+        // dua proses inisialisasi berjalan bersamaan (race condition) yang
+        // sebelumnya bisa membuat state.map jadi null saat dipakai.
+        function initMap() {
+            if (state.map) return; // sudah ada instance yang valid
+            if (state.isMapInitializing) return; // sedang proses, jangan dobel
+            state.isMapInitializing = true;
+            console.log('🗺️ Inisialisasi Leaflet...');
+
+            const mapEl = document.getElementById('map');
+            if (!mapEl) {
+                console.error('❌ Element #map tidak ditemukan!');
+                state.isMapInitializing = false;
+                return;
+            }
+
+            try {
+                const map = L.map(mapEl, {
+                    center: [CONFIG.MAP_CENTER.lat, CONFIG.MAP_CENTER.lng],
+                    zoom: CONFIG.MAP_ZOOM,
+                    zoomControl: true,
+                });
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap',
+                }).addTo(map);
+
+                state.map = map;
+
+                // Populate dropdown
+                populateAreaDropdown();
+
+                const overlay = $('mapLoadingOverlay');
+                if (overlay) overlay.classList.add('hidden');
+                updateMapInfo(0, 'Pilih area dari dropdown');
+
+                // Pastikan ukuran dihitung ulang setelah container benar-benar terlihat
+                setTimeout(() => { if (state.map) state.map.invalidateSize(); }, 150);
+
+                console.log('✅ Leaflet map siap dengan GeoJSON!');
+            } catch (err) {
+                console.error('❌ Gagal inisialisasi Leaflet:', err);
+                state.map = null;
+            } finally {
+                state.isMapInitializing = false;
+            }
+        }
+
+        // FIX: helper baru — tunggu sampai peta benar-benar siap (dipakai
+        // sebelum loadArea memakai state.map), maksimal ~2 detik.
+        async function ensureMapReady(timeoutMs = 2000) {
+            const mapReady = () => state.map && state.map.getContainer && document.body.contains(state.map.getContainer());
+            if (mapReady()) return true;
+            initMap();
+            const start = Date.now();
+            while (!mapReady() && (Date.now() - start) < timeoutMs) {
+                await new Promise(r => setTimeout(r, 50));
+            }
+            return mapReady();
+        }
+
+        // ============================================================
+        // POPULATE DROPDOWN AREA
         // ============================================================
         function populateAreaDropdown() {
             const select = $('mapAreaSelect');
-            if (!select) return;
+            if (!select) {
+                console.error('❌ Element #mapAreaSelect tidak ditemukan!');
+                return;
+            }
+
+            if (!AREA_KEYS || AREA_KEYS.length === 0) {
+                console.error('❌ AREA_KEYS kosong atau tidak terdefinisi!');
+                select.innerHTML = '<option value="">-- Tidak ada data --</option>';
+                return;
+            }
+
+            console.log(`📋 Memuat ${AREA_KEYS.length} area ke dropdown...`);
+
             const sorted = AREA_KEYS.slice().sort();
             select.innerHTML = '<option value="">-- Pilih Area --</option>';
             sorted.forEach(key => {
                 const opt = document.createElement('option');
                 opt.value = key;
                 let display = key.replace(/^3273_\d+_/, '').replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2');
-                opt.textContent = display.toUpperCase();
+                opt.textContent = display;
                 select.appendChild(opt);
             });
+
+            console.log(`✅ Dropdown berisi ${sorted.length} area.`);
+            const statusEl = $('mapFilterStatus');
+            if (statusEl) statusEl.textContent = `${sorted.length} area tersedia`;
         }
 
+        // ============================================================
+        // MAPS: LOAD GEOJSON
+        // ============================================================
+        async function loadArea(key) {
+            // FIX: gunakan ensureMapReady() alih-alih cek `if (!state.map)`
+            // saja. Fungsi ini menunggu sampai instance Leaflet benar-benar
+            // terpasang di DOM sebelum lanjut, sehingga .addTo(state.map)
+            // di bawah tidak akan pernah menerima null lagi.
+            const ready = await ensureMapReady();
+            if (!ready) {
+                showError('Peta tidak siap, coba buka Maps lagi.');
+                return;
+            }
+
+            const url = GEOJSON_BASE_URL + key + '.geojson';
+            console.log(`🔄 Memuat GeoJSON: ${url}`);
+            try {
+                const overlay = $('mapLoadingOverlay');
+                overlay.classList.remove('hidden');
+                updateLoadingProgress(0, 1, `Memuat ${key}...`);
+                updateMapInfo(0, `Memuat ${key}...`);
+
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const geojson = await response.json();
+
+                if (!geojson.features || geojson.features.length === 0) {
+                    throw new Error('Tidak ada fitur ditemukan');
+                }
+
+                // DEBUG: tampilkan properties fitur pertama di console,
+                // supaya gampang dicek nama field warna aslinya kalau
+                // ternyata warna masih belum sesuai (buka DevTools > Console).
+                console.log('🎨 Contoh properties fitur pertama:', geojson.features[0].properties);
+
+                // Cek ulang tepat sebelum dipakai — jaga-jaga kalau map
+                // sempat hilang selama proses fetch di atas (mis. reload dsb).
+                if (!state.map) {
+                    throw new Error('Peta tidak tersedia lagi, silakan ulangi.');
+                }
+
+                // Hapus layer sebelumnya
+                if (state.geoJsonLayer) {
+                    state.map.removeLayer(state.geoJsonLayer);
+                    state.geoJsonLayer = null;
+                }
+
+                // Tambahkan layer baru — FIX: style & pointToLayer sekarang
+                // dinamis mengikuti warna asli tiap fitur dari file KMZ
+                // (lihat geoJsonFeatureStyle / geoJsonPointToLayer di atas).
+                // pointToLayer tetap pakai circleMarker (bukan ikon default
+                // Leaflet) supaya fitur bertipe Point selalu tampil tanpa
+                // bergantung pada gambar marker dari CDN.
+                state.geoJsonLayer = L.geoJSON(geojson, {
+                    style: geoJsonFeatureStyle,
+                    pointToLayer: geoJsonPointToLayer,
+                    onEachFeature: function(feature, layer) {
+                        if (feature.properties && feature.properties.name) {
+                            layer.bindPopup(feature.properties.name);
+                        }
+                    }
+                }).addTo(state.map);
+
+                // FIX: pastikan ukuran peta sudah benar sebelum fitBounds
+                state.map.invalidateSize();
+
+                // Fit bounds
+                const bounds = state.geoJsonLayer.getBounds();
+                if (bounds.isValid()) {
+                    state.map.fitBounds(bounds, { padding: [50, 50] });
+                }
+
+                updateMapInfo(1, `Menampilkan ${key}`);
+                showSuccess(`Area ${key} dimuat!`);
+            } catch (err) {
+                console.error('Error loading GeoJSON:', err);
+                showError(`Gagal memuat area: ${err.message}`);
+                updateMapInfo(0, `Gagal: ${err.message}`);
+                throw err;
+            } finally {
+                const overlay = $('mapLoadingOverlay');
+                overlay.classList.add('hidden');
+                state.isLoading = false;
+            }
+        }
+
+        // ============================================================
+        // MAPS: APPLY FILTER
+        // ============================================================
         function applyMapFilter() {
+            if (state.isLoading) {
+                showError('Sedang memuat, tunggu sebentar');
+                return;
+            }
             const select = $('mapAreaSelect');
             const key = select.value;
-            
             if (!key) {
                 showError('Pilih area terlebih dahulu');
                 return;
             }
-
-            let areaName = key.replace(/^3273_\d+_/, '').replace(/_/g, ' ');
-            let searchQuery = `${areaName} Bandung, Jawa Barat`;
-            const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(searchQuery)}`;
-
-            window.open(gmapsUrl, '_blank');
-            showSuccess(`Membuka area ${areaName.toUpperCase()} di Google Maps...`);
+            state.isLoading = true;
+            loadArea(key);
         }
 
         // ============================================================
-        // INIT & EVENT LISTENERS
+        // MAPS: RESET
+        // ============================================================
+        function resetMap() {
+            if (state.isLoading) {
+                showError('Sedang memuat, tunggu sebentar');
+                return;
+            }
+            if (state.geoJsonLayer) {
+                state.map.removeLayer(state.geoJsonLayer);
+                state.geoJsonLayer = null;
+            }
+            if (state.map) {
+                state.map.setView([CONFIG.MAP_CENTER.lat, CONFIG.MAP_CENTER.lng], CONFIG.MAP_ZOOM);
+            }
+            $('mapAreaSelect').value = '';
+            updateMapInfo(0, 'Pilih area dari dropdown');
+            showToast('Layer direset');
+        }
+
+        // ============================================================
+        // MAPS: UPDATE INFO
+        // ============================================================
+        function updateMapInfo(count, statusText) {
+            const countEl = $('mapLayerCount');
+            const displayEl = $('mapLayerCountDisplay');
+            const statusEl = $('mapFilterStatus');
+            if (countEl) countEl.textContent = count;
+            if (displayEl) displayEl.textContent = count;
+            if (statusEl) statusEl.textContent = statusText || '';
+        }
+
+        function updateLoadingProgress(current, total, statusText) {
+            const pct = total > 0 ? Math.min(100, Math.round((current / total) * 100)) : 0;
+            const fill = $('mapProgressFill');
+            if (fill) fill.style.width = pct + '%';
+            const text = $('mapProgressText');
+            if (text) text.textContent = `${current} / ${total}`;
+            const sub = $('mapLoadSub');
+            if (sub && statusText) sub.textContent = statusText;
+        }
+
+        // ============================================================
+        // MAPS: FILTER BUTTON
+        // ============================================================
+        $('mapFilterApplyBtn')?.addEventListener('click', applyMapFilter);
+        $('mapFilterResetBtn')?.addEventListener('click', resetMap);
+
+        // ============================================================
+        // MAPS: BACK BUTTON
+        // ============================================================
+        $('mapBackBtn')?.addEventListener('click', () => {
+            showPage('pageDashboard');
+            if (state.currentUser) renderDashboard();
+        });
+
+        // ============================================================
+        // BOTTOM NAV CLICK
         // ============================================================
         document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -1294,21 +1770,34 @@
                 showPage(page);
                 if (page === 'pageDashboard' && state.currentUser) renderDashboard();
                 if (page === 'pageAdmin') renderAdminAeList();
+                if (page === 'pageMaps') {
+                    // FIX: initMap() sekarang dipanggil setelah showPage()
+                    // sehingga container #map sudah dalam kondisi display:block
+                    // saat Leaflet dibuat.
+                    if (!state.map) {
+                        initMap();
+                    }
+                    if (state.map) {
+                        setTimeout(() => state.map.invalidateSize(), 200);
+                    }
+                }
             });
         });
 
+        // ============================================================
+        // INIT
+        // ============================================================
         async function init() {
             initMonthYearSelectors();
             updateMonthYearUI();
-            
             await loadAeList();
             renderAeDropdowns();
+            // Pastikan admin ada
             if (!state.aeList.some(a => String(a.name).toUpperCase() === 'ADMIN')) {
                 await apiCall('saveAe', { name: 'ADMIN', pin: CONFIG.ADMIN_PIN, targetFtth: 0, targetFwa: 0 });
                 await loadAeList();
                 renderAeDropdowns();
             }
-            
             $('monthSelect').addEventListener('change', async () => {
                 state.selectedDate.setMonth(parseInt($('monthSelect').value));
                 await refreshAllData();
@@ -1330,12 +1819,10 @@
             $('dashboardProductFilter')?.addEventListener('change', () => {
                 renderDashboard();
             });
-            
             $('loginForm').addEventListener('submit', handleLogin);
             $('adminLoginForm').addEventListener('submit', handleAdminLogin);
             $('dailyForm').addEventListener('submit', handleDailySubmit);
             $('adminDailyForm').addEventListener('submit', handleAdminDailySubmit);
-            
             $('btnGoToAdminLogin').addEventListener('click', () => {
                 $('adminLoginError').classList.remove('show');
                 showPage('pageAdminLogin');
@@ -1345,29 +1832,36 @@
                 $('loginError').classList.remove('show');
                 showPage('pageLogin');
             });
-            
             $('logoutBtn').addEventListener('click', handleLogout);
             $('adminAddAeBtn').addEventListener('click', handleAddAe);
             $('adminChangePinBtn').addEventListener('click', handleChangeAdminPin);
             $('tsSaveBtn').addEventListener('click', handleSaveTargets);
             $('tsReloadBtn').addEventListener('click', handleReloadTargets);
-            
             $('targetSearchInput').addEventListener('input', (e) => {
                 state.targetSearchQuery = e.target.value;
                 renderTargetSummaryCard();
             });
-            
-            // Google Maps Redirect Event
-            $('mapFilterApplyBtn')?.addEventListener('click', applyMapFilter);
-
             $('dailyDateInput').value = todayStr();
             $('adminDailyDateInput').value = todayStr();
-            
+
+            // FIX: initMap() TIDAK lagi dipanggil otomatis di sini
+            // (dulu: setTimeout(initMap, 500)) karena #pageMaps masih
+            // display:none saat init() berjalan — itu penyebab utama
+            // state.map bisa jadi tidak valid saat dipakai di loadArea().
+            // Peta sekarang diinisialisasi tepat saat user membuka tab
+            // Maps (lihat listener bottom-nav di atas) atau otomatis
+            // lewat ensureMapReady() saat loadArea() dipanggil.
+
+            // Populate dropdown area tetap aman dipanggil lebih awal,
+            // karena tidak bergantung pada ukuran container.
             populateAreaDropdown();
+
             showPage('pageLogin');
+            console.log('🚀 XL Satu Sales Tracker siap! (GeoJSON)');
         }
 
         document.addEventListener('DOMContentLoaded', init);
+        window.initMap = initMap;
     </script>
 </body>
 </html>
